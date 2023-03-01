@@ -6,9 +6,13 @@ import com.google.api.client.json.jackson2.JacksonFactory;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.SearchResult;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
+import java.net.URL;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 
 public class YouTubeSearch {
     /**
@@ -67,9 +71,30 @@ public class YouTubeSearch {
 
     /**
      * @param youTubeURL the YouTube link
-     * @return a link to a thumbnail of the given video
+     * @return a BufferedImage with proper aspect ratio of YouTube thumbnail from given link
      */
-    public static String getThumbnailURL(String youTubeURL) {
-        return "https://img.youtube.com/vi/" + getYouTubeID(youTubeURL) + "/0.jpg";
+    public static BufferedImage getThumbnailImage(String youTubeURL) {
+        // Define the desired aspect ratio
+        double aspectRatio = 16.0 / 9.0;
+        try {
+            // Load the thumbnail image from the URL
+            BufferedImage image = ImageIO.read(new URL("https://img.youtube.com/vi/" + getYouTubeID(youTubeURL) + "/hqdefault.jpg"));
+            // Crop the image to the desired aspect ratio
+            int width = image.getWidth();
+            int height = image.getHeight();
+            if ((double) width / (double) height > aspectRatio) {
+                int newWidth = (int) (height * aspectRatio);
+                int startX = (width - newWidth) / 2;
+                image = image.getSubimage(startX, 0, newWidth, height);
+            } else {
+                int newHeight = (int) (width / aspectRatio);
+                int startY = (height - newHeight) / 2;
+                image = image.getSubimage(0, startY, width, newHeight);
+            }
+            return image;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

@@ -14,8 +14,12 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.utils.FileUpload;
 
+import javax.imageio.ImageIO;
 import java.awt.*;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,10 +57,16 @@ public class PlayerManager {
                     EmbedBuilder embed = new EmbedBuilder()
                             .setAuthor(musicManager.scheduler.looping ? "Now Looping" : "Now Playing")
                             .setTitle(info.title, info.uri)
-                            .setImage(YouTubeSearch.getThumbnailURL(info.uri))
+                            .setImage("attachment://thumbnail.jpg")
                             .setColor(Color.red)
                             .setFooter(TimeUtil.formatTime(((TrackStartEvent) audioEvent).track.getDuration()));
-                    event.getChannel().sendMessageEmbeds(embed.build()).queue();
+                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                    try {
+                        ImageIO.write(YouTubeSearch.getThumbnailImage(info.uri), "jpg", outputStream);
+                    } catch (IOException e) {
+                        embed.setImage("https://img.youtube.com/vi/" + YouTubeSearch.getYouTubeID(info.uri) + "/hqdefault.jpg");
+                    }
+                    event.getMessageChannel().sendFiles(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg")).setEmbeds(embed.build()).queue();
                 }
             });
         }
