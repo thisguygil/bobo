@@ -3,8 +3,8 @@ package bobo.command.commands.music;
 import bobo.command.ICommand;
 import bobo.lavaplayer.GuildMusicManager;
 import bobo.lavaplayer.PlayerManager;
-import bobo.utils.TimeUtil;
-import bobo.utils.YouTubeSearch;
+import bobo.utils.TimeFormat;
+import bobo.utils.YouTubeUtil;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
@@ -28,17 +28,23 @@ public class NowPlayingCommand implements ICommand {
             return;
         }
         final AudioTrackInfo info = track.getInfo();
+
+        // Creates embedded message with track info
         EmbedBuilder embed = new EmbedBuilder()
                 .setAuthor(musicManager.scheduler.looping ? "Now Looping" : "Now Playing")
                 .setTitle(info.title, info.uri)
                 .setImage("attachment://thumbnail.jpg")
                 .setColor(Color.red)
-                .setFooter(TimeUtil.formatTime(track.getDuration() - track.getPosition()) + " left");
+                .setFooter(TimeFormat.formatTime(track.getDuration() - track.getPosition()) + " left");
+
+        // Sets image in embed to proper aspect ratio
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {
-            ImageIO.write(YouTubeSearch.getThumbnailImage(info.uri), "jpg", outputStream);
+            ImageIO.write(YouTubeUtil.getThumbnailImage(info.uri), "jpg", outputStream);
         } catch (IOException e) {
-            embed.setImage("https://img.youtube.com/vi/" + YouTubeSearch.getYouTubeID(info.uri) + "/hqdefault.jpg");
+            embed.setImage("https://img.youtube.com/vi/" + YouTubeUtil.getYouTubeID(info.uri) + "/hqdefault.jpg");
+            event.replyEmbeds(embed.build()).queue();
+            return;
         }
         event.replyFiles(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg")).setEmbeds(embed.build()).queue();
     }

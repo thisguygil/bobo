@@ -1,7 +1,7 @@
 package bobo.lavaplayer;
 
-import bobo.utils.TimeUtil;
-import bobo.utils.YouTubeSearch;
+import bobo.utils.TimeFormat;
+import bobo.utils.YouTubeUtil;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
@@ -54,17 +54,23 @@ public class PlayerManager {
             musicManager.setEventListener(audioEvent -> {
                 if (audioEvent instanceof TrackStartEvent) {
                     AudioTrackInfo info = ((TrackStartEvent) audioEvent).track.getInfo();
+
+                    // Creates embedded message with track info
                     EmbedBuilder embed = new EmbedBuilder()
                             .setAuthor(musicManager.scheduler.looping ? "Now Looping" : "Now Playing")
                             .setTitle(info.title, info.uri)
                             .setImage("attachment://thumbnail.jpg")
                             .setColor(Color.red)
-                            .setFooter(TimeUtil.formatTime(((TrackStartEvent) audioEvent).track.getDuration()));
+                            .setFooter(TimeFormat.formatTime(((TrackStartEvent) audioEvent).track.getDuration()));
+
+                    // Sets image in embed to proper aspect ratio
                     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                     try {
-                        ImageIO.write(YouTubeSearch.getThumbnailImage(info.uri), "jpg", outputStream);
+                        ImageIO.write(YouTubeUtil.getThumbnailImage(info.uri), "jpg", outputStream);
                     } catch (IOException e) {
-                        embed.setImage("https://img.youtube.com/vi/" + YouTubeSearch.getYouTubeID(info.uri) + "/hqdefault.jpg");
+                        embed.setImage("https://img.youtube.com/vi/" + YouTubeUtil.getYouTubeID(info.uri) + "/hqdefault.jpg");
+                        event.getMessageChannel().sendMessageEmbeds(embed.build()).queue();
+                        return;
                     }
                     event.getMessageChannel().sendFiles(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg")).setEmbeds(embed.build()).queue();
                 }

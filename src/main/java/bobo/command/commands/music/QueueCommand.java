@@ -3,7 +3,7 @@ package bobo.command.commands.music;
 import bobo.command.ICommand;
 import bobo.lavaplayer.GuildMusicManager;
 import bobo.lavaplayer.PlayerManager;
-import bobo.utils.TimeUtil;
+import bobo.utils.TimeFormat;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -11,7 +11,6 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 public class QueueCommand implements ICommand {
     @Override
@@ -30,7 +29,7 @@ public class QueueCommand implements ICommand {
                 .append("` by `")
                 .append(info.author)
                 .append("` [")
-                .append(TimeUtil.formatTime(currentTrack.getDuration() - currentTrack.getPosition()))
+                .append(TimeFormat.formatTime(currentTrack.getDuration() - currentTrack.getPosition()))
                 .append(musicManager.scheduler.looping ? " left] (currently looping)\n" : " left] (currently playing)\n");
         final List<AudioTrack> trackList = new ArrayList<>(queue);
         int count = 2;
@@ -42,7 +41,7 @@ public class QueueCommand implements ICommand {
                     .append("` by `")
                     .append(info.author)
                     .append("` [")
-                    .append(TimeUtil.formatTime(track.getDuration()))
+                    .append(TimeFormat.formatTime(track.getDuration()))
                     .append("]\n");
             count++;
         }
