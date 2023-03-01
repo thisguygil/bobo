@@ -24,6 +24,8 @@ public class Bobo {
                         // Music commands
                         Commands.slash("play", "Joins the voice channel and plays given track.")
                                 .addOption(STRING, "track", "YouTube link/query to play or search", true),
+                        Commands.slash("pause", "Pauses the currently playing track"),
+                        Commands.slash("resume", "Resumes the currently paused track"),
                         Commands.slash("nowplaying", "Shows the currently playing track."),
                         Commands.slash("queue", "Shows the currently queued tracks."),
                         Commands.slash("loop", "Loop the currently playing track."),

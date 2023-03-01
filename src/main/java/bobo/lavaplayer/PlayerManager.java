@@ -79,7 +79,8 @@ public class PlayerManager {
         this.audioPlayerManager.loadItemOrdered(musicManager, trackURL, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
-                event.reply("Adding to queue **" + track.getInfo().title + "** by **" + track.getInfo().author + "**").queue();
+                AudioTrackInfo info = track.getInfo();
+                event.reply("Adding to queue [" + info.title + "](<" + info.uri + ">) by **" + info.author + "**").queue();
                 musicManager.scheduler.queue(track);
             }
 

@@ -22,6 +22,8 @@ public class CommandManager {
 
         // Music commands
         commands.add(new PlayCommand());
+        commands.add(new PauseCommand());
+        commands.add(new ResumeCommand());
         commands.add(new NowPlayingCommand());
         commands.add(new QueueCommand());
         commands.add(new LoopCommand());

@@ -26,11 +26,24 @@ public class GuildMusicManager {
         this.sendHandler = new AudioPlayerSendHandler(this.audioPlayer);
     }
 
+    /**
+     * Sets an event listener (in this case, a listener for the start of an audio track)
+     *
+     * @param listener the event listener
+     */
     public void setEventListener(AudioEventListener listener) {
         if (eventListener == null) {
             eventListener = listener;
             audioPlayer.addListener(eventListener);
         }
+    }
+
+    /**
+     * Removes the event listener
+     */
+    public void removeEventListener() {
+        audioPlayer.removeListener(eventListener);
+        eventListener = null;
     }
 
     /**
