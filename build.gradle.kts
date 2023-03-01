@@ -1,17 +1,12 @@
 plugins {
     id("java")
+    id("com.github.johnrengelman.shadow") version "7.1.2"
 }
 
 group = "org.example"
 version = "1.0"
 
 val mainClassName = "bobo.Bobo"
-
-tasks.jar {
-    manifest {
-        attributes["Main-Class"] = mainClassName
-    }
-}
 
 repositories {
     mavenCentral()
@@ -31,13 +26,21 @@ dependencies {
     implementation("io.github.cdimascio:dotenv-java:2.3.2")
 }
 
+tasks.jar {
+    manifest {
+        attributes(
+                "Main-Class" to mainClassName
+        )
+    }
+}
+
 tasks.register("stage") {
     dependsOn("build", "clean")
 }
 
 tasks.register<JavaExec>("run") {
     classpath = project.configurations.getByName("runtimeClasspath")
-    mainClass.set("Bobo")
+    mainClass.set("bobo.Bobo")
 }
 
 tasks.named("build") {
