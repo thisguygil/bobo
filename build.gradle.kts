@@ -3,7 +3,15 @@ plugins {
 }
 
 group = "org.example"
-version = "1.0-SNAPSHOT"
+version = "1.0"
+
+val mainClassName = "bobo.Bobo"
+
+tasks.jar {
+    manifest {
+        attributes["Main-Class"] = mainClassName
+    }
+}
 
 repositories {
     mavenCentral()
