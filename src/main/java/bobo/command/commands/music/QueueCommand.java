@@ -24,11 +24,13 @@ public class QueueCommand implements ICommand {
         }
         AudioTrackInfo info = currentTrack.getInfo();
         StringBuilder message = new StringBuilder("**Current Queue:**\n");
-        message.append("1: `")
+        message.append("1: [")
                 .append(info.title)
-                .append("` by `")
+                .append("](<")
+                .append(info.uri)
+                .append(">) by ")
                 .append(info.author)
-                .append("` [")
+                .append(" [")
                 .append(TimeFormat.formatTime(currentTrack.getDuration() - currentTrack.getPosition()))
                 .append(musicManager.scheduler.looping ? " left] (currently looping)\n" : " left] (currently playing)\n");
         final List<AudioTrack> trackList = new ArrayList<>(queue);
@@ -36,11 +38,13 @@ public class QueueCommand implements ICommand {
         for (AudioTrack track : trackList) {
             info = track.getInfo();
             message.append(count)
-                    .append(": `")
+                    .append(": [")
                     .append(info.title)
-                    .append("` by `")
+                    .append("](<")
+                    .append(info.uri)
+                    .append(">) by ")
                     .append(info.author)
-                    .append("` [")
+                    .append(" [")
                     .append(TimeFormat.formatTime(track.getDuration()))
                     .append("]\n");
             count++;
