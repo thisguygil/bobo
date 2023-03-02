@@ -21,10 +21,10 @@ public class NowPlayingCommand implements ICommand {
     @Override
     public void handle(SlashCommandInteractionEvent event) {
         final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuildChannel().getGuild());
-        final AudioPlayer audioPlayer = musicManager.audioPlayer;
-        final AudioTrack track = audioPlayer.getPlayingTrack();
+        final AudioPlayer player = musicManager.player;
+        final AudioTrack track = player.getPlayingTrack();
         if (track == null) {
-            event.reply("There is no track playing currently").queue();
+            event.reply("There is nothing currently playing").queue();
             return;
         }
         final AudioTrackInfo info = track.getInfo();

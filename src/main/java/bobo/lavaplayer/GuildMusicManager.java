@@ -9,7 +9,7 @@ import com.sedmelluq.discord.lavaplayer.player.event.AudioEventListener;
  */
 public class GuildMusicManager {
 
-    public final AudioPlayer audioPlayer;
+    public final AudioPlayer player;
     public final TrackScheduler scheduler;
     public final AudioPlayerSendHandler sendHandler;
     private static AudioEventListener eventListener;
@@ -20,10 +20,10 @@ public class GuildMusicManager {
      * @param manager Audio player manager to use for creating the player.
      */
     public GuildMusicManager(AudioPlayerManager manager) {
-        this.audioPlayer = manager.createPlayer();
-        this.scheduler = new TrackScheduler(this.audioPlayer);
-        this.audioPlayer.addListener(this.scheduler);
-        this.sendHandler = new AudioPlayerSendHandler(this.audioPlayer);
+        this.player = manager.createPlayer();
+        this.scheduler = new TrackScheduler(this.player);
+        this.player.addListener(this.scheduler);
+        this.sendHandler = new AudioPlayerSendHandler(this.player);
     }
 
     /**
@@ -34,7 +34,7 @@ public class GuildMusicManager {
     public void setEventListener(AudioEventListener listener) {
         if (eventListener == null) {
             eventListener = listener;
-            audioPlayer.addListener(eventListener);
+            player.addListener(eventListener);
         }
     }
 
@@ -42,7 +42,7 @@ public class GuildMusicManager {
      * Removes the event listener
      */
     public void removeEventListener() {
-        audioPlayer.removeListener(eventListener);
+        player.removeListener(eventListener);
         eventListener = null;
     }
 

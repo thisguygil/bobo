@@ -11,9 +11,9 @@ public class SkipCommand implements ICommand {
     @Override
     public void handle(SlashCommandInteractionEvent event) {
         final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuildChannel().getGuild());
-        final AudioPlayer audioPlayer = musicManager.audioPlayer;
+        final AudioPlayer player = musicManager.player;
         final TrackScheduler scheduler = musicManager.scheduler;
-        if (audioPlayer.getPlayingTrack() == null) {
+        if (player.getPlayingTrack() == null) {
             event.reply("There is nothing currently playing").queue();
         } else {
             event.reply(scheduler.looping ? "Skipped. Looping has been turned off" : "Skipped").queue();

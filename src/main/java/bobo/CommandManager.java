@@ -47,11 +47,11 @@ public class CommandManager {
     }
 
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
-        ICommand command = this.getCommand(event.getName());
+        ICommand command = getCommand(event.getName());
         if (command != null) {
             command.handle(event);
         } else {
-            event.reply("use a real command bozo. /help if you don't know them.").queue();
+            event.reply("use a real command bozo. `/help` if you don't know them.").queue();
         }
     }
 

@@ -3,6 +3,7 @@ package bobo.command.commands.music;
 import bobo.command.ICommand;
 import bobo.lavaplayer.GuildMusicManager;
 import bobo.lavaplayer.PlayerManager;
+import bobo.lavaplayer.TrackScheduler;
 import bobo.utils.TimeFormat;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
@@ -16,10 +17,11 @@ public class QueueCommand implements ICommand {
     @Override
     public void handle(SlashCommandInteractionEvent event) {
         final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuildChannel().getGuild());
-        final BlockingQueue<AudioTrack> queue = musicManager.scheduler.queue;
-        AudioTrack currentTrack = musicManager.audioPlayer.getPlayingTrack();
+        final TrackScheduler scheduler = musicManager.scheduler;
+        final BlockingQueue<AudioTrack> queue = scheduler.queue;
+        AudioTrack currentTrack = musicManager.player.getPlayingTrack();
         if (queue.isEmpty() && currentTrack == null) {
-            event.reply("The queue is currently empty.").queue();
+            event.reply("The queue is currently empty").queue();
             return;
         }
         AudioTrackInfo info = currentTrack.getInfo();
@@ -32,7 +34,7 @@ public class QueueCommand implements ICommand {
                 .append(info.author)
                 .append(" [")
                 .append(TimeFormat.formatTime(currentTrack.getDuration() - currentTrack.getPosition()))
-                .append(musicManager.scheduler.looping ? " left] (currently looping)\n" : " left] (currently playing)\n");
+                .append(scheduler.looping ? " left] (currently looping)\n" : " left] (currently playing)\n");
         final List<AudioTrack> trackList = new ArrayList<>(queue);
         int count = 2;
         for (AudioTrack track : trackList) {

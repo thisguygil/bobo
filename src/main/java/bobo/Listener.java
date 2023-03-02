@@ -6,8 +6,6 @@ import bobo.lavaplayer.TrackScheduler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.entities.channel.middleman.AudioChannel;
-import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -55,15 +53,14 @@ public class Listener extends ListenerAdapter {
      */
     @Override
     public void onGuildVoiceUpdate(GuildVoiceUpdateEvent event) {
-        AudioChannelUnion channel = event.getChannelLeft();
-        if (event.getEntity().equals(event.getJDA().getSelfUser()) && channel != null) {
-            final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(channel.getGuild());
-            final AudioPlayer audioPlayer = musicManager.audioPlayer;
+        if (event.getEntity().equals(event.getGuild().getSelfMember()) && event.getChannelLeft() != null) {
+            final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuild());
+            final AudioPlayer player = musicManager.player;
             final TrackScheduler scheduler = musicManager.scheduler;
             scheduler.queue.clear();
             scheduler.looping = false;
-            audioPlayer.stopTrack();
-            audioPlayer.setPaused(false);
+            player.stopTrack();
+            player.setPaused(false);
             musicManager.removeEventListener();
         }
     }

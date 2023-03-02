@@ -10,13 +10,13 @@ public class PauseCommand implements ICommand {
     @Override
     public void handle(SlashCommandInteractionEvent event) {
         final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuildChannel().getGuild());
-        final AudioPlayer audioPlayer = musicManager.audioPlayer;
-        if (audioPlayer.getPlayingTrack() == null) {
+        final AudioPlayer player = musicManager.player;
+        if (player.getPlayingTrack() == null) {
             event.reply("There is nothing currently playing").queue();
             return;
         }
-        if (!audioPlayer.isPaused()) {
-            audioPlayer.setPaused(true);
+        if (!player.isPaused()) {
+            player.setPaused(true);
             event.reply("Paused").queue();
         } else {
             event.reply("The player is already paused. Use `/resume` to resume").queue();
