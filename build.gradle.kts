@@ -24,6 +24,8 @@ dependencies {
     implementation("com.google.oauth-client:google-oauth-client-jetty:1.23.0")
     implementation("com.google.apis:google-api-services-youtube:v3-rev222-1.25.0")
     implementation("io.github.cdimascio:dotenv-java:2.3.2")
+    implementation("org.slf4j:slf4j-api:2.0.6")
+    implementation("org.slf4j:slf4j-simple:2.0.6")
 }
 
 tasks.jar {
