@@ -9,6 +9,8 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class GetQuoteCommand implements ICommand {
     private static final List<Message> allMessages = new ArrayList<>();
@@ -20,8 +22,9 @@ public class GetQuoteCommand implements ICommand {
         int randomIndex = (int) (Math.random() * allMessages.size());
         Message randomMessage = allMessages.get(randomIndex);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
-        String finalMessage = randomMessage.getContentDisplay() + "\n" + randomMessage.getTimeCreated().format(formatter);
-        event.getHook().editOriginal(finalMessage).queue();
+        String messageContent = spoileredQuote(randomMessage.getContentDisplay());
+        String time = randomMessage.getTimeCreated().format(formatter);
+        event.getHook().editOriginal(messageContent + "\n" + time).queue();
     }
 
     /**
@@ -42,6 +45,25 @@ public class GetQuoteCommand implements ICommand {
                 }
             } catch (Exception ignored) {}
         }
+    }
+
+    /**
+     * Encapsulates a quote's speaker by "||", which spoilers the text in Discord
+     *
+     * @param quote the quote to be spoilered
+     * @return the spoilered quote
+     */
+    private static String spoileredQuote(String quote) {
+        String regex = "(\".*\")\\s*-\\s*(.*)";
+        Pattern pattern = Pattern.compile(regex);
+        Matcher matcher = pattern.matcher(quote);
+        StringBuilder formattedQuote = new StringBuilder();
+        while (matcher.find()) {
+            String speaker = matcher.group(2);
+            matcher.appendReplacement(formattedQuote, "$1\n-||" + speaker + "||");
+        }
+        matcher.appendTail(formattedQuote);
+        return formattedQuote.toString();
     }
 
     @Override
