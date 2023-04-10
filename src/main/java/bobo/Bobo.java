@@ -2,6 +2,7 @@ package bobo;
 
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import static net.dv8tion.jda.api.interactions.commands.OptionType.*;
@@ -37,6 +38,7 @@ public class Bobo {
                         Commands.slash("clear", "Clears queue and stops current track.")
                 )
                 .queue();
+        Message.suppressContentIntentWarning();
     }
 
     public static void main(String[] args) {
