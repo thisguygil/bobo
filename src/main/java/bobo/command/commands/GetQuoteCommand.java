@@ -58,8 +58,9 @@ public class GetQuoteCommand implements ICommand {
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(quote);
         StringBuilder formattedQuote = new StringBuilder();
+        String speaker;
         while (matcher.find()) {
-            String speaker = matcher.group(2);
+            speaker = matcher.group(2);
             matcher.appendReplacement(formattedQuote, "$1\n-||" + speaker + "||");
         }
         matcher.appendTail(formattedQuote);

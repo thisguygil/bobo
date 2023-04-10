@@ -18,7 +18,7 @@ repositories {
 dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.1")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.8.1")
-    implementation("net.dv8tion:JDA:5.0.0-beta.7")
+    implementation("net.dv8tion:JDA:5.0.0-beta.8")
     implementation("com.sedmelluq:lavaplayer:1.3.77")
     implementation("com.google.api-client:google-api-client:1.23.0")
     implementation("com.google.oauth-client:google-oauth-client-jetty:1.23.0")
