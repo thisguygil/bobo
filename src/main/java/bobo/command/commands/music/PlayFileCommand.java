@@ -17,6 +17,23 @@ public class PlayFileCommand implements ICommand {
         }
     }
 
+    /**
+     * Checks whether given file name is a valid audio file name
+     *
+     * @param fileName the file name
+     * @return true if the given file is a valid audio file name, false otherwise
+     */
+    private boolean isAudioFile(String fileName) {
+        String[] audioExtensions = {".mp3", ".mp4", ".wav", ".ogg", ".flac", ".m4a", ".aac"};
+        String fileExtension = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+        for (String audioExtension : audioExtensions) {
+            if (fileExtension.equals(audioExtension)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     @Override
     public String getName() {
         return "playfile";
@@ -27,18 +44,5 @@ public class PlayFileCommand implements ICommand {
         return "`/playfile`\n" +
                 "Joins the voice channel and plays attached audio/video file\n" +
                 "Usage: `/playfile <file (as attachment)>`";
-    }
-
-    private boolean isAudioFile(String fileName) {
-        String[] audioExtensions = {".mp3", ".mp4", ".wav", ".ogg", ".flac", ".m4a", ".aac"};
-        String fileExtension = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
-
-        for (String audioExtension : audioExtensions) {
-            if (fileExtension.equals(audioExtension)) {
-                return true;
-            }
-        }
-
-        return false;
     }
 }

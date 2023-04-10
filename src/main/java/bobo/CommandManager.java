@@ -1,6 +1,7 @@
 package bobo;
 
 import bobo.command.ICommand;
+import bobo.command.commands.GetQuoteCommand;
 import bobo.command.commands.HelpCommand;
 import bobo.command.commands.SayCommand;
 import bobo.command.commands.Steelix;
@@ -18,6 +19,7 @@ public class CommandManager {
     public CommandManager() {
         commands.add(new HelpCommand(this));
         commands.add(new SayCommand());
+        commands.add(new GetQuoteCommand());
         commands.add(new Steelix());
 
         // Music commands

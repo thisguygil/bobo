@@ -18,6 +18,7 @@ public class Bobo {
                                 .addOption(STRING, "command", "Command to explain", false),
                         Commands.slash("say", "Make bobo say what you tell it to.")
                                 .addOption(STRING, "content", "What the bot should say", true),
+                        Commands.slash("getquote", "Sends a random quote from #boquafiquotes"),
                         Commands.slash("steelix", "steelix"),
 
                         // Music commands
