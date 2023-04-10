@@ -7,6 +7,7 @@ public class SayCommand implements ICommand {
     @Override
     public void handle(SlashCommandInteractionEvent event) {
         event.getChannel().sendMessage(event.getOption("content").getAsString()).queue();
+        event.reply("Message sent").setEphemeral(true).queue();
     }
 
     @Override
