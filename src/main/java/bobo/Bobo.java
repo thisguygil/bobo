@@ -4,8 +4,7 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
-import static net.dv8tion.jda.api.interactions.commands.OptionType.INTEGER;
-import static net.dv8tion.jda.api.interactions.commands.OptionType.STRING;
+import static net.dv8tion.jda.api.interactions.commands.OptionType.*;
 
 public class Bobo {
     private Bobo() {
@@ -24,6 +23,8 @@ public class Bobo {
                         // Music commands
                         Commands.slash("play", "Joins the voice channel and plays given track.")
                                 .addOption(STRING, "track", "YouTube link/query to play or search", true),
+                        Commands.slash("playfile", "Joins the voice channel and plays attached audio/video file.")
+                                .addOption(ATTACHMENT, "file", "Audio file to play", true),
                         Commands.slash("pause", "Pauses the currently playing track"),
                         Commands.slash("resume", "Resumes the currently paused track"),
                         Commands.slash("nowplaying", "Shows the currently playing track."),

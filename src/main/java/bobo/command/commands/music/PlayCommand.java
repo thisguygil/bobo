@@ -2,6 +2,7 @@ package bobo.command.commands.music;
 
 import bobo.command.ICommand;
 import bobo.lavaplayer.PlayerManager;
+import bobo.utils.URLValidator;
 import bobo.utils.YouTubeUtil;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
@@ -16,7 +17,7 @@ public class PlayCommand implements ICommand {
 
         String track = event.getOption("track").getAsString();
         String trackURL;
-        if (!YouTubeUtil.isYouTubeURL(track)) {
+        if (!URLValidator.isValidURL(track)) {
             try {
                 trackURL = YouTubeUtil.searchForVideo(track);
             } catch (Exception e) {
