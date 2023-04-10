@@ -4,6 +4,7 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.requests.GatewayIntent;
 
 import static net.dv8tion.jda.api.interactions.commands.OptionType.*;
 
@@ -11,6 +12,7 @@ public class Bobo {
     private Bobo() {
         JDABuilder.createDefault(Config.get("TOKEN"))
                 .addEventListeners(new Listener())
+                .enableIntents(GatewayIntent.MESSAGE_CONTENT)
                 .setActivity(Activity.streaming("Splatoon 3", "https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
                 .build()
                 .updateCommands()
@@ -38,7 +40,6 @@ public class Bobo {
                         Commands.slash("clear", "Clears queue and stops current track.")
                 )
                 .queue();
-        Message.suppressContentIntentWarning();
     }
 
     public static void main(String[] args) {
