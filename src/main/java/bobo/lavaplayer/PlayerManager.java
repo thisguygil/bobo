@@ -23,6 +23,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class PlayerManager {
     private static PlayerManager INSTANCE;
@@ -47,8 +48,8 @@ public class PlayerManager {
     public void loadAndPlay(SlashCommandInteractionEvent event, String trackURL) {
         final GuildMusicManager musicManager = this.getMusicManager(event.getGuildChannel().getGuild());
         // Bot joins only if not already in a vc
-        if (!event.getGuild().getAudioManager().isConnected()) {
-            event.getGuild().getAudioManager().openAudioConnection(event.getMember().getVoiceState().getChannel());
+        if (!Objects.requireNonNull(event.getGuild()).getAudioManager().isConnected()) {
+            event.getGuild().getAudioManager().openAudioConnection(Objects.requireNonNull(Objects.requireNonNull(event.getMember()).getVoiceState()).getChannel());
 
             // Sets event listener to send message whenever new track starts
             musicManager.setEventListener(audioEvent -> {
@@ -66,7 +67,7 @@ public class PlayerManager {
                     // Sets image in embed to proper aspect ratio
                     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                     try {
-                        ImageIO.write(YouTubeUtil.getThumbnailImage(info.uri), "jpg", outputStream);
+                        ImageIO.write(Objects.requireNonNull(YouTubeUtil.getThumbnailImage(info.uri)), "jpg", outputStream);
                     } catch (IOException e) {
                         embed.setImage("https://img.youtube.com/vi/" + YouTubeUtil.getYouTubeID(info.uri) + "/hqdefault.jpg");
                         event.getMessageChannel().sendMessageEmbeds(embed.build()).queue();

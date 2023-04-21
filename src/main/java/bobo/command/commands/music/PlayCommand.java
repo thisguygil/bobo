@@ -7,17 +7,18 @@ import bobo.utils.YouTubeUtil;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 public class PlayCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         // Member invoking command must be in a vc
-        if (event.getMember().getVoiceState().getChannel() == null) {
+        if (Objects.requireNonNull(Objects.requireNonNull(event.getMember()).getVoiceState()).getChannel() == null) {
             event.reply("You must be connected to a voice channel to use this command.").queue();
             return;
         }
 
-        String track = event.getOption("track").getAsString();
+        String track = Objects.requireNonNull(event.getOption("track")).getAsString();
         String trackURL;
         if (!URLValidator.isValidURL(track)) {
             try {
@@ -39,8 +40,9 @@ public class PlayCommand implements ICommand {
 
     @Override
     public String getHelp() {
-        return "`/play`\n" +
-                "Joins the voice channel and plays given or searched YouTube link\n" +
-                "Usage: `/play <YouTube link/query>`";
+        return """
+                `/play`
+                Joins the voice channel and plays given or searched YouTube link
+                Usage: `/play <YouTube link/query>`""";
     }
 }

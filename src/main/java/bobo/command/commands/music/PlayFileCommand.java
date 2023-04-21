@@ -6,11 +6,12 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 public class PlayFileCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
-        Message.Attachment attachment = event.getOption("file").getAsAttachment();
+        Message.Attachment attachment = Objects.requireNonNull(event.getOption("file")).getAsAttachment();
         if (isAudioFile(attachment.getFileName())) {
             String url = attachment.getUrl();
             PlayerManager.getInstance().loadAndPlay(event, url);
@@ -43,8 +44,9 @@ public class PlayFileCommand implements ICommand {
 
     @Override
     public String getHelp() {
-        return "`/playfile`\n" +
-                "Joins the voice channel and plays attached audio/video file\n" +
-                "Usage: `/playfile <file (as attachment)>`";
+        return """
+                `/playfile`
+                Joins the voice channel and plays attached audio/video file
+                Usage: `/playfile <file (as attachment)>`""";
     }
 }

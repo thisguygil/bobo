@@ -8,7 +8,7 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import static net.dv8tion.jda.api.interactions.commands.OptionType.*;
 
 public class Bobo {
-    private Bobo() {
+    public static void main(String[] args) {
         JDABuilder.createDefault(Config.get("TOKEN"))
                 .addEventListeners(new Listener())
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT)
@@ -20,7 +20,7 @@ public class Bobo {
                                 .addOption(STRING, "command", "Command to explain", false),
                         Commands.slash("say", "Make bobo say what you tell it to.")
                                 .addOption(STRING, "content", "What the bot should say", true),
-                        Commands.slash("getquote", "Sends a random quote from #boquafiquotes"),
+                        Commands.slash("getquote", "Sends a random quote from #boquafiquotes."),
                         Commands.slash("steelix", "steelix"),
 
                         // Music commands
@@ -39,9 +39,5 @@ public class Bobo {
                         Commands.slash("clear", "Clears queue and stops current track.")
                 )
                 .queue();
-    }
-
-    public static void main(String[] args) {
-        new Bobo();
     }
 }

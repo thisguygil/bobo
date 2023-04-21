@@ -17,6 +17,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.Objects;
 
 public class NowPlayingCommand implements ICommand {
     @Override
@@ -41,7 +42,7 @@ public class NowPlayingCommand implements ICommand {
         // Sets image in embed to proper aspect ratio
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {
-            ImageIO.write(YouTubeUtil.getThumbnailImage(info.uri), "jpg", outputStream);
+            ImageIO.write(Objects.requireNonNull(YouTubeUtil.getThumbnailImage(info.uri)), "jpg", outputStream);
         } catch (IOException e) {
             embed.setImage("https://img.youtube.com/vi/" + YouTubeUtil.getYouTubeID(info.uri) + "/hqdefault.jpg");
             event.replyEmbeds(embed.build()).queue();

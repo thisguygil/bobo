@@ -8,7 +8,6 @@ import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
@@ -42,6 +41,7 @@ public class Listener extends ListenerAdapter {
                     .addContent("**" + event.getAuthor().getAsTag() + "**\n" + event.getMessage().getContentDisplay())
                     .addEmbeds(event.getMessage().getEmbeds())
                     .build();
+            assert channel != null;
             channel.sendMessage(message).queue();
         }
     }

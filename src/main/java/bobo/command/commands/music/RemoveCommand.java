@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 
 import javax.annotation.Nonnull;
 import java.util.Iterator;
+import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 
 public class RemoveCommand implements ICommand {
@@ -23,7 +24,7 @@ public class RemoveCommand implements ICommand {
             event.reply("The queue is currently empty").queue();
             return;
         }
-        int position = event.getOption("position").getAsInt();
+        int position = Objects.requireNonNull(event.getOption("position")).getAsInt();
         if (position < 1 || position > queue.size() + 1) {
             event.reply("Please enter an integer corresponding to a track's position in the queue").queue();
         } else {
@@ -54,8 +55,9 @@ public class RemoveCommand implements ICommand {
 
     @Override
     public String getHelp() {
-        return "`/remove`\n" +
-                "Removes track at given position in the queue\n" +
-                "Usage: `/remove <position in queue to remove>`";
+        return """
+                `/remove`
+                Removes track at given position in the queue
+                Usage: `/remove <position in queue to remove>`""";
     }
 }

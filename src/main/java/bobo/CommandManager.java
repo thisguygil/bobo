@@ -1,10 +1,7 @@
 package bobo;
 
 import bobo.command.ICommand;
-import bobo.command.commands.GetQuoteCommand;
-import bobo.command.commands.HelpCommand;
-import bobo.command.commands.SayCommand;
-import bobo.command.commands.Steelix;
+import bobo.command.commands.*;
 import bobo.command.commands.music.*;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 

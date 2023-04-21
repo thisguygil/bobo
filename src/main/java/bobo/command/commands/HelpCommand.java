@@ -5,6 +5,7 @@ import bobo.command.ICommand;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 import javax.annotation.Nonnull;
+import java.util.Objects;
 
 public class HelpCommand implements ICommand {
     private final CommandManager manager;
@@ -28,7 +29,7 @@ public class HelpCommand implements ICommand {
             }
             event.reply(message.toString()).queue();
         } else  {
-            String commandSearch = event.getOption("command").getAsString();
+            String commandSearch = Objects.requireNonNull(event.getOption("command")).getAsString();
             ICommand command = manager.getCommand(commandSearch);
             if (command == null) {
                 event.reply("Nothing found for " + commandSearch).queue();

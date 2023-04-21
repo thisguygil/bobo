@@ -35,6 +35,7 @@ public class GetQuoteCommand implements ICommand {
      */
     public void loadMessages(JDA jda) {
         TextChannel channel = jda.getTextChannelById("826951218135826463");
+        assert channel != null;
         for (Message message : channel.getIterableHistory()) {
             try {
                 if (!allMessages.contains(message)) {

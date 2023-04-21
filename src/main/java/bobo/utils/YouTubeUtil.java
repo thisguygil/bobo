@@ -47,22 +47,22 @@ public class YouTubeUtil {
 
         return "https://www.youtube.com/watch?v=" + videoId;
     }
-
+/*
     /**
      * @param youTubeURL the string to check if it's a link
      * @return true if given string is a YouTube link, false otherwise
-     */
+     *
     public static boolean isYouTubeURL(String youTubeURL) {
-        String pattern = "^(http(s)?:\\/\\/)?((w){3}.)?youtu(be|.be)?(\\.com)?\\/.+";
+        String pattern = "^(http(s)?://)?((w){3}.)?youtu(be|.be)?(\\.com)?/.+";
         return !youTubeURL.isEmpty() && youTubeURL.matches(pattern);
     }
-
+*/
     /**
      * @param youTubeURL the YouTube link
      * @return the id of the given YouTube link
      */
     public static String getYouTubeID(String youTubeURL) {
-        String pattern = "(?<=youtu.be/|watch\\?v=|/videos/|embed\\/)[^#\\&\\?]*";
+        String pattern = "(?<=youtu.be/|watch\\?v=|/videos/|embed/)[^#&?]*";
         Matcher matcher = Pattern.compile(pattern).matcher(youTubeURL);
         if (matcher.find()) {
             return matcher.group();
