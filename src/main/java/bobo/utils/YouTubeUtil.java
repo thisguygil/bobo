@@ -15,6 +15,8 @@ import java.util.regex.Pattern;
 
 
 public class YouTubeUtil {
+    private static final String API_KEY = Config.get("GOOGLE_API_KEY");
+
     /**
      * Search for a YouTube video based on the specified query and return its link.
      *
@@ -28,7 +30,7 @@ public class YouTubeUtil {
                 .build();
 
         List<SearchResult> searchResultList = youtube.search().list("id, snippet")
-                .setKey(Config.get("YOUTUBE_KEY"))
+                .setKey(API_KEY)
                 .setQ(query)
                 .setType("video")
                 .setMaxResults((long) 1)
