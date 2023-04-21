@@ -16,6 +16,7 @@ public class CommandManager {
     public CommandManager() {
         commands.add(new HelpCommand(this));
         commands.add(new SayCommand());
+        commands.add(new SearchCommand());
         commands.add(new GetQuoteCommand());
         commands.add(new Steelix());
 
