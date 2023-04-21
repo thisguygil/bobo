@@ -32,7 +32,6 @@ public class SearchCommand implements ICommand {
 
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
-        event.deferReply().queue();
         String query = Objects.requireNonNull(event.getOption("query")).getAsString();
         try {
             String url = "https://www.googleapis.com/customsearch/v1?key=" + API_KEY +
