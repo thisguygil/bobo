@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
@@ -38,10 +39,9 @@ public class Listener extends ListenerAdapter {
         if (event.isFromType(ChannelType.PRIVATE)) {
             TextChannel channel = event.getJDA().getTextChannelById("1080252409726644355");
             MessageCreateData message = new MessageCreateBuilder()
-                    .applyMessage(event.getMessage())
+                    .addContent("**" + event.getAuthor().getAsTag() + "**\n" + event.getMessage().getContentDisplay())
                     .addEmbeds(event.getMessage().getEmbeds())
                     .build();
-            channel.sendMessage("**" + event.getAuthor().getAsTag() + "**").queue();
             channel.sendMessage(message).queue();
         }
     }
@@ -52,7 +52,7 @@ public class Listener extends ListenerAdapter {
      * @param event the voice update event
      */
     @Override
-    public void onGuildVoiceUpdate(GuildVoiceUpdateEvent event) {
+    public void onGuildVoiceUpdate(@Nonnull GuildVoiceUpdateEvent event) {
         if (event.getEntity().equals(event.getGuild().getSelfMember()) && event.getChannelLeft() != null) {
             final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuild());
             final AudioPlayer player = musicManager.player;

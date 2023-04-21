@@ -7,9 +7,11 @@ import bobo.lavaplayer.TrackScheduler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
+import javax.annotation.Nonnull;
+
 public class LoopCommand implements ICommand {
     @Override
-    public void handle(SlashCommandInteractionEvent event) {
+    public void handle(@Nonnull SlashCommandInteractionEvent event) {
         final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuildChannel().getGuild());
         final AudioPlayer player = musicManager.player;
         final TrackScheduler scheduler = musicManager.scheduler;

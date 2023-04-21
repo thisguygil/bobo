@@ -6,9 +6,11 @@ import bobo.utils.URLValidator;
 import bobo.utils.YouTubeUtil;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
+import javax.annotation.Nonnull;
+
 public class PlayCommand implements ICommand {
     @Override
-    public void handle(SlashCommandInteractionEvent event) {
+    public void handle(@Nonnull SlashCommandInteractionEvent event) {
         // Member invoking command must be in a vc
         if (event.getMember().getVoiceState().getChannel() == null) {
             event.reply("You must be connected to a voice channel to use this command.").queue();

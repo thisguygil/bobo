@@ -8,12 +8,13 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
+import javax.annotation.Nonnull;
 import java.util.Iterator;
 import java.util.concurrent.BlockingQueue;
 
 public class RemoveCommand implements ICommand {
     @Override
-    public void handle(SlashCommandInteractionEvent event) {
+    public void handle(@Nonnull SlashCommandInteractionEvent event) {
         final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuildChannel().getGuild());
         final AudioPlayer player = musicManager.player;
         final TrackScheduler scheduler = musicManager.scheduler;

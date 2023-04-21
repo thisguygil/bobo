@@ -5,9 +5,11 @@ import bobo.lavaplayer.PlayerManager;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
+import javax.annotation.Nonnull;
+
 public class PlayFileCommand implements ICommand {
     @Override
-    public void handle(SlashCommandInteractionEvent event) {
+    public void handle(@Nonnull SlashCommandInteractionEvent event) {
         Message.Attachment attachment = event.getOption("file").getAsAttachment();
         if (isAudioFile(attachment.getFileName())) {
             String url = attachment.getUrl();

@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.utils.FileUpload;
 
+import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.io.ByteArrayOutputStream;
@@ -19,7 +20,7 @@ import java.io.IOException;
 
 public class NowPlayingCommand implements ICommand {
     @Override
-    public void handle(SlashCommandInteractionEvent event) {
+    public void handle(@Nonnull SlashCommandInteractionEvent event) {
         final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuildChannel().getGuild());
         final AudioPlayer player = musicManager.player;
         final AudioTrack track = player.getPlayingTrack();

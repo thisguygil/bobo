@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
+import javax.annotation.Nonnull;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,7 +17,7 @@ public class GetQuoteCommand implements ICommand {
     private static final List<Message> allMessages = new ArrayList<>();
 
     @Override
-    public void handle(SlashCommandInteractionEvent event) {
+    public void handle(@Nonnull SlashCommandInteractionEvent event) {
         event.deferReply().queue();
         loadMessages(event.getJDA());
         int randomIndex = (int) (Math.random() * allMessages.size());

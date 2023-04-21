@@ -4,6 +4,8 @@ import bobo.CommandManager;
 import bobo.command.ICommand;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
+import javax.annotation.Nonnull;
+
 public class HelpCommand implements ICommand {
     private final CommandManager manager;
 
@@ -12,7 +14,7 @@ public class HelpCommand implements ICommand {
     }
 
     @Override
-    public void handle(SlashCommandInteractionEvent event) {
+    public void handle(@Nonnull SlashCommandInteractionEvent event) {
         StringBuilder message = new StringBuilder();
         if (event.getOption("command") == null) {
             message.append("List of commands\n");
@@ -21,7 +23,7 @@ public class HelpCommand implements ICommand {
                         .append(command.getName())
                         .append("`\n");
                 if (command.getName().equals("help")) {
-                    message.append("To get info on a specific command: `/help <command (without /)>`\n");
+                    message.append("To get info on a specific command: `/help <command name>`\n");
                 }
             }
             event.reply(message.toString()).queue();
