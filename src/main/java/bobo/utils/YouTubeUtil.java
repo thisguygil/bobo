@@ -2,13 +2,14 @@ package bobo.utils;
 
 import bobo.Config;
 import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
-import com.google.api.client.json.jackson2.JacksonFactory;
+import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.SearchResult;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.net.URL;
+import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -25,14 +26,14 @@ public class YouTubeUtil {
      * @throws Exception If an error occurs while communicating with the YouTube Data API.
      */
     public static String searchForVideo(String query) throws Exception {
-        YouTube youtube = new YouTube.Builder(GoogleNetHttpTransport.newTrustedTransport(), JacksonFactory.getDefaultInstance(), null)
+        YouTube youtube = new YouTube.Builder(GoogleNetHttpTransport.newTrustedTransport(), GsonFactory.getDefaultInstance(), null)
                 .setApplicationName("Bobo")
                 .build();
 
-        List<SearchResult> searchResultList = youtube.search().list("id, snippet")
+        List<SearchResult> searchResultList = youtube.search().list(Arrays.asList("id", "snippet"))
                 .setKey(API_KEY)
                 .setQ(query)
-                .setType("video")
+                .setType(List.of("video"))
                 .setMaxResults((long) 1)
                 .setFields("items(id/videoId)")
                 .execute()
