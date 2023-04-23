@@ -31,9 +31,9 @@ public class QueueCommand implements ICommand {
                 .append(info.title)
                 .append("](<")
                 .append(info.uri)
-                .append(">) by ")
+                .append(">) by **")
                 .append(info.author)
-                .append(" [")
+                .append("** [")
                 .append(TimeFormat.formatTime(currentTrack.getDuration() - currentTrack.getPosition()))
                 .append(scheduler.looping ? " left] (currently looping)\n" : " left] (currently playing)\n");
         final List<AudioTrack> trackList = new ArrayList<>(queue);
