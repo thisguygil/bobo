@@ -12,10 +12,11 @@ public class Bobo {
         JDABuilder.createDefault(Config.get("TOKEN"))
                 .addEventListeners(new Listener())
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT)
-                .setActivity(Activity.streaming("Splatoon 3", "https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
+                .setActivity(Activity.streaming("Resident Evil 4", "https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
                 .build()
                 .updateCommands()
                 .addCommands(
+                        // Message commands
                         Commands.slash("help", "Shows the list of commands or gets info on a specific command.")
                                 .addOption(STRING, "command", "Command to explain", false),
                         Commands.slash("say", "Make bobo say what you tell it to.")
