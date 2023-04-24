@@ -13,6 +13,9 @@ repositories {
     maven {
         url = uri("https://m2.dv8tion.net/releases")
     }
+    maven {
+        url = uri("https://m2.chew.pro/snapshots")
+    }
 }
 
 dependencies {
@@ -20,6 +23,8 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
     implementation("net.dv8tion:JDA:5.0.0-beta.8")
+    implementation("pw.chew:jda-chewtils:2.0-SNAPSHOT")
+    implementation("com.github.ygimenez:Pagination-Utils:4.0.1")
     implementation("com.sedmelluq:lavaplayer:1.3.77")
     implementation("com.google.api-client:google-api-client:2.2.0")
     implementation("com.google.oauth-client:google-oauth-client-jetty:1.34.1")
