@@ -1,5 +1,7 @@
 package bobo;
 
+import com.github.ygimenez.model.PaginatorBuilder;
+import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
@@ -9,18 +11,18 @@ import static net.dv8tion.jda.api.interactions.commands.OptionType.*;
 
 public class Bobo {
     public static void main(String[] args) {
-        JDABuilder.createDefault(Config.get("TOKEN"))
+        JDA jda = JDABuilder.createDefault(Config.get("TOKEN"))
                 .addEventListeners(new Listener())
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT)
                 .setActivity(Activity.streaming("Resident Evil 4", "https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
-                .build()
-                .updateCommands()
+                .build();
+        jda.updateCommands()
                 .addCommands(
                         // Message commands
                         Commands.slash("help", "Shows the list of commands or gets info on a specific command.")
                                 .addOption(STRING, "command", "Command to explain", false),
                         Commands.slash("say", "Make bobo say what you tell it to.")
-                                .addOption(STRING, "content", "What the bot should say", true),
+                                .addOption(STRING, "content", "What bobo should say", true),
                         Commands.slash("search", "Search given query on Google.")
                                 .addOption(STRING, "query", "What to search", true),
                         Commands.slash("getquote", "Sends a random quote from #boquafiquotes."),
@@ -36,11 +38,21 @@ public class Bobo {
                         Commands.slash("nowplaying", "Shows the currently playing track."),
                         Commands.slash("queue", "Shows the currently queued tracks."),
                         Commands.slash("loop", "Loop the currently playing track."),
+                        Commands.slash("shuffle", "Shuffles the current queue (except for the currently playing track)."),
                         Commands.slash("skip", "Skips the current track."),
                         Commands.slash("remove", "Removes track at given position in the queue.")
                                 .addOption(INTEGER, "position", "What position in the queue to remove the track from", true),
                         Commands.slash("clear", "Clears queue and stops current track.")
                 )
                 .queue();
+        try {
+            PaginatorBuilder.createPaginator(jda)
+                    .shouldRemoveOnReact(false)
+                    .shouldEventLock(false)
+                    .setDeleteOnCancel(true)
+                    .activate();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

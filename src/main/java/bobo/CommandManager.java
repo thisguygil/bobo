@@ -28,6 +28,7 @@ public class CommandManager {
         commands.add(new NowPlayingCommand());
         commands.add(new QueueCommand());
         commands.add(new LoopCommand());
+        commands.add(new ShuffleCommand());
         commands.add(new SkipCommand());
         commands.add(new RemoveCommand());
         commands.add(new ClearCommand());
