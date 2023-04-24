@@ -13,7 +13,7 @@ import java.util.concurrent.LinkedBlockingQueue;
  */
 public class TrackScheduler extends AudioEventAdapter {
     public final AudioPlayer player;
-    public final BlockingQueue<AudioTrack> queue;
+    public BlockingQueue<AudioTrack> queue;
     public boolean looping = false;
 
     /**
