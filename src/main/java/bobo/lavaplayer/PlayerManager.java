@@ -68,12 +68,11 @@ public class PlayerManager {
                     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                     try {
                         ImageIO.write(Objects.requireNonNull(YouTubeUtil.getThumbnailImage(info.uri)), "jpg", outputStream);
-                    } catch (IOException e) {
-                        embed.setImage("https://img.youtube.com/vi/" + YouTubeUtil.getYouTubeID(info.uri) + "/hqdefault.jpg");
+                        event.getMessageChannel().sendFiles(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg")).setEmbeds(embed.build()).queue();
+                    } catch (Exception e) {
                         event.getMessageChannel().sendMessageEmbeds(embed.build()).queue();
-                        return;
                     }
-                    event.getMessageChannel().sendFiles(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg")).setEmbeds(embed.build()).queue();
+
                 }
             });
         }
@@ -81,14 +80,14 @@ public class PlayerManager {
             @Override
             public void trackLoaded(AudioTrack track) {
                 AudioTrackInfo info = track.getInfo();
-                event.reply("Adding to queue [" + info.title + "](<" + info.uri + ">) by **" + info.author + "**").queue();
+                event.getHook().editOriginal("Adding to queue [" + info.title + "](<" + info.uri + ">) by **" + info.author + "**").queue();
                 musicManager.scheduler.queue(track);
             }
 
             @Override
             public void playlistLoaded(AudioPlaylist playlist) {
                 final List<AudioTrack> tracks = playlist.getTracks();
-                event.reply("Adding to queue **" + tracks.size() + "** tracks from playlist **" + playlist.getName() + "**").queue();
+                event.getHook().editOriginal("Adding to queue **" + tracks.size() + "** tracks from playlist **" + playlist.getName() + "**").queue();
                 for (final AudioTrack track : tracks) {
                     musicManager.scheduler.queue(track);
                 }
@@ -96,7 +95,7 @@ public class PlayerManager {
 
             @Override
             public void noMatches() {
-                event.reply("Nothing found by **" + trackURL + "**").queue();
+                event.getHook().editOriginal("Nothing found by **" + trackURL + "**").queue();
             }
 
             @Override

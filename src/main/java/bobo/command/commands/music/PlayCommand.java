@@ -12,6 +12,7 @@ import java.util.Objects;
 public class PlayCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
+        event.deferReply().queue();
         // Member invoking command must be in a vc
         if (Objects.requireNonNull(Objects.requireNonNull(event.getMember()).getVoiceState()).getChannel() == null) {
             event.reply("You must be connected to a voice channel to use this command.").queue();

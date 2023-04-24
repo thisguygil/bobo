@@ -22,6 +22,7 @@ import java.util.Objects;
 public class NowPlayingCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
+        event.deferReply().queue();
         final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuildChannel().getGuild());
         final AudioPlayer player = musicManager.player;
         final AudioTrack track = player.getPlayingTrack();
@@ -43,12 +44,12 @@ public class NowPlayingCommand implements ICommand {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {
             ImageIO.write(Objects.requireNonNull(YouTubeUtil.getThumbnailImage(info.uri)), "jpg", outputStream);
-        } catch (IOException e) {
+        } catch (Exception e) {
             embed.setImage("https://img.youtube.com/vi/" + YouTubeUtil.getYouTubeID(info.uri) + "/hqdefault.jpg");
-            event.replyEmbeds(embed.build()).queue();
+            event.getHook().editOriginalEmbeds(embed.build()).queue();
             return;
         }
-        event.replyFiles(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg")).setEmbeds(embed.build()).queue();
+        event.getHook().editOriginalAttachments(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg")).setEmbeds(embed.build()).queue();
     }
 
     @Override

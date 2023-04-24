@@ -11,12 +11,13 @@ import java.util.Objects;
 public class PlayFileCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
+        event.deferReply().queue();
         Message.Attachment attachment = Objects.requireNonNull(event.getOption("file")).getAsAttachment();
         if (isAudioFile(attachment.getFileName())) {
             String url = attachment.getUrl();
             PlayerManager.getInstance().loadAndPlay(event, url);
         } else {
-            event.reply("Please attach a valid audio file.").queue();
+            event.getHook().editOriginal("Please attach a valid audio file.").queue();
         }
     }
 
