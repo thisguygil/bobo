@@ -100,7 +100,7 @@ public class PlayerManager {
 
             @Override
             public void loadFailed(FriendlyException e) {
-                event.getChannel().asTextChannel().sendMessage("Could not play: **" + e.getMessage() + "**").queue();
+                event.getMessageChannel().sendMessage("Could not play: **" + e.getMessage() + "**").queue();
             }
         });
     }
