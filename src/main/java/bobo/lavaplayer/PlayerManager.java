@@ -19,7 +19,6 @@ import net.dv8tion.jda.api.utils.FileUpload;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
