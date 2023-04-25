@@ -25,7 +25,7 @@ public class Bobo {
                                 .addOption(STRING, "content", "What bobo should say", true),
                         Commands.slash("search", "Search given query on Google.")
                                 .addOption(STRING, "query", "What to search", true),
-                        Commands.slash("getquote", "Sends a random quote from #boquafiquotes."),
+                        Commands.slash("getquote", "Gets a random quote from #boquafiquotes."),
                         Commands.slash("steelix", "steelix"),
 
                         // Music commands

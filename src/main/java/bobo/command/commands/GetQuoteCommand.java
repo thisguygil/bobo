@@ -63,7 +63,7 @@ public class GetQuoteCommand implements ICommand {
         String speaker;
         while (matcher.find()) {
             speaker = matcher.group(2);
-            matcher.appendReplacement(formattedQuote, "$1\n-||" + speaker + "||");
+            matcher.appendReplacement(formattedQuote, "$1\n-||" + speaker + " [Message from Bobo: if you're reading this you're gay]||");
         }
         matcher.appendTail(formattedQuote);
         return formattedQuote.toString();
@@ -77,6 +77,6 @@ public class GetQuoteCommand implements ICommand {
     @Override
     public String getHelp() {
         return "`/getquote`\n" +
-                "Sends a random quote from #boquafiquotes";
+                "Gets a random quote from #boquafiquotes";
     }
 }
