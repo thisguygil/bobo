@@ -15,7 +15,7 @@ public class PlayCommand implements ICommand {
         event.deferReply().queue();
         // Member invoking command must be in a vc
         if (Objects.requireNonNull(Objects.requireNonNull(event.getMember()).getVoiceState()).getChannel() == null) {
-            event.reply("You must be connected to a voice channel to use this command.").queue();
+            event.getHook().editOriginal("You must be connected to a voice channel to use this command.").queue();
             return;
         }
 
@@ -25,7 +25,7 @@ public class PlayCommand implements ICommand {
             try {
                 trackURL = YouTubeUtil.searchForVideo(track);
             } catch (Exception e) {
-                event.reply("Nothing found by **" + track + "**").queue();
+                event.getHook().editOriginal("Nothing found by **" + track + "**").queue();
                 return;
             }
         } else {
