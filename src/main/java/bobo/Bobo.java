@@ -21,10 +21,12 @@ public class Bobo {
                         // Message commands
                         Commands.slash("help", "Shows the list of commands or gets info on a specific command.")
                                 .addOption(STRING, "command", "Command to explain", false),
-                        Commands.slash("say", "Make bobo say what you tell it to.")
-                                .addOption(STRING, "content", "What bobo should say", true),
                         Commands.slash("search", "Search given query on Google.")
                                 .addOption(STRING, "query", "What to search", true),
+                        Commands.slash("ai", "Uses OpenAI to generate a response to the given prompt.")
+                                .addOption(STRING, "prompt", "Prompt to send to ChatGPT", true),
+                        Commands.slash("say", "Make bobo say what you tell it to.")
+                                .addOption(STRING, "content", "What bobo should say", true),
                         Commands.slash("getquote", "Gets a random quote from #boquafiquotes."),
                         Commands.slash("steelix", "steelix"),
 
