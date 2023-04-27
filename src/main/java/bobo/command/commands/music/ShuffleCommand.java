@@ -7,16 +7,15 @@ import bobo.lavaplayer.TrackScheduler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import org.jetbrains.annotations.NotNull;
 
-import javax.sound.midi.Track;
+import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.BlockingQueue;
 
 public class ShuffleCommand implements ICommand {
     @Override
-    public void handle(@NotNull SlashCommandInteractionEvent event) {
+    public void handle(@Nonnull SlashCommandInteractionEvent event) {
         final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuildChannel().getGuild());
         final AudioPlayer player = musicManager.player;
         final TrackScheduler scheduler = musicManager.scheduler;
