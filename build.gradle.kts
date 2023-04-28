@@ -32,8 +32,6 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("ch.qos.logback:logback-classic:1.4.7")
     implementation("io.github.cdimascio:dotenv-java:2.3.2")
-    implementation("org.slf4j:slf4j-api:2.0.6")
-    implementation("org.slf4j:slf4j-simple:2.0.6")
 }
 
 tasks.jar {
