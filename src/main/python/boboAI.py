@@ -9,10 +9,14 @@ openai.api_key = os.getenv("OPENAI_API_KEY")
 
 @boboAI.route("/", methods=["POST"])
 def generate():
-    response = openai.Completion.create(
-        model="text-davinci-003",
-        prompt=request.form["prompt"],
+    response = openai.ChatCompletion.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful assistant."},
+            {"role": "user", "content": request.form["prompt"]},
+        ],
         max_tokens=300,
-        temperature=0.6
+        temperature=0.6,
     )
-    return response.choices[0].text
+    output = response['choices'][0]['message']['content']
+    return output

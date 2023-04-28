@@ -7,15 +7,20 @@ import okhttp3.*;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 public class AICommand implements ICommand {
-    private static final OkHttpClient httpClient = new OkHttpClient();
+    private static final OkHttpClient httpClient = new OkHttpClient.Builder()
+            .connectTimeout(60, TimeUnit.SECONDS) // Increase the connection timeout to 60 seconds
+            .readTimeout(60, TimeUnit.SECONDS)
+            .writeTimeout(60, TimeUnit.SECONDS)
+            .build();
 
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         event.deferReply().queue();
         String prompt = Objects.requireNonNull(event.getOption("prompt")).getAsString();
-        String response = "**" + prompt + "**";
+        String response = "**" + prompt + "**\n";
         try {
             response += generate(prompt);
             event.getHook().editOriginal(response).queue();
