@@ -30,6 +30,10 @@ public class Bobo {
                         Commands.slash("getquote", "Gets a random quote from #boquafiquotes."),
                         Commands.slash("steelix", "steelix"),
 
+                        // Voice commands
+                        Commands.slash("join", "Joins the voice channel."),
+                        Commands.slash("leave", "Leaves the voice channel."),
+
                         // Music commands
                         Commands.slash("play", "Joins the voice channel and plays given track.")
                                 .addOption(STRING, "track", "YouTube link/query to play or search", true),

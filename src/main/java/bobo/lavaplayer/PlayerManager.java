@@ -46,35 +46,7 @@ public class PlayerManager {
 
     public void loadAndPlay(SlashCommandInteractionEvent event, String trackURL) {
         final GuildMusicManager musicManager = this.getMusicManager(event.getGuildChannel().getGuild());
-        // Bot joins only if not already in a vc
-        if (!Objects.requireNonNull(event.getGuild()).getAudioManager().isConnected()) {
-            event.getGuild().getAudioManager().openAudioConnection(Objects.requireNonNull(Objects.requireNonNull(event.getMember()).getVoiceState()).getChannel());
 
-            // Sets event listener to send message whenever new track starts
-            musicManager.setEventListener(audioEvent -> {
-                if (audioEvent instanceof TrackStartEvent) {
-                    AudioTrackInfo info = ((TrackStartEvent) audioEvent).track.getInfo();
-
-                    // Creates embedded message with track info
-                    EmbedBuilder embed = new EmbedBuilder()
-                            .setAuthor(musicManager.scheduler.looping ? "Now Looping" : "Now Playing")
-                            .setTitle(info.title, info.uri)
-                            .setImage("attachment://thumbnail.jpg")
-                            .setColor(Color.red)
-                            .setFooter(TimeFormat.formatTime(((TrackStartEvent) audioEvent).track.getDuration()));
-
-                    // Sets image in embed to proper aspect ratio
-                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                    try {
-                        ImageIO.write(Objects.requireNonNull(YouTubeUtil.getThumbnailImage(info.uri)), "jpg", outputStream);
-                        event.getMessageChannel().sendFiles(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg")).setEmbeds(embed.build()).queue();
-                    } catch (Exception e) {
-                        event.getMessageChannel().sendMessageEmbeds(embed.build()).queue();
-                    }
-
-                }
-            });
-        }
         this.audioPlayerManager.loadItemOrdered(musicManager, trackURL, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {

@@ -1,8 +1,9 @@
 package bobo;
 
-import bobo.command.ICommand;
+import bobo.command.*;
 import bobo.command.commands.*;
-import bobo.command.commands.music.*;
+import bobo.command.commands.voice.*;
+import bobo.command.commands.voice.music.*;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 import javax.annotation.Nonnull;
@@ -14,12 +15,17 @@ public class CommandManager {
     private final List<ICommand> commands = new ArrayList<>();
 
     public CommandManager() {
+        // Message commands
         commands.add(new HelpCommand(this));
         commands.add(new SearchCommand());
         commands.add(new AICommand());
         commands.add(new SayCommand());
         commands.add(new GetQuoteCommand());
         commands.add(new Steelix());
+
+        // Voice commands
+        commands.add(new JoinCommand());
+        commands.add(new LeaveCommand());
 
         // Music commands
         commands.add(new PlayCommand());

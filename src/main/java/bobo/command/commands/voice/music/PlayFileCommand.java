@@ -1,6 +1,7 @@
-package bobo.command.commands.music;
+package bobo.command.commands.voice.music;
 
 import bobo.command.ICommand;
+import bobo.command.commands.voice.JoinCommand;
 import bobo.lavaplayer.PlayerManager;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -11,7 +12,9 @@ import java.util.Objects;
 public class PlayFileCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
+        JoinCommand.join(event);
         event.deferReply().queue();
+
         Message.Attachment attachment = Objects.requireNonNull(event.getOption("file")).getAsAttachment();
         if (isAudioFile(attachment.getFileName())) {
             String url = attachment.getUrl();
