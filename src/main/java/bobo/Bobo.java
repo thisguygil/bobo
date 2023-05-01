@@ -23,7 +23,7 @@ public class Bobo {
                                 .addOption(STRING, "command", "Command to explain", false),
                         Commands.slash("search", "Search given query on Google.")
                                 .addOption(STRING, "query", "What to search", true),
-                        Commands.slash("ai", "Uses OpenAI to generate a response to the given prompt.")
+                        Commands.slash("chat", "Uses OpenAI to generate a response to the given prompt.")
                                 .addOption(STRING, "prompt", "Prompt to send to OpenAI", true),
                         Commands.slash("say", "Make bobo say what you tell it to.")
                                 .addOption(STRING, "content", "What bobo should say", true),

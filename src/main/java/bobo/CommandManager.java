@@ -18,7 +18,7 @@ public class CommandManager {
         // Message commands
         commands.add(new HelpCommand(this));
         commands.add(new SearchCommand());
-        commands.add(new AICommand());
+        commands.add(new ChatCommand());
         commands.add(new SayCommand());
         commands.add(new GetQuoteCommand());
         commands.add(new Steelix());

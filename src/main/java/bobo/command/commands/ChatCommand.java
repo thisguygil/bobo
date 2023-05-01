@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-public class AICommand implements ICommand {
+public class ChatCommand implements ICommand {
     private static final OkHttpClient httpClient = new OkHttpClient.Builder()
             .connectTimeout(60, TimeUnit.SECONDS) // Increase the connection timeout to 60 seconds
             .readTimeout(60, TimeUnit.SECONDS)
@@ -47,14 +47,14 @@ public class AICommand implements ICommand {
 
     @Override
     public String getName() {
-        return "ai";
+        return "ai-chat";
     }
 
     @Override
     public String getHelp() {
         return """
-                `/ai`
+                `/ai-chat`
                 Uses OpenAI to generate a response to the given prompt
-                Usage: `/ai <prompt>`""";
+                Usage: `/aichat <prompt>`""";
     }
 }
