@@ -71,12 +71,12 @@ public class GetQuoteCommand implements ICommand {
 
     @Override
     public String getName() {
-        return "getquote";
+        return "get-quote";
     }
 
     @Override
     public String getHelp() {
-        return "`/getquote`\n" +
+        return "`/get-quote`\n" +
                 "Gets a random quote from #boquafiquotes";
     }
 }

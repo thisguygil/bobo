@@ -27,7 +27,7 @@ public class Bobo {
                                 .addOption(STRING, "prompt", "Prompt to send to OpenAI", true),
                         Commands.slash("say", "Make bobo say what you tell it to.")
                                 .addOption(STRING, "content", "What bobo should say", true),
-                        Commands.slash("getquote", "Gets a random quote from #boquafiquotes."),
+                        Commands.slash("get-quote", "Gets a random quote from #boquafiquotes."),
                         Commands.slash("steelix", "steelix"),
 
                         // Voice commands
@@ -37,11 +37,11 @@ public class Bobo {
                         // Music commands
                         Commands.slash("play", "Joins the voice channel and plays given track.")
                                 .addOption(STRING, "track", "YouTube link/query to play or search", true),
-                        Commands.slash("playfile", "Joins the voice channel and plays attached audio/video file.")
+                        Commands.slash("play-file", "Joins the voice channel and plays attached audio/video file.")
                                 .addOption(ATTACHMENT, "file", "Audio file to play", true),
                         Commands.slash("pause", "Pauses the currently playing track"),
                         Commands.slash("resume", "Resumes the currently paused track"),
-                        Commands.slash("nowplaying", "Shows the currently playing track."),
+                        Commands.slash("now-playing", "Shows the currently playing track."),
                         Commands.slash("queue", "Shows the currently queued tracks."),
                         Commands.slash("loop", "Loop the currently playing track."),
                         Commands.slash("shuffle", "Shuffles the current queue (except for the currently playing track)."),

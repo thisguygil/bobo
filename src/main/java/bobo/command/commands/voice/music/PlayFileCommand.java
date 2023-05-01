@@ -43,13 +43,13 @@ public class PlayFileCommand implements ICommand {
 
     @Override
     public String getName() {
-        return "playfile";
+        return "play-file";
     }
 
     @Override
     public String getHelp() {
         return """
-                `/playfile`
+                `/play-file`
                 Joins the voice channel and plays attached audio/video file
                 Usage: `/playfile <file (as attachment)>`""";
     }

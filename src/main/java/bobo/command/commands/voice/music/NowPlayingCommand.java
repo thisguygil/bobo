@@ -53,12 +53,12 @@ public class NowPlayingCommand implements ICommand {
 
     @Override
     public String getName() {
-        return "nowplaying";
+        return "now-playing";
     }
 
     @Override
     public String getHelp() {
-        return "`/nowplaying`\n" +
+        return "`/now-playing`\n" +
                 "Shows the currently playing track";
     }
 }
