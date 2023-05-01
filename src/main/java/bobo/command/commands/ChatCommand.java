@@ -47,13 +47,13 @@ public class ChatCommand implements ICommand {
 
     @Override
     public String getName() {
-        return "ai-chat";
+        return "chat";
     }
 
     @Override
     public String getHelp() {
         return """
-                `/ai-chat`
+                `/chat`
                 Uses OpenAI to generate a response to the given prompt
                 Usage: `/aichat <prompt>`""";
     }
