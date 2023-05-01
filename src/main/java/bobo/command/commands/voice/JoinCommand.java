@@ -20,6 +20,10 @@ import java.util.Objects;
 public class JoinCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
+        if (Objects.requireNonNull(event.getGuild()).getAudioManager().isConnected()) {
+            event.reply("I must not be connected to a voice channel to use this command.").queue();
+            return;
+        }
         join(event);
         event.reply("Joined.").queue();
     }
@@ -28,9 +32,6 @@ public class JoinCommand implements ICommand {
         // Check if joining is valid
         if (Objects.requireNonNull(Objects.requireNonNull(event.getMember()).getVoiceState()).getChannel() == null) {
             event.reply("You must be connected to a voice channel to use this command.").queue();
-            return;
-        } else if (Objects.requireNonNull(event.getGuild()).getAudioManager().isConnected()) {
-            event.reply("I must not be connected to a voice channel to use this command.").queue();
             return;
         }
 
