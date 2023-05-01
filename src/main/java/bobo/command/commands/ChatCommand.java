@@ -35,7 +35,7 @@ public class ChatCommand implements ICommand {
                 .add("prompt", prompt)
                 .build();
         Request request = new Request.Builder()
-                .url("http://localhost:5000/")
+                .url("http://localhost:5000/generate")
                 .post(formBody)
                 .build();
         try (Response response = httpClient.newCall(request).execute()) {

@@ -25,6 +25,7 @@ public class Bobo {
                                 .addOption(STRING, "query", "What to search", true),
                         Commands.slash("chat", "Uses OpenAI to generate a response to the given prompt.")
                                 .addOption(STRING, "prompt", "Prompt to send to OpenAI", true),
+                        Commands.slash("chat-reset", "Resets the current OpenAI chat conversation."),
                         Commands.slash("say", "Make bobo say what you tell it to.")
                                 .addOption(STRING, "content", "What bobo should say", true),
                         Commands.slash("get-quote", "Gets a random quote from #boquafiquotes."),
