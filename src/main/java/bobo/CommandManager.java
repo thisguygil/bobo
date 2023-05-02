@@ -20,6 +20,7 @@ public class CommandManager {
         commands.add(new SearchCommand());
         commands.add(new ChatCommand());
         commands.add(new ChatResetCommand());
+        commands.add(new AIImageCommand());
         commands.add(new SayCommand());
         commands.add(new GetQuoteCommand());
         commands.add(new Steelix());

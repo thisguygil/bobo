@@ -24,8 +24,10 @@ public class Bobo {
                         Commands.slash("search", "Search given query on Google.")
                                 .addOption(STRING, "query", "What to search", true),
                         Commands.slash("chat", "Uses OpenAI to generate a response to the given prompt.")
-                                .addOption(STRING, "prompt", "Prompt to send to OpenAI", true),
+                                .addOption(STRING, "prompt", "Prompt to respond to", true),
                         Commands.slash("chat-reset", "Resets the current OpenAI chat conversation."),
+                        Commands.slash("ai-image", "Uses OpenAI to generate an image of the given prompt.")
+                                .addOption(STRING, "prompt", "Image to generate", true),
                         Commands.slash("say", "Make bobo say what you tell it to.")
                                 .addOption(STRING, "content", "What bobo should say", true),
                         Commands.slash("get-quote", "Gets a random quote from #boquafiquotes."),

@@ -1,15 +1,19 @@
 package bobo.command.commands;
 
 import bobo.command.ICommand;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import okhttp3.*;
+import org.jetbrains.annotations.NotNull;
 
-import javax.annotation.Nonnull;
+import java.awt.*;
 import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-public class ChatCommand implements ICommand {
+public class AIImageCommand implements ICommand {
     private static final OkHttpClient httpClient = new OkHttpClient.Builder()
             .connectTimeout(60, TimeUnit.SECONDS) // Increase the connection timeout to 60 seconds
             .readTimeout(60, TimeUnit.SECONDS)
@@ -17,13 +21,21 @@ public class ChatCommand implements ICommand {
             .build();
 
     @Override
-    public void handle(@Nonnull SlashCommandInteractionEvent event) {
+    public void handle(@NotNull SlashCommandInteractionEvent event) {
         event.deferReply().queue();
         String prompt = Objects.requireNonNull(event.getOption("prompt")).getAsString();
-        String response = "**" + prompt + "**\n";
+        Member member = event.getMember();
+
         try {
-            response += generate(prompt);
-            event.getHook().editOriginal(response).queue();
+            String imageUrl = generate(prompt);
+            assert member != null;
+            MessageEmbed embed = new EmbedBuilder()
+                    .setAuthor(member.getUser().getAsTag(), "https://discord.com/users/" + member.getId(), member.getAvatarUrl())
+                    .setTitle(prompt)
+                    .setColor(Color.red)
+                    .setImage(imageUrl)
+                    .build();
+            event.getHook().editOriginalEmbeds(embed).queue();
         } catch (IOException e) {
             event.getHook().editOriginal("An error occurred while generating the response.").queue();
             e.printStackTrace();
@@ -35,7 +47,7 @@ public class ChatCommand implements ICommand {
                 .add("prompt", prompt)
                 .build();
         Request request = new Request.Builder()
-                .url("http://localhost:5000/chat")
+                .url("http://localhost:5000/image")
                 .post(formBody)
                 .build();
         try (Response response = httpClient.newCall(request).execute()) {
@@ -47,14 +59,14 @@ public class ChatCommand implements ICommand {
 
     @Override
     public String getName() {
-        return "chat";
+        return "ai-image";
     }
 
     @Override
     public String getHelp() {
         return """
-                `/chat`
-                Uses OpenAI to generate a response to the given prompt
-                Usage: `/chat <prompt>`""";
+                `/ai-image`
+                Uses OpenAI to generate an image of the given prompt
+                Usage: `/ai-image <prompt>`""";
     }
 }
