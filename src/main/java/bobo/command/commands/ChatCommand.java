@@ -39,7 +39,7 @@ public class ChatCommand implements ICommand {
                 .post(formBody)
                 .build();
         try (Response response = httpClient.newCall(request).execute()) {
-            if (!response.isSuccessful()) throw new RuntimeException("Unexpected code " + response);
+            if (!response.isSuccessful()) throw new RuntimeException(String.valueOf(response));
             assert response.body() != null;
             return response.body().string();
         }

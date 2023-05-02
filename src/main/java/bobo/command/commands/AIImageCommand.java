@@ -1,6 +1,7 @@
 package bobo.command.commands;
 
 import bobo.command.ICommand;
+import bobo.utils.URLValidator;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -28,6 +29,10 @@ public class AIImageCommand implements ICommand {
 
         try {
             String imageUrl = generate(prompt);
+            if (!URLValidator.isValidURL(imageUrl)) {
+                event.getHook().editOriginal("**" + prompt + "**\n" + imageUrl).queue();
+                return;
+            }
             assert member != null;
             MessageEmbed embed = new EmbedBuilder()
                     .setAuthor(member.getUser().getAsTag(), "https://discord.com/users/" + member.getId(), member.getAvatarUrl())
@@ -51,7 +56,7 @@ public class AIImageCommand implements ICommand {
                 .post(formBody)
                 .build();
         try (Response response = httpClient.newCall(request).execute()) {
-            if (!response.isSuccessful()) throw new RuntimeException("Unexpected code " + response);
+            if (!response.isSuccessful()) throw new RuntimeException(String.valueOf(response));
             assert response.body() != null;
             return response.body().string();
         }

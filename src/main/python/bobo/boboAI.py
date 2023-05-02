@@ -20,28 +20,34 @@ messages = initialize_messages()
 
 @boboAI.route("/chat", methods=["POST"])
 def chat():
-    global messages
-    prompt = request.form["prompt"]
-    messages.append({"role": "user", "content": prompt})
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=messages,
-        max_tokens=350,
-    )
-    output = response['choices'][0]['message']['content']
-    messages.append({"role": "assistant", "content": output})
+    try:
+        global messages
+        prompt = request.form["prompt"]
+        messages.append({"role": "user", "content": prompt})
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=messages,
+            max_tokens=350,
+        )
+        output = response['choices'][0]['message']['content']
+        messages.append({"role": "assistant", "content": output})
+    except Exception as e:
+        return str(e)
     return output
 
 
 @boboAI.route("/image", methods=["POST"])
 def image_generate():
-    prompt = request.form["prompt"]
-    response = openai.Image.create(
-        prompt=prompt,
-        n=1,
-        size="256x256"
-    )
-    image_url = response['data'][0]['url']
+    try:
+        prompt = request.form["prompt"]
+        response = openai.Image.create(
+            prompt=prompt,
+            n=1,
+            size="256x256"
+        )
+        image_url = response['data'][0]['url']
+    except Exception as e:
+        return str(e)
     return image_url
 
 
