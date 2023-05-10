@@ -3,7 +3,6 @@ package bobo.utils;
 import java.util.concurrent.TimeUnit;
 
 public class TimeFormat {
-
     public static String formatTime(long timeInMillis) {
         final long hours = timeInMillis / TimeUnit.HOURS.toMillis(1);
         timeInMillis %= TimeUnit.HOURS.toMillis(1);
