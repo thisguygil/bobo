@@ -14,14 +14,14 @@ public class ResumeCommand implements CommandInterface {
         final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuildChannel().getGuild());
         final AudioPlayer player = musicManager.player;
         if (player.getPlayingTrack() == null) {
-            event.reply("There is nothing currently paused").queue();
+            event.getHook().editOriginal("There is nothing currently paused").queue();
             return;
         }
         if (player.isPaused()) {
             player.setPaused(false);
-            event.reply("Resumed").queue();
+            event.getHook().editOriginal("Resumed").queue();
         } else {
-            event.reply("The player is already playing. Use `/pause` to pause").queue();
+            event.getHook().editOriginal("The player is already playing. Use `/pause` to pause").queue();
         }
     }
 

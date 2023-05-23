@@ -23,7 +23,6 @@ public class AIImageCommand implements CommandInterface {
 
     @Override
     public void handle(@NotNull SlashCommandInteractionEvent event) {
-        event.deferReply().queue();
         String prompt = Objects.requireNonNull(event.getOption("prompt")).getAsString();
         Member member = event.getMember();
 

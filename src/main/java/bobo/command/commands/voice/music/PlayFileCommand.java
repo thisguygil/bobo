@@ -13,7 +13,6 @@ public class PlayFileCommand implements CommandInterface {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         JoinCommand.join(event);
-        event.deferReply().queue();
 
         Message.Attachment attachment = Objects.requireNonNull(event.getOption("file")).getAsAttachment();
         if (isAudioFile(attachment.getFileName())) {

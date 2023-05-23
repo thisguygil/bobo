@@ -21,7 +21,6 @@ import java.util.Objects;
 public class NowPlayingCommand implements CommandInterface {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
-        event.deferReply().queue();
         final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuildChannel().getGuild());
         final AudioPlayer player = musicManager.player;
         final AudioTrack track = player.getPlayingTrack();

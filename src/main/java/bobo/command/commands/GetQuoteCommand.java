@@ -18,7 +18,6 @@ public class GetQuoteCommand implements CommandInterface {
 
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
-        event.deferReply().queue();
         loadMessages(event.getJDA());
         int randomIndex = (int) (Math.random() * allMessages.size());
         Message randomMessage = allMessages.get(randomIndex);

@@ -62,7 +62,7 @@ public class CommandManager {
         if (command != null) {
             command.handle(event);
         } else {
-            event.reply("use a real command bozo. `/help` if you don't know them.").queue();
+            event.getHook().editOriginal("use a real command bozo. `/help` if you don't know them.").queue();
         }
     }
 
