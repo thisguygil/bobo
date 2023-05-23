@@ -4,11 +4,9 @@ import bobo.command.ICommand;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
-import okhttp3.RequestBody;
 import okhttp3.Response;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.TimeUnit;
 
 public class ChatResetCommand implements ICommand {
     private static final OkHttpClient httpClient = new OkHttpClient.Builder().build();
