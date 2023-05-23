@@ -14,7 +14,7 @@ public class Bobo {
         JDA jda = JDABuilder.createDefault(Config.get("TOKEN"))
                 .addEventListeners(new Listener())
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT)
-                .setActivity(Activity.streaming("Resident Evil 4", "https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
+                .setActivity(Activity.streaming("The Legend of Zelda: Tears of the Kingdom", "https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
                 .build();
         jda.updateCommands()
                 .addCommands(
