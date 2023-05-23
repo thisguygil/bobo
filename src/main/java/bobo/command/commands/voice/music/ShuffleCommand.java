@@ -1,6 +1,6 @@
 package bobo.command.commands.voice.music;
 
-import bobo.command.ICommand;
+import bobo.command.CommandInterface;
 import bobo.lavaplayer.GuildMusicManager;
 import bobo.lavaplayer.PlayerManager;
 import bobo.lavaplayer.TrackScheduler;
@@ -13,7 +13,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.concurrent.BlockingQueue;
 
-public class ShuffleCommand implements ICommand {
+public class ShuffleCommand implements CommandInterface {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuildChannel().getGuild());

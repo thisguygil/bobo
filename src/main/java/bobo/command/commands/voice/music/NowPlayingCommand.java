@@ -1,6 +1,6 @@
 package bobo.command.commands.voice.music;
 
-import bobo.command.ICommand;
+import bobo.command.CommandInterface;
 import bobo.lavaplayer.GuildMusicManager;
 import bobo.lavaplayer.PlayerManager;
 import bobo.utils.TimeFormat;
@@ -18,7 +18,7 @@ import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.util.Objects;
 
-public class NowPlayingCommand implements ICommand {
+public class NowPlayingCommand implements CommandInterface {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         event.deferReply().queue();

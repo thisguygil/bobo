@@ -1,6 +1,6 @@
 package bobo.command.commands.voice.music;
 
-import bobo.command.ICommand;
+import bobo.command.CommandInterface;
 import bobo.command.commands.voice.JoinCommand;
 import bobo.lavaplayer.PlayerManager;
 import net.dv8tion.jda.api.entities.Message;
@@ -9,7 +9,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import javax.annotation.Nonnull;
 import java.util.Objects;
 
-public class PlayFileCommand implements ICommand {
+public class PlayFileCommand implements CommandInterface {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         JoinCommand.join(event);

@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CommandManager {
-    private final List<ICommand> commands = new ArrayList<>();
+    private final List<CommandInterface> commands = new ArrayList<>();
 
     public CommandManager() {
         // Message commands
@@ -43,13 +43,13 @@ public class CommandManager {
         commands.add(new ClearCommand());
     }
 
-    public List<ICommand> getCommands() {
+    public List<CommandInterface> getCommands() {
         return commands;
     }
 
     @Nullable
-    public ICommand getCommand(String search) {
-        for (ICommand command : this.commands) {
+    public CommandInterface getCommand(String search) {
+        for (CommandInterface command : this.commands) {
             if (command.getName().equals(search)) {
                 return command;
             }
@@ -58,7 +58,7 @@ public class CommandManager {
     }
 
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
-        ICommand command = getCommand(event.getName());
+        CommandInterface command = getCommand(event.getName());
         if (command != null) {
             command.handle(event);
         } else {

@@ -1,6 +1,6 @@
 package bobo.command.commands.voice;
 
-import bobo.command.ICommand;
+import bobo.command.CommandInterface;
 import bobo.lavaplayer.GuildMusicManager;
 import bobo.lavaplayer.PlayerManager;
 import bobo.utils.TimeFormat;
@@ -17,7 +17,7 @@ import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.util.Objects;
 
-public class JoinCommand implements ICommand {
+public class JoinCommand implements CommandInterface {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         if (Objects.requireNonNull(event.getGuild()).getAudioManager().isConnected()) {

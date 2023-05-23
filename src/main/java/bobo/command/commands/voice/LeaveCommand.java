@@ -1,12 +1,12 @@
 package bobo.command.commands.voice;
 
-import bobo.command.ICommand;
+import bobo.command.CommandInterface;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
 
-public class LeaveCommand implements ICommand {
+public class LeaveCommand implements CommandInterface {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         if (!Objects.requireNonNull(event.getGuild()).getAudioManager().isConnected()) {

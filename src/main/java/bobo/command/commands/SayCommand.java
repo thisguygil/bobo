@@ -1,12 +1,12 @@
 package bobo.command.commands;
 
-import bobo.command.ICommand;
+import bobo.command.CommandInterface;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
 
-public class SayCommand implements ICommand {
+public class SayCommand implements CommandInterface {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         event.getChannel().sendMessage(Objects.requireNonNull(event.getOption("content")).getAsString()).queue();

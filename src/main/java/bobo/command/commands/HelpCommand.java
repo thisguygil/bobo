@@ -1,13 +1,13 @@
 package bobo.command.commands;
 
 import bobo.CommandManager;
-import bobo.command.ICommand;
+import bobo.command.CommandInterface;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
 
-public class HelpCommand implements ICommand {
+public class HelpCommand implements CommandInterface {
     private final CommandManager manager;
 
     public HelpCommand(CommandManager manager) {
@@ -19,7 +19,7 @@ public class HelpCommand implements ICommand {
         StringBuilder message = new StringBuilder();
         if (event.getOption("command") == null) {
             message.append("List of commands\n");
-            for (ICommand command : manager.getCommands()) {
+            for (CommandInterface command : manager.getCommands()) {
                 message.append("`/")
                         .append(command.getName())
                         .append("`\n");
@@ -30,7 +30,7 @@ public class HelpCommand implements ICommand {
             event.reply(message.toString()).queue();
         } else  {
             String commandSearch = Objects.requireNonNull(event.getOption("command")).getAsString();
-            ICommand command = manager.getCommand(commandSearch);
+            CommandInterface command = manager.getCommand(commandSearch);
             if (command == null) {
                 event.reply("Nothing found for " + commandSearch).queue();
             } else {
