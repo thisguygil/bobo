@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ChatCommand implements CommandInterface {
     private static final OkHttpClient httpClient = new OkHttpClient.Builder()
-            .connectTimeout(60, TimeUnit.SECONDS) // Increase the connection timeout to 60 seconds
+            .connectTimeout(60, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .writeTimeout(60, TimeUnit.SECONDS)
             .build();
