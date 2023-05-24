@@ -7,8 +7,8 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import okhttp3.*;
-import org.jetbrains.annotations.NotNull;
 
+import javax.annotation.Nonnull;
 import java.awt.*;
 import java.io.IOException;
 import java.util.Objects;
@@ -22,7 +22,7 @@ public class AIImageCommand implements CommandInterface {
             .build();
 
     @Override
-    public void handle(@NotNull SlashCommandInteractionEvent event) {
+    public void handle(@Nonnull SlashCommandInteractionEvent event) {
         event.deferReply().queue();
         String prompt = Objects.requireNonNull(event.getOption("prompt")).getAsString();
         Member member = event.getMember();
