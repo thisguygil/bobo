@@ -16,9 +16,9 @@ public class SkipCommand implements CommandInterface {
         final AudioPlayer player = musicManager.player;
         final TrackScheduler scheduler = musicManager.scheduler;
         if (player.getPlayingTrack() == null) {
-            event.reply("There is nothing currently playing").queue();
+            event.getHook().editOriginal("There is nothing currently playing").queue();
         } else {
-            event.reply(scheduler.looping ? "Skipped. Looping has been turned off" : "Skipped").queue();
+            event.getHook().editOriginal(scheduler.looping ? "Skipped. Looping has been turned off." : "Skipped").queue();
             scheduler.looping = false;
             scheduler.nextTrack();
         }

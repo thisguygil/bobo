@@ -14,14 +14,14 @@ public class PauseCommand implements CommandInterface {
         final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuildChannel().getGuild());
         final AudioPlayer player = musicManager.player;
         if (player.getPlayingTrack() == null) {
-            event.reply("There is nothing currently playing").queue();
+            event.getHook().editOriginal("There is nothing currently playing").queue();
             return;
         }
         if (!player.isPaused()) {
             player.setPaused(true);
-            event.reply("Paused").queue();
+            event.getHook().editOriginal("Paused").queue();
         } else {
-            event.reply("The player is already paused. Use `/resume` to resume").queue();
+            event.getHook().editOriginal("The player is already paused. Use `/resume` to resume").queue();
         }
     }
 

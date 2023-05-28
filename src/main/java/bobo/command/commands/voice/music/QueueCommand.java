@@ -67,10 +67,10 @@ public class QueueCommand implements CommandInterface {
         }
 
         if (pages.size() == 1) {
-            event.replyEmbeds((MessageEmbed) pages.get(0).getContent()).queue();
+            event.getHook().editOriginalEmbeds((MessageEmbed) pages.get(0).getContent()).queue();
         } else {
             event.getMessageChannel().sendMessageEmbeds((MessageEmbed) pages.get(0).getContent()).queue(success -> Pages.paginate(success, pages, true));
-            event.reply("Queue sent").setEphemeral(true).queue();
+            event.getHook().setEphemeral(true).editOriginal("Queue sent").queue();
         }
     }
 

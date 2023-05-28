@@ -27,14 +27,14 @@ public class HelpCommand implements CommandInterface {
                     message.append("To get info on a specific command: `/help <command name>`\n");
                 }
             }
-            event.reply(message.toString()).queue();
+            event.getHook().editOriginal(message.toString()).queue();
         } else  {
             String commandSearch = Objects.requireNonNull(event.getOption("command")).getAsString();
             CommandInterface command = manager.getCommand(commandSearch);
             if (command == null) {
-                event.reply("Nothing found for " + commandSearch).queue();
+                event.getHook().editOriginal("Nothing found for " + commandSearch).queue();
             } else {
-                event.reply(command.getHelp()).queue();
+                event.getHook().editOriginal(command.getHelp()).queue();
             }
         }
     }

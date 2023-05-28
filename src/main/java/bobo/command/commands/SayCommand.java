@@ -10,7 +10,7 @@ public class SayCommand implements CommandInterface {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         event.getChannel().sendMessage(Objects.requireNonNull(event.getOption("content")).getAsString()).queue();
-        event.reply("Message sent").setEphemeral(true).queue();
+        event.getHook().setEphemeral(true).editOriginal("Message sent").queue();
     }
 
     @Override

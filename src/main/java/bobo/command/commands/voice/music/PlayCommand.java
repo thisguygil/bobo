@@ -14,7 +14,6 @@ public class PlayCommand implements CommandInterface {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         JoinCommand.join(event);
-        event.deferReply().queue();
 
         String track = Objects.requireNonNull(event.getOption("track")).getAsString();
         String trackURL;

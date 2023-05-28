@@ -21,17 +21,17 @@ public class JoinCommand implements CommandInterface {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         if (Objects.requireNonNull(event.getGuild()).getAudioManager().isConnected()) {
-            event.reply("I must not be connected to a voice channel to use this command.").queue();
+            event.getHook().editOriginal("I must not be connected to a voice channel to use this command.").queue();
             return;
         }
         join(event);
-        event.reply("Joined.").queue();
+        event.getHook().editOriginal("Joined.").queue();
     }
 
     public static void join(@Nonnull SlashCommandInteractionEvent event) {
         // Check if joining is valid
         if (Objects.requireNonNull(Objects.requireNonNull(event.getMember()).getVoiceState()).getChannel() == null) {
-            event.reply("You must be connected to a voice channel to use this command.").queue();
+            event.getHook().editOriginal("You must be connected to a voice channel to use this command.").queue();
             return;
         }
 
