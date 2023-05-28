@@ -5,7 +5,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 
 import javax.annotation.Nonnull;
 
-public class Steelix implements Command {
+public class SteelixCommand implements Command {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         event.reply("https://assets.pokemon.com/assets/cms2/img/pokedex/full/208.png").queue();

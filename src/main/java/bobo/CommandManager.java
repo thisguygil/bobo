@@ -23,7 +23,7 @@ public class CommandManager {
         commands.add(new AIImageCommand());
         commands.add(new SayCommand());
         commands.add(new GetQuoteCommand());
-        commands.add(new Steelix());
+        commands.add(new SteelixCommand());
 
         // Voice commands
         commands.add(new JoinCommand());
