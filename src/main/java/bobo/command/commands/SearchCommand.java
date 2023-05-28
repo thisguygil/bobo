@@ -1,7 +1,7 @@
 package bobo.command.commands;
 
 import bobo.Config;
-import bobo.command.CommandInterface;
+import bobo.command.Command;
 import com.github.ygimenez.method.Pages;
 import com.github.ygimenez.model.InteractPage;
 import com.github.ygimenez.model.Page;
@@ -25,7 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class SearchCommand implements CommandInterface {
+public class SearchCommand implements Command {
     private static final String API_KEY = Config.get("GOOGLE_API_KEY");
     private static final String SEARCH_ENGINE_ID = Config.get("SEARCH_ENGINE_ID");
 

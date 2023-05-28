@@ -1,6 +1,6 @@
 package bobo.command.commands;
 
-import bobo.command.CommandInterface;
+import bobo.command.Command;
 import bobo.utils.URLValidator;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-public class AIImageCommand implements CommandInterface {
+public class AIImageCommand implements Command {
     private static final OkHttpClient httpClient = new OkHttpClient.Builder()
             .connectTimeout(60, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)

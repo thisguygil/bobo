@@ -4,7 +4,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 
 import javax.annotation.Nonnull;
 
-public interface CommandInterface {
+public interface Command {
     /**
      * Handles the slash command specified by the event
      *

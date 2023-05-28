@@ -1,6 +1,6 @@
 package bobo.command.commands;
 
-import bobo.command.CommandInterface;
+import bobo.command.Command;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import okhttp3.*;
 
@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-public class ChatCommand implements CommandInterface {
+public class ChatCommand implements Command {
     private static final OkHttpClient httpClient = new OkHttpClient.Builder()
             .connectTimeout(60, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)

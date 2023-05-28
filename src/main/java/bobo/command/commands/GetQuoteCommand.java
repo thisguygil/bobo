@@ -1,6 +1,6 @@
 package bobo.command.commands;
 
-import bobo.command.CommandInterface;
+import bobo.command.Command;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class GetQuoteCommand implements CommandInterface {
+public class GetQuoteCommand implements Command {
     private static final List<Message> allMessages = new ArrayList<>();
 
     @Override

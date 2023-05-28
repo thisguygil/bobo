@@ -1,6 +1,6 @@
 package bobo.command.commands;
 
-import bobo.command.CommandInterface;
+import bobo.command.Command;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -8,7 +8,7 @@ import okhttp3.Response;
 
 import javax.annotation.Nonnull;
 
-public class ChatResetCommand implements CommandInterface {
+public class ChatResetCommand implements Command {
     private static final OkHttpClient httpClient = new OkHttpClient.Builder().build();
 
     @Override

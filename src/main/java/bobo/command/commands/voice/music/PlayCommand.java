@@ -1,6 +1,6 @@
 package bobo.command.commands.voice.music;
 
-import bobo.command.CommandInterface;
+import bobo.command.Command;
 import bobo.command.commands.voice.JoinCommand;
 import bobo.lavaplayer.PlayerManager;
 import bobo.utils.URLValidator;
@@ -10,7 +10,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import javax.annotation.Nonnull;
 import java.util.Objects;
 
-public class PlayCommand implements CommandInterface {
+public class PlayCommand implements Command {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         event.deferReply().queue();
