@@ -13,6 +13,7 @@ import java.util.Objects;
 public class PlayCommand implements CommandInterface {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
+        event.deferReply().queue();
         JoinCommand.join(event);
 
         String track = Objects.requireNonNull(event.getOption("track")).getAsString();

@@ -19,9 +19,9 @@ public class ChatResetCommand implements CommandInterface {
         try (Response response = httpClient.newCall(request).execute()) {
             if (!response.isSuccessful()) throw new RuntimeException("Unexpected code " + response);
             assert response.body() != null;
-            event.getHook().editOriginal(response.body().string()).queue();
+            event.reply(response.body().string()).queue();
         } catch (Exception e) {
-            event.getHook().editOriginal(e.getMessage()).queue();
+            event.reply(e.getMessage()).queue();
             e.printStackTrace();
         }
     }

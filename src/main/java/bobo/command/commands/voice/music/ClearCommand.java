@@ -16,14 +16,14 @@ public class ClearCommand implements CommandInterface {
         final AudioPlayer player = musicManager.player;
         final TrackScheduler scheduler = musicManager.scheduler;
         if (player.getPlayingTrack() == null) {
-            event.getHook().editOriginal("There is nothing currently playing").queue();
+            event.reply("There is nothing currently playing").queue();
             return;
         }
         scheduler.queue.clear();
         scheduler.looping = false;
         player.stopTrack();
         player.setPaused(false);
-        event.getHook().editOriginal("Queue cleared").queue();
+        event.reply("Queue cleared").queue();
     }
 
     @Override

@@ -47,12 +47,12 @@ public class SearchCommand implements CommandInterface {
             images = json.getAsJsonArray("items");
             numPages = images.size();
             if (numPages == 0) {
-                event.getHook().editOriginal("No images found for query: " + query).queue();
+                event.reply("No images found for query: " + query).queue();
                 return;
             }
 
         } catch (Exception e) {
-            event.getHook().editOriginal("Error: " + e.getMessage()).queue();
+            event.reply("Error: " + e.getMessage()).queue();
             return;
         }
 
@@ -78,10 +78,10 @@ public class SearchCommand implements CommandInterface {
         }
 
         if (pages.size() == 1) {
-            event.getHook().editOriginalEmbeds((MessageEmbed) pages.get(0).getContent()).queue();
+            event.replyEmbeds((MessageEmbed) pages.get(0).getContent()).queue();
         } else {
             event.getMessageChannel().sendMessageEmbeds((MessageEmbed) pages.get(0).getContent()).queue(success -> Pages.paginate(success, pages, true));
-            event.getHook().setEphemeral(true).editOriginal("Search result sent").queue();
+            event.reply("Search result sent").setEphemeral(true).queue();
         }
 
     }

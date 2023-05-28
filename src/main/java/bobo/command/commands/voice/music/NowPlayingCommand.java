@@ -44,10 +44,10 @@ public class NowPlayingCommand implements CommandInterface {
             ImageIO.write(Objects.requireNonNull(YouTubeUtil.getThumbnailImage(info.uri)), "jpg", outputStream);
         } catch (Exception e) {
             embed.setImage("https://img.youtube.com/vi/" + YouTubeUtil.getYouTubeID(info.uri) + "/hqdefault.jpg");
-            event.getHook().editOriginalEmbeds(embed.build()).queue();
+            event.replyEmbeds(embed.build()).queue();
             return;
         }
-        event.getHook().editOriginalAttachments(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg")).setEmbeds(embed.build()).queue();
+        event.replyFiles(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg")).setEmbeds(embed.build()).queue();
     }
 
     @Override

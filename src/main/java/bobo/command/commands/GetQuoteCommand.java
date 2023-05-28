@@ -24,7 +24,7 @@ public class GetQuoteCommand implements CommandInterface {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
         String messageContent = spoileredQuote(randomMessage.getContentDisplay());
         String time = randomMessage.getTimeCreated().format(formatter);
-        event.getHook().editOriginal(messageContent + "\n" + time).queue();
+        event.reply(messageContent + "\n" + time).queue();
     }
 
     /**

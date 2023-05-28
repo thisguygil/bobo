@@ -21,7 +21,7 @@ public class ShuffleCommand implements CommandInterface {
         final TrackScheduler scheduler = musicManager.scheduler;
         final BlockingQueue<AudioTrack> newQueue = scheduler.queue;
         if (player.getPlayingTrack() == null) {
-            event.getHook().editOriginal("The queue is currently empty").queue();
+            event.reply("The queue is currently empty").queue();
             return;
         }
 
@@ -32,7 +32,7 @@ public class ShuffleCommand implements CommandInterface {
         newQueue.addAll(list);
 
         scheduler.queue = newQueue;
-        event.getHook().editOriginal("Shuffled.").queue();
+        event.reply("Shuffled.").queue();
     }
 
     @Override

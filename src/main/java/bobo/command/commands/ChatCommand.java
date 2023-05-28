@@ -18,6 +18,7 @@ public class ChatCommand implements CommandInterface {
 
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
+        event.deferReply().queue();
         String prompt = Objects.requireNonNull(event.getOption("prompt")).getAsString();
         String response = "**" + prompt + "**\n";
         try {

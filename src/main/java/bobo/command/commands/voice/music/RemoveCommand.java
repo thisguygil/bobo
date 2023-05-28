@@ -21,14 +21,13 @@ public class RemoveCommand implements CommandInterface {
         final TrackScheduler scheduler = musicManager.scheduler;
         final BlockingQueue<AudioTrack> queue = scheduler.queue;
         if (player.getPlayingTrack() == null) {
-            event.getHook().editOriginal("The queue is currently empty").queue();
+            event.reply("The queue is currently empty").queue();
             return;
         }
         int position = Objects.requireNonNull(event.getOption("position")).getAsInt();
         if (position < 1 || position > queue.size() + 1) {
-            event.getHook().editOriginal("Please enter an integer corresponding to a track's position in the queue").queue();
+            event.reply("Please enter an integer corresponding to a track's position in the queue").queue();
         } else {
-            event.getHook().editOriginal("Removed track at position **" + position + "**").queue();
             if (position == 1) {
                 scheduler.nextTrack();
             } else {
@@ -45,6 +44,7 @@ public class RemoveCommand implements CommandInterface {
                     iterator.remove();
                 }
             }
+            event.reply("Removed track at position **" + position + "**").queue();
         }
     }
 

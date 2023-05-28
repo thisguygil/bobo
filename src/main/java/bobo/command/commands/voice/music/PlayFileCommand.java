@@ -12,6 +12,7 @@ import java.util.Objects;
 public class PlayFileCommand implements CommandInterface {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
+        event.deferReply().queue();
         JoinCommand.join(event);
 
         Message.Attachment attachment = Objects.requireNonNull(event.getOption("file")).getAsAttachment();

@@ -16,11 +16,11 @@ public class LoopCommand implements CommandInterface {
         final AudioPlayer player = musicManager.player;
         final TrackScheduler scheduler = musicManager.scheduler;
         if (player.getPlayingTrack() == null) {
-            event.getHook().editOriginal("There is nothing currently playing").queue();
+            event.reply("There is nothing currently playing").queue();
             return;
         }
         scheduler.looping = !scheduler.looping;
-        event.getHook().editOriginal(scheduler.looping ? "The player has been set to **looping**" : "The player has been set to **not looping**").queue();
+        event.reply(scheduler.looping ? "The player has been set to **looping**" : "The player has been set to **not looping**").queue();
     }
 
     @Override

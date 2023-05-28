@@ -25,7 +25,6 @@ public class Listener extends ListenerAdapter {
      */
     @Override
     public void onSlashCommandInteraction(@Nonnull SlashCommandInteractionEvent event) {
-        event.deferReply().queue();
         manager.handle(event);
     }
 
