@@ -1,6 +1,6 @@
 package bobo.command.commands.voice.music;
 
-import bobo.command.Command;
+import bobo.command.ICommand;
 import bobo.command.commands.voice.JoinCommand;
 import bobo.lavaplayer.PlayerManager;
 import net.dv8tion.jda.api.entities.Message;
@@ -9,7 +9,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import javax.annotation.Nonnull;
 import java.util.Objects;
 
-public class PlayFileCommand implements Command {
+public class PlayFileCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         event.deferReply().queue();
@@ -46,11 +46,4 @@ public class PlayFileCommand implements Command {
         return "play-file";
     }
 
-    @Override
-    public String getHelp() {
-        return """
-                `/play-file`
-                Joins the voice channel and plays attached audio/video file
-                Usage: `/playfile <file (as attachment)>`""";
-    }
 }

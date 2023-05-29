@@ -1,6 +1,6 @@
 package bobo.command.commands.voice;
 
-import bobo.command.Command;
+import bobo.command.ICommand;
 import bobo.lavaplayer.GuildMusicManager;
 import bobo.lavaplayer.PlayerManager;
 import bobo.utils.TimeFormat;
@@ -17,7 +17,7 @@ import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.util.Objects;
 
-public class JoinCommand implements Command {
+public class JoinCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         if (Objects.requireNonNull(event.getGuild()).getAudioManager().isConnected()) {
@@ -69,9 +69,4 @@ public class JoinCommand implements Command {
         return "join";
     }
 
-    @Override
-    public String getHelp() {
-        return "`/join`\n" +
-                "Joins the voice channel";
-    }
 }

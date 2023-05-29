@@ -1,6 +1,6 @@
 package bobo.command.commands.voice.music;
 
-import bobo.command.Command;
+import bobo.command.ICommand;
 import bobo.lavaplayer.GuildMusicManager;
 import bobo.lavaplayer.PlayerManager;
 import bobo.utils.TimeFormat;
@@ -18,7 +18,7 @@ import java.awt.*;
 import java.io.ByteArrayOutputStream;
 import java.util.Objects;
 
-public class NowPlayingCommand implements Command {
+public class NowPlayingCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuildChannel().getGuild());
@@ -55,9 +55,4 @@ public class NowPlayingCommand implements Command {
         return "now-playing";
     }
 
-    @Override
-    public String getHelp() {
-        return "`/now-playing`\n" +
-                "Shows the currently playing track";
-    }
 }

@@ -21,7 +21,7 @@ public class Bobo {
                         // Message commands
                         Commands.slash("help", "Shows the list of commands or gets info on a specific command.")
                                 .addOption(STRING, "command", "Command to explain", false),
-                        Commands.slash("search", "Search given query on Google.")
+                        Commands.slash("search", "Searches given query on Google.")
                                 .addOption(STRING, "query", "What to search", true),
                         Commands.slash("chat", "Uses OpenAI to generate a response to the given prompt.")
                                 .addOption(STRING, "prompt", "Prompt to respond to", true),
@@ -38,12 +38,12 @@ public class Bobo {
                         Commands.slash("leave", "Leaves the voice channel."),
 
                         // Music commands
-                        Commands.slash("play", "Joins the voice channel and plays given track.")
-                                .addOption(STRING, "track", "YouTube link/query to play or search", true),
-                        Commands.slash("play-file", "Joins the voice channel and plays attached audio/video file.")
+                        Commands.slash("play", "Joins the voice channel and plays given/searched YouTube link/query.")
+                                .addOption(STRING, "track", "YouTube link/query to play/search", true),
+                        Commands.slash("play-file", "Joins the voice channel and plays audio from attached audio/video file.")
                                 .addOption(ATTACHMENT, "file", "Audio file to play", true),
-                        Commands.slash("pause", "Pauses the currently playing track"),
-                        Commands.slash("resume", "Resumes the currently paused track"),
+                        Commands.slash("pause", "Pauses the currently playing track."),
+                        Commands.slash("resume", "Resumes the currently paused track."),
                         Commands.slash("now-playing", "Shows the currently playing track."),
                         Commands.slash("queue", "Shows the currently queued tracks."),
                         Commands.slash("loop", "Loop the currently playing track."),

@@ -1,6 +1,6 @@
 package bobo.command.commands;
 
-import bobo.command.Command;
+import bobo.command.ICommand;
 import bobo.utils.URLValidator;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
@@ -14,7 +14,7 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-public class AIImageCommand implements Command {
+public class AIImageCommand implements ICommand {
     private static final OkHttpClient httpClient = new OkHttpClient.Builder()
             .connectTimeout(60, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
@@ -67,11 +67,4 @@ public class AIImageCommand implements Command {
         return "ai-image";
     }
 
-    @Override
-    public String getHelp() {
-        return """
-                `/ai-image`
-                Uses OpenAI to generate an image of the given prompt
-                Usage: `/ai-image <prompt>`""";
-    }
 }

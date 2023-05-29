@@ -1,42 +1,45 @@
 package bobo.command.commands;
 
-import bobo.CommandManager;
-import bobo.command.Command;
+import bobo.command.ICommand;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.Command;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 import java.util.Objects;
 
-public class HelpCommand implements Command {
-    private final CommandManager manager;
-
-    public HelpCommand(CommandManager manager) {
-        this.manager = manager;
-    }
-
+public class HelpCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         StringBuilder message = new StringBuilder();
+        List<Command> commands = event.getJDA().retrieveCommands().complete();
         if (event.getOption("command") == null) {
-            message.append("List of commands\n");
-            for (Command command : manager.getCommands()) {
-                message.append("`/")
-                        .append(command.getName())
-                        .append("`\n");
-                if (command.getName().equals("help")) {
-                    message.append("To get info on a specific command: `/help <command name>`\n");
+            message.append("List of commands\n")
+                    .append("To get info on a specific command: `/help <command name>`\n");
+            for (Command command : commands) {
+                if (!command.getName().equals("help")) {
+                    message.append("`/")
+                            .append(command.getName())
+                            .append("`\n");
                 }
             }
-            event.reply(message.toString()).queue();
         } else  {
-            String commandSearch = Objects.requireNonNull(event.getOption("command")).getAsString();
-            Command command = manager.getCommand(commandSearch);
+            String search = Objects.requireNonNull(event.getOption("command")).getAsString();
+            Command command = commands.stream()
+                    .filter(c -> c.getName().equals(search))
+                    .findFirst()
+                    .orElse(null);
             if (command == null) {
-                event.reply("Nothing found for " + commandSearch).queue();
+                message.append("Nothing found for ")
+                        .append(search);
             } else {
-                event.reply(command.getHelp()).queue();
+                message.append("`/")
+                        .append(command.getName())
+                        .append("`\n")
+                        .append(command.getDescription());
             }
         }
+        event.reply(message.toString()).queue();
     }
 
     @Override
@@ -44,9 +47,4 @@ public class HelpCommand implements Command {
         return "help";
     }
 
-    @Override
-    public String getHelp() {
-        return "`/help`\n" +
-                "Shows the list of commands";
-    }
 }

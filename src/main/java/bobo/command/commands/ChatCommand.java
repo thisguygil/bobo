@@ -1,6 +1,6 @@
 package bobo.command.commands;
 
-import bobo.command.Command;
+import bobo.command.ICommand;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import okhttp3.*;
 
@@ -9,7 +9,7 @@ import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
-public class ChatCommand implements Command {
+public class ChatCommand implements ICommand {
     private static final OkHttpClient httpClient = new OkHttpClient.Builder()
             .connectTimeout(60, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
@@ -50,11 +50,4 @@ public class ChatCommand implements Command {
         return "chat";
     }
 
-    @Override
-    public String getHelp() {
-        return """
-                `/chat`
-                Uses OpenAI to generate a response to the given prompt
-                Usage: `/chat <prompt>`""";
-    }
 }

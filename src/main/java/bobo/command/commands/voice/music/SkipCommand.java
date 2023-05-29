@@ -1,6 +1,6 @@
 package bobo.command.commands.voice.music;
 
-import bobo.command.Command;
+import bobo.command.ICommand;
 import bobo.lavaplayer.GuildMusicManager;
 import bobo.lavaplayer.PlayerManager;
 import bobo.lavaplayer.TrackScheduler;
@@ -9,7 +9,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 
 import javax.annotation.Nonnull;
 
-public class SkipCommand implements Command {
+public class SkipCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuildChannel().getGuild());
@@ -29,9 +29,4 @@ public class SkipCommand implements Command {
         return "skip";
     }
 
-    @Override
-    public String getHelp() {
-        return "`/skip`\n" +
-                "Skips the current track";
-    }
 }

@@ -1,6 +1,6 @@
 package bobo.command.commands.voice.music;
 
-import bobo.command.Command;
+import bobo.command.ICommand;
 import bobo.lavaplayer.GuildMusicManager;
 import bobo.lavaplayer.PlayerManager;
 import bobo.lavaplayer.TrackScheduler;
@@ -20,7 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
-public class QueueCommand implements Command {
+public class QueueCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuildChannel().getGuild());
@@ -79,9 +79,4 @@ public class QueueCommand implements Command {
         return "queue";
     }
 
-    @Override
-    public String getHelp() {
-        return "`/queue`\n" +
-                "Shows the currently queued tracks";
-    }
 }

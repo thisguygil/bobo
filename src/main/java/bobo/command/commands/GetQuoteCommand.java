@@ -1,6 +1,6 @@
 package bobo.command.commands;
 
-import bobo.command.Command;
+import bobo.command.ICommand;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class GetQuoteCommand implements Command {
+public class GetQuoteCommand implements ICommand {
     private static final List<Message> allMessages = new ArrayList<>();
 
     @Override
@@ -73,9 +73,4 @@ public class GetQuoteCommand implements Command {
         return "get-quote";
     }
 
-    @Override
-    public String getHelp() {
-        return "`/get-quote`\n" +
-                "Gets a random quote from #boquafiquotes";
-    }
 }

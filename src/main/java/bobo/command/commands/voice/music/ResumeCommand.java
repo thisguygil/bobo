@@ -1,6 +1,6 @@
 package bobo.command.commands.voice.music;
 
-import bobo.command.Command;
+import bobo.command.ICommand;
 import bobo.lavaplayer.GuildMusicManager;
 import bobo.lavaplayer.PlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
@@ -8,7 +8,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 
 import javax.annotation.Nonnull;
 
-public class ResumeCommand implements Command {
+public class ResumeCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuildChannel().getGuild());
@@ -30,9 +30,4 @@ public class ResumeCommand implements Command {
         return "resume";
     }
 
-    @Override
-    public String getHelp() {
-        return "`/resume`\n" +
-                "Resumes the currently paused track";
-    }
 }

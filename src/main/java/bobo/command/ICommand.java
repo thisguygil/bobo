@@ -4,7 +4,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 
 import javax.annotation.Nonnull;
 
-public interface Command {
+public interface ICommand {
     /**
      * Handles the slash command specified by the event
      *
@@ -17,8 +17,4 @@ public interface Command {
      */
     String getName();
 
-    /**
-     * @return the help message for the command
-     */
-    String getHelp();
 }

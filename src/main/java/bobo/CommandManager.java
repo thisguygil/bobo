@@ -12,11 +12,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CommandManager {
-    private final List<Command> commands = new ArrayList<>();
+    private final List<ICommand> commands = new ArrayList<>();
 
     public CommandManager() {
         // Message commands
-        commands.add(new HelpCommand(this));
+        commands.add(new HelpCommand());
         commands.add(new SearchCommand());
         commands.add(new ChatCommand());
         commands.add(new ChatResetCommand());
@@ -43,13 +43,9 @@ public class CommandManager {
         commands.add(new ClearCommand());
     }
 
-    public List<Command> getCommands() {
-        return commands;
-    }
-
     @Nullable
-    public Command getCommand(String search) {
-        for (Command command : this.commands) {
+    public ICommand getCommand(String search) {
+        for (ICommand command : this.commands) {
             if (command.getName().equals(search)) {
                 return command;
             }
@@ -58,7 +54,7 @@ public class CommandManager {
     }
 
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
-        Command command = getCommand(event.getName());
+        ICommand command = getCommand(event.getName());
         if (command != null) {
             command.handle(event);
         } else {

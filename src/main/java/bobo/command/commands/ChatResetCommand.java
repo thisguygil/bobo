@@ -1,6 +1,6 @@
 package bobo.command.commands;
 
-import bobo.command.Command;
+import bobo.command.ICommand;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -8,7 +8,7 @@ import okhttp3.Response;
 
 import javax.annotation.Nonnull;
 
-public class ChatResetCommand implements Command {
+public class ChatResetCommand implements ICommand {
     private static final OkHttpClient httpClient = new OkHttpClient.Builder().build();
 
     @Override
@@ -31,9 +31,4 @@ public class ChatResetCommand implements Command {
         return "chat-reset";
     }
 
-    @Override
-    public String getHelp() {
-        return "`/chat-reset`\n" +
-                "Resets the current OpenAI chat conversation";
-    }
 }

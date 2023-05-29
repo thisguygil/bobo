@@ -1,6 +1,6 @@
 package bobo.command.commands.voice.music;
 
-import bobo.command.Command;
+import bobo.command.ICommand;
 import bobo.lavaplayer.GuildMusicManager;
 import bobo.lavaplayer.PlayerManager;
 import bobo.lavaplayer.TrackScheduler;
@@ -13,7 +13,7 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.concurrent.BlockingQueue;
 
-public class RemoveCommand implements Command {
+public class RemoveCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuildChannel().getGuild());
@@ -53,11 +53,4 @@ public class RemoveCommand implements Command {
         return "remove";
     }
 
-    @Override
-    public String getHelp() {
-        return """
-                `/remove`
-                Removes track at given position in the queue
-                Usage: `/remove <position in queue to remove>`""";
-    }
 }
