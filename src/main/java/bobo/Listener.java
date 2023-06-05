@@ -1,5 +1,6 @@
 package bobo;
 
+import bobo.command.commands.GetQuoteCommand;
 import bobo.lavaplayer.GuildMusicManager;
 import bobo.lavaplayer.PlayerManager;
 import bobo.lavaplayer.TrackScheduler;
@@ -9,6 +10,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
@@ -63,5 +65,17 @@ public class Listener extends ListenerAdapter {
             player.setPaused(false);
             musicManager.removeEventListener();
         }
+    }
+
+    /**
+     * Loads quotes on bot startup
+     * Prints "Bobo is ready!" to console due to time it takes to load quotes
+     *
+     * @param event the ready event
+     */
+    @Override
+    public void onReady(@Nonnull ReadyEvent event) {
+        GetQuoteCommand.loadQuotes();
+        System.out.println("Bobo is ready!");
     }
 }

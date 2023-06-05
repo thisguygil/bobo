@@ -1,5 +1,6 @@
 package bobo.command.commands;
 
+import bobo.Bobo;
 import bobo.command.ICommand;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
@@ -18,21 +19,24 @@ public class GetQuoteCommand implements ICommand {
 
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
-        loadMessages(event.getJDA());
+        loadQuotes();
+
         int randomIndex = (int) (Math.random() * allMessages.size());
         Message randomMessage = allMessages.get(randomIndex);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
         String messageContent = spoileredQuote(randomMessage.getContentDisplay());
+
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
         String time = randomMessage.getTimeCreated().format(formatter);
+
         event.reply(messageContent + "\n" + time).queue();
     }
 
     /**
-     * Compiles all messages from #boquafiquotes channel into allMessages ArrayList
-     *
-     * @param jda the JDA being accessed
+     * Compiles all messages from #boquafiquotes channel into an ArrayList
+     * Keeps ArrayList as static for faster access in subsequent command calls
      */
-    public void loadMessages(JDA jda) {
+    public static void loadQuotes() {
+        JDA jda = Bobo.getJDA();
         TextChannel channel = jda.getTextChannelById("826951218135826463");
         assert channel != null;
         for (Message message : channel.getIterableHistory()) {

@@ -10,12 +10,15 @@ import net.dv8tion.jda.api.requests.GatewayIntent;
 import static net.dv8tion.jda.api.interactions.commands.OptionType.*;
 
 public class Bobo {
+    private static JDA jda;
+
     public static void main(String[] args) {
-        JDA jda = JDABuilder.createDefault(Config.get("TOKEN"))
+        jda = JDABuilder.createDefault(Config.get("TOKEN"))
                 .addEventListeners(new Listener())
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT)
                 .setActivity(Activity.streaming("The Legend of Zelda: Tears of the Kingdom", "https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
                 .build();
+
         jda.updateCommands()
                 .addCommands(
                         // Message commands
@@ -56,6 +59,18 @@ public class Bobo {
                         Commands.slash("clear", "Clears queue and stops current track.")
                 )
                 .queue();
+
+        createPaginator();
+    }
+
+    public static JDA getJDA() {
+        return jda;
+    }
+
+    /**
+     * Creates a PaginatorBuilder instance and activates it
+     */
+    private static void createPaginator() {
         try {
             PaginatorBuilder.createPaginator(jda)
                     .shouldRemoveOnReact(false)
@@ -66,4 +81,5 @@ public class Bobo {
             e.printStackTrace();
         }
     }
+
 }
