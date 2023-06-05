@@ -17,6 +17,7 @@ public class CommandManager {
     public CommandManager() {
         // Message commands
         commands.add(new HelpCommand());
+        commands.add(new SetActivityCommand());
         commands.add(new SearchCommand());
         commands.add(new ChatCommand());
         commands.add(new ChatResetCommand());

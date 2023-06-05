@@ -21,6 +21,8 @@ public class Bobo {
                         // Message commands
                         Commands.slash("help", "Shows the list of commands or gets info on a specific command.")
                                 .addOption(STRING, "command", "Command to explain", false),
+                        Commands.slash("set-activity", "Sets bobo's activity.")
+                                .addOption(STRING, "activity", "Activity to set", true),
                         Commands.slash("search", "Searches given query on Google.")
                                 .addOption(STRING, "query", "What to search", true),
                         Commands.slash("chat", "Uses OpenAI to generate a response to the given prompt.")
