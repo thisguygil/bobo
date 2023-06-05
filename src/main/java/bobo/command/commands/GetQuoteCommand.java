@@ -62,7 +62,7 @@ public class GetQuoteCommand implements ICommand {
         String speaker;
         while (matcher.find()) {
             speaker = matcher.group(2);
-            matcher.appendReplacement(formattedQuote, "$1\n-||" + speaker + " [Message from Bobo: if you're reading this you're gay]||");
+            matcher.appendReplacement(formattedQuote, "$1\n-||" + speaker + "||");
         }
         matcher.appendTail(formattedQuote);
         return formattedQuote.toString();
