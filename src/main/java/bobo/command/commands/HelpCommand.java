@@ -6,7 +6,6 @@ import net.dv8tion.jda.api.interactions.commands.Command;
 
 import javax.annotation.Nonnull;
 import java.util.List;
-import java.util.Objects;
 
 public class HelpCommand implements ICommand {
     @Override
@@ -46,5 +45,4 @@ public class HelpCommand implements ICommand {
     public String getName() {
         return "help";
     }
-
 }
