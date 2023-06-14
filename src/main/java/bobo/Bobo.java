@@ -1,9 +1,9 @@
 package bobo;
 
+import bobo.command.commands.SetActivityCommand;
 import com.github.ygimenez.model.PaginatorBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
-import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
@@ -16,7 +16,6 @@ public class Bobo {
         jda = JDABuilder.createDefault(Config.get("TOKEN"))
                 .addEventListeners(new Listener())
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT)
-                .setActivity(Activity.streaming("The Legend of Zelda: Tears of the Kingdom", "https://www.youtube.com/watch?v=dQw4w9WgXcQ"))
                 .build();
 
         jda.updateCommands()
@@ -24,8 +23,9 @@ public class Bobo {
                         // Message commands
                         Commands.slash("help", "Shows the list of commands or gets info on a specific command.")
                                 .addOption(STRING, "command", "Command to explain", false),
-                        Commands.slash("set-activity", "Sets bobo's activity.")
-                                .addOption(STRING, "activity", "Activity to set", true),
+                        Commands.slash("set-activity", "Sets bobo's activity with specified type (playing, streaming, listening, watching, competing).")
+                                .addOption(STRING, "activity", "Activity to set", true)
+                                .addOption(STRING, "type", "Activity type to set (playing, streaming (default), listening, watching, competing)", false),
                         Commands.slash("search", "Searches given query on Google.")
                                 .addOption(STRING, "query", "What to search", true),
                         Commands.slash("chat", "Uses OpenAI to generate a response to the given prompt.")
@@ -60,18 +60,8 @@ public class Bobo {
                 )
                 .queue();
 
-        createPaginator();
-    }
-
-    public static JDA getJDA() {
-        return jda;
-    }
-
-    /**
-     * Creates a PaginatorBuilder instance and activates it
-     */
-    private static void createPaginator() {
         try {
+            SetActivityCommand.setActivity();
             PaginatorBuilder.createPaginator(jda)
                     .shouldRemoveOnReact(false)
                     .shouldEventLock(false)
@@ -82,4 +72,7 @@ public class Bobo {
         }
     }
 
+    public static JDA getJDA() {
+        return jda;
+    }
 }

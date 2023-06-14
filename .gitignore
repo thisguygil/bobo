@@ -1,5 +1,6 @@
 .env
 client_secret.json
+activity.txt
 .idea/
 .gradle/
 build/
