@@ -24,26 +24,20 @@ public class SetActivityCommand implements ICommand {
         OptionMapping typeInput = event.getOption("type");
         boolean validInput = true;
         String message = "";
-        ActivityType type;
+        ActivityType activityType;
         if (typeInput == null) {
             try {
-                type = getActivityType();
+                activityType = getTypeFromFile();
                 message = "Activity type not specified, will remain unchanged.\n";
             } catch (Exception e) {
                 e.printStackTrace();
-                type = ActivityType.STREAMING;
+                activityType = ActivityType.STREAMING;
                 message = "Activity type not specified, set to **Streaming**\n";
             }
         } else {
             String typeName = typeInput.getAsString().toUpperCase();
-            type = switch (typeName) {
-                case "PLAYING" -> ActivityType.PLAYING;
-                case "LISTENING" -> ActivityType.LISTENING;
-                case "WATCHING" -> ActivityType.WATCHING;
-                case "COMPETING" -> ActivityType.COMPETING;
-                default -> ActivityType.STREAMING;
-            };
-            if (type.equals(ActivityType.STREAMING)) {
+            activityType = getActivityType(typeName);
+            if (activityType.equals(ActivityType.STREAMING)) {
                 if (!typeName.equals("STREAMING")) {
                     message = "Invalid activity type" + typeName + ", will remain unchanged.\n";
                 }
@@ -52,10 +46,10 @@ public class SetActivityCommand implements ICommand {
 
         try {
             if (!validInput) {
-                type = getActivityType();
+                activityType = getTypeFromFile();
             }
             FileWriter writer = new FileWriter(activityFileName);
-            writer.write(type + "\n" + activity);
+            writer.write(activityType + "\n" + activity);
             writer.close();
             setActivity();
         } catch (Exception e) {
@@ -63,7 +57,7 @@ public class SetActivityCommand implements ICommand {
         }
 
         if (message.isEmpty()) {
-            message = "Activity type set to **" + type + "**\n";
+            message = "Activity type set to **" + activityType + "**\n";
         }
         message += "Activity set to **" + activity + "**";
         event.getHook().editOriginal(message).queue();
@@ -96,11 +90,21 @@ public class SetActivityCommand implements ICommand {
      *
      * @return activity type
      */
-    private static ActivityType getActivityType() throws Exception {
+    private static ActivityType getTypeFromFile() throws Exception {
         File activityFile = new File(activityFileName);
         Scanner scanner = new Scanner(activityFile);
         String activityType = scanner.nextLine();
         scanner.close();
+        return getActivityType(activityType);
+    }
+
+    /**
+     * Gets the activity type given a string
+     *
+     * @param activityType activity type string
+     * @return activity type
+     */
+    private static ActivityType getActivityType(String activityType) {
         return switch (activityType) {
             case "PLAYING" -> ActivityType.PLAYING;
             case "LISTENING" -> ActivityType.LISTENING;
