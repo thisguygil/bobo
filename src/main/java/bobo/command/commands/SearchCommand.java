@@ -67,7 +67,7 @@ public class SearchCommand implements ICommand {
 
             assert member != null;
             embed = new EmbedBuilder()
-                    .setAuthor(member.getUser().getAsTag(), "https://discord.com/users/" + member.getId(), member.getAvatarUrl())
+                    .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getAvatarUrl())
                     .setTitle("Search Results")
                     .setFooter("Page " + (i + 1) + "/" + numPages)
                     .setColor(Color.red)

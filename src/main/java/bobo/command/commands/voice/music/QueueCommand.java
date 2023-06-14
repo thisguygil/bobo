@@ -44,7 +44,7 @@ public class QueueCommand implements ICommand {
         Member member = event.getMember();
         assert member != null;
         EmbedBuilder builder = new EmbedBuilder()
-                .setAuthor(member.getUser().getAsTag(), "https://discord.com/users/" + member.getId(), member.getAvatarUrl())
+                .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getAvatarUrl())
                 .setTitle("Current Queue")
                 .setFooter("Page 1/" + (int) Math.ceil((double) numPages / 10));
 
@@ -56,7 +56,7 @@ public class QueueCommand implements ICommand {
             if (count == 10) {
                 pages.add(new InteractPage(builder.build()));
                 builder = new EmbedBuilder()
-                        .setAuthor(member.getUser().getAsTag(), "https://discord.com/users/" + member.getId(), member.getAvatarUrl())
+                        .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getAvatarUrl())
                         .setTitle("Current Queue")
                         .setFooter("Page " + ((int) Math.ceil((double) (i + 1) / 10) + 1) + "/" + (int) Math.ceil((double) numPages / 10));
                 count = 0;
