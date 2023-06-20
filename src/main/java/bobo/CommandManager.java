@@ -59,7 +59,8 @@ public class CommandManager {
         if (command != null) {
             command.handle(event);
         } else {
-            event.reply("use a real command bozo. `/help` if you don't know them.").queue();
+            event.reply("Error retrieving command").queue();
+            throw new RuntimeException();
         }
     }
 
