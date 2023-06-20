@@ -18,15 +18,15 @@ public class PlayCommand implements ICommand {
 
         String track = Objects.requireNonNull(event.getOption("track")).getAsString();
         String trackURL;
-        if (!URLValidator.isValidURL(track)) {
+        if (URLValidator.isValidURL(track)) {
+            trackURL = track;
+        } else {
             try {
                 trackURL = YouTubeUtil.searchForVideo(track);
             } catch (Exception e) {
                 event.getHook().editOriginal("Nothing found by **" + track + "**").queue();
                 return;
             }
-        } else {
-            trackURL = track;
         }
         PlayerManager.getInstance().loadAndPlay(event, trackURL);
     }
