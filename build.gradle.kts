@@ -13,9 +13,6 @@ repositories {
     maven {
         url = uri("https://m2.dv8tion.net/releases")
     }
-    maven {
-        url = uri("https://m2.chew.pro/snapshots")
-    }
 }
 
 dependencies {
@@ -24,13 +21,14 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
     implementation("net.dv8tion:JDA:5.0.0-beta.11")
     implementation("com.github.ygimenez:Pagination-Utils:4.0.4")
+    implementation("com.theokanning.openai-gpt3-java:service:0.13.0")
     implementation("com.sedmelluq:lavaplayer:1.3.78")
     implementation("com.google.api-client:google-api-client:2.2.0")
     implementation("com.google.oauth-client:google-oauth-client-jetty:1.34.1")
     implementation("com.google.apis:google-api-services-youtube:v3-rev20230123-2.0.0")
     implementation("com.google.code.gson:gson:2.10.1")
     implementation("ch.qos.logback:logback-classic:1.4.7")
-    implementation("io.github.cdimascio:dotenv-java:2.3.2")
+    implementation("io.github.cdimascio:dotenv-java:3.0.0")
 }
 
 tasks.jar {
