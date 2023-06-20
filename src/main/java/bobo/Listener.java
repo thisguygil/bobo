@@ -40,7 +40,7 @@ public class Listener extends ListenerAdapter {
         if (event.isFromType(ChannelType.PRIVATE)) {
             TextChannel channel = event.getJDA().getTextChannelById("1080252409726644355");
             MessageCreateData message = new MessageCreateBuilder()
-                    .addContent("**" + event.getAuthor().getAsTag() + "**\n" + event.getMessage().getContentDisplay())
+                    .addContent("**" + event.getAuthor().getGlobalName() + "**\n" + event.getMessage().getContentDisplay())
                     .addEmbeds(event.getMessage().getEmbeds())
                     .build();
             assert channel != null;
