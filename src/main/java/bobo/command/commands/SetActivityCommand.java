@@ -3,54 +3,47 @@ package bobo.command.commands;
 import bobo.Bobo;
 import bobo.Config;
 import bobo.command.ICommand;
+import com.google.gson.Gson;
+import com.google.gson.stream.JsonReader;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Activity.ActivityType;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 
 import javax.annotation.Nonnull;
-import java.io.File;
-import java.io.FileWriter;
+import java.io.*;
 import java.util.Objects;
-import java.util.Scanner;
 
 public class SetActivityCommand implements ICommand {
     private static final String activityFileName = Config.get("ACTIVITY_FILE");
 
-    @Override
+    private static class BotActivity {
+        ActivityType activityType;
+        String activity;
+    }
+
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         event.deferReply().queue();
         String activity = Objects.requireNonNull(event.getOption("activity")).getAsString();
         OptionMapping typeInput = event.getOption("type");
-        boolean validInput = true;
+        ActivityType activityType = null;
         String message = "";
-        ActivityType activityType;
-        if (typeInput == null) {
-            try {
-                activityType = getTypeFromFile();
-                message = "Activity type not specified, will remain unchanged.\n";
-            } catch (Exception e) {
-                e.printStackTrace();
-                activityType = ActivityType.STREAMING;
-                message = "Activity type not specified, set to **Streaming**\n";
-            }
-        } else {
+
+        if (typeInput != null) {
             String typeName = typeInput.getAsString().toUpperCase();
             activityType = getActivityType(typeName);
-            if (activityType.equals(ActivityType.STREAMING)) {
-                if (!typeName.equals("STREAMING")) {
-                    message = "Invalid activity type" + typeName + ", will remain unchanged.\n";
-                }
+            if (activityType == null) {
+                message = "Invalid activity type " + typeName + ", will remain unchanged.\n";
             }
         }
 
         try {
-            if (!validInput) {
-                activityType = getTypeFromFile();
+            if (activityType == null) {
+                BotActivity botActivity = getActivityFromFile();
+                activityType = botActivity.activityType;
+                message += "Activity type not specified, will remain unchanged.\n";
             }
-            FileWriter writer = new FileWriter(activityFileName);
-            writer.write(activityType + "\n" + activity);
-            writer.close();
+            saveActivityToFile(activityType, activity);
             setActivity();
         } catch (Exception e) {
             e.printStackTrace();
@@ -66,14 +59,12 @@ public class SetActivityCommand implements ICommand {
     /**
      * Sets bobo's activity
      *
-     * @throws Exception exception
+     * @throws IOException exception
      */
-    public static void setActivity() throws Exception {
-        File activityFile = new File(activityFileName);
-        Scanner scanner = new Scanner(activityFile);
-        String activityType = scanner.nextLine();
-        String activityName = scanner.nextLine();
-        scanner.close();
+    public static void setActivity() throws IOException {
+        BotActivity botActivity = getActivityFromFile();
+        String activityType = botActivity.activityType.toString();
+        String activityName = botActivity.activity;
 
         Activity activity = switch (activityType) {
             case "PLAYING" -> Activity.playing(activityName);
@@ -83,19 +74,6 @@ public class SetActivityCommand implements ICommand {
             default -> Activity.streaming(activityName, "https://www.youtube.com/watch?v=dQw4w9WgXcQ");
         };
         Bobo.getJDA().getPresence().setActivity(activity);
-    }
-
-    /**
-     * Gets the activity type as a string from activity.txt
-     *
-     * @return activity type
-     */
-    private static ActivityType getTypeFromFile() throws Exception {
-        File activityFile = new File(activityFileName);
-        Scanner scanner = new Scanner(activityFile);
-        String activityType = scanner.nextLine();
-        scanner.close();
-        return getActivityType(activityType);
     }
 
     /**
@@ -112,6 +90,36 @@ public class SetActivityCommand implements ICommand {
             case "COMPETING" -> ActivityType.COMPETING;
             default -> ActivityType.STREAMING;
         };
+    }
+
+    /**
+     * Saves the activity to a file
+     *
+     * @param activityType activity type
+     * @param activity     activity
+     * @throws IOException exception
+     */
+    private static void saveActivityToFile(ActivityType activityType, String activity) throws IOException {
+        Gson gson = new Gson();
+        try (Writer writer = new FileWriter(activityFileName)) {
+            BotActivity botActivity = new BotActivity();
+            botActivity.activityType = activityType;
+            botActivity.activity = activity;
+            gson.toJson(botActivity, writer);
+        }
+    }
+
+    /**
+     * Gets the activity from a file
+     *
+     * @return activity
+     * @throws IOException exception
+     */
+    private static BotActivity getActivityFromFile() throws IOException {
+        Gson gson = new Gson();
+        try (JsonReader reader = new JsonReader(new FileReader(activityFileName))) {
+            return gson.fromJson(reader, BotActivity.class);
+        }
     }
 
     @Override

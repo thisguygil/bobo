@@ -24,8 +24,8 @@ public class Bobo {
                         Commands.slash("help", "Shows the list of commands or gets info on a specific command.")
                                 .addOption(STRING, "command", "Command to explain", false),
                         Commands.slash("set-activity", "Sets bobo's activity with specified type (playing, streaming, listening, watching, competing).")
-                                .addOption(STRING, "activity", "Activity to set", true)
-                                .addOption(STRING, "type", "Activity type to set (playing, streaming (default), listening, watching, competing)", false),
+                                .addOption(STRING, "type", "Activity type to set (playing, streaming, listening, watching, competing)", true)
+                                .addOption(STRING, "activity", "Activity to set", true),
                         Commands.slash("search", "Searches given query on Google.")
                                 .addOption(STRING, "query", "What to search", true),
                         Commands.slash("chat", "Uses OpenAI to generate a response to the given prompt.")
