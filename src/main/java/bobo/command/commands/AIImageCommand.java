@@ -20,8 +20,7 @@ public class AIImageCommand implements ICommand {
         event.deferReply().queue();
         OpenAiService service = Bobo.getService();
         String prompt = Objects.requireNonNull(event.getOption("prompt")).getAsString();
-        CreateImageRequest createImageRequest = CreateImageRequest
-                .builder()
+        CreateImageRequest createImageRequest = CreateImageRequest.builder()
                 .prompt(prompt)
                 .build();
         String imageUrl = service.createImage(createImageRequest).getData().get(0).getUrl();
