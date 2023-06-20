@@ -74,7 +74,7 @@ public class SearchCommand implements ICommand {
                     .addField(title, imageContextUrl, true)
                     .setImage(imageUrl)
                     .build();
-            pages.add(i, new InteractPage(embed));
+            pages.add(i, InteractPage.of(embed));
         }
 
         if (pages.size() == 1) {

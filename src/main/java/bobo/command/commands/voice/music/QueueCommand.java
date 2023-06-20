@@ -54,7 +54,7 @@ public class QueueCommand implements ICommand {
             builder.addField((i + 1) + ":", "[" + info.title + "](" + info.uri + ") by **" + info.author + "** [" + (i == 0 ? TimeFormat.formatTime(track.getDuration() - track.getPosition()) : TimeFormat.formatTime(track.getDuration())) + (i == 0 ? (scheduler.looping ? " left] (currently looping)\n" : " left] (currently playing)\n") : "]\n"), false);
             count++;
             if (count == 10) {
-                pages.add(new InteractPage(builder.build()));
+                pages.add(InteractPage.of(builder.build()));
                 builder = new EmbedBuilder()
                         .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getAvatarUrl())
                         .setTitle("Current Queue")
@@ -63,7 +63,7 @@ public class QueueCommand implements ICommand {
             }
         }
         if (!builder.getFields().isEmpty()) {
-            pages.add(new InteractPage(builder.build()));
+            pages.add(InteractPage.of(builder.build()));
         }
 
         if (pages.size() == 1) {
