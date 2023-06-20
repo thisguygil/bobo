@@ -1,70 +1,48 @@
 package bobo.command.commands;
 
+import bobo.Bobo;
 import bobo.command.ICommand;
 import bobo.utils.URLValidator;
+import com.theokanning.openai.image.CreateImageRequest;
+import com.theokanning.openai.service.OpenAiService;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import okhttp3.*;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
-import java.io.IOException;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 public class AIImageCommand implements ICommand {
-    private static final OkHttpClient httpClient = new OkHttpClient.Builder()
-            .connectTimeout(60, TimeUnit.SECONDS)
-            .readTimeout(60, TimeUnit.SECONDS)
-            .writeTimeout(60, TimeUnit.SECONDS)
-            .build();
-
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         event.deferReply().queue();
+        OpenAiService service = Bobo.getService();
         String prompt = Objects.requireNonNull(event.getOption("prompt")).getAsString();
+        CreateImageRequest createImageRequest = CreateImageRequest
+                .builder()
+                .prompt(prompt)
+                .build();
+        String imageUrl = service.createImage(createImageRequest).getData().get(0).getUrl();
+        if (!URLValidator.isValidURL(imageUrl)) {
+            event.getHook().editOriginal("**" + prompt + "**\n" + imageUrl).queue();
+            return;
+        }
+
         Member member = event.getMember();
-
-        try {
-            String imageUrl = generate(prompt);
-            if (!URLValidator.isValidURL(imageUrl)) {
-                event.getHook().editOriginal("**" + prompt + "**\n" + imageUrl).queue();
-                return;
-            }
-            assert member != null;
-            MessageEmbed embed = new EmbedBuilder()
-                    .setAuthor(member.getUser().getAsTag(), "https://discord.com/users/" + member.getId(), member.getAvatarUrl())
-                    .setTitle(prompt)
-                    .setColor(Color.red)
-                    .setImage(imageUrl)
-                    .build();
-            event.getHook().editOriginalEmbeds(embed).queue();
-        } catch (IOException e) {
-            event.getHook().editOriginal("An error occurred while generating the response.").queue();
-            e.printStackTrace();
-        }
-    }
-
-    private String generate(String prompt) throws IOException {
-        RequestBody formBody = new FormBody.Builder()
-                .add("prompt", prompt)
+        assert member != null;
+        MessageEmbed embed = new EmbedBuilder()
+                .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getAvatarUrl())
+                .setTitle(prompt)
+                .setColor(Color.red)
+                .setImage(imageUrl)
                 .build();
-        Request request = new Request.Builder()
-                .url("http://localhost:5000/image")
-                .post(formBody)
-                .build();
-        try (Response response = httpClient.newCall(request).execute()) {
-            if (!response.isSuccessful()) throw new RuntimeException(String.valueOf(response));
-            assert response.body() != null;
-            return response.body().string();
-        }
+        event.getHook().editOriginalEmbeds(embed).queue();
     }
 
     @Override
     public String getName() {
         return "ai-image";
     }
-
 }

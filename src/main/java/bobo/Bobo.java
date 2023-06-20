@@ -1,7 +1,9 @@
 package bobo;
 
+import bobo.command.commands.ChatCommand;
 import bobo.command.commands.SetActivityCommand;
 import com.github.ygimenez.model.PaginatorBuilder;
+import com.theokanning.openai.service.OpenAiService;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
@@ -11,6 +13,7 @@ import static net.dv8tion.jda.api.interactions.commands.OptionType.*;
 
 public class Bobo {
     private static JDA jda;
+    private static final OpenAiService service = new OpenAiService(Config.get("OPENAI_API_KEY"));
 
     public static void main(String[] args) {
         jda = JDABuilder.createDefault(Config.get("TOKEN"))
@@ -60,6 +63,8 @@ public class Bobo {
                 )
                 .queue();
 
+        ChatCommand.initializeMessages();
+
         try {
             SetActivityCommand.setActivity();
             PaginatorBuilder.createPaginator(jda)
@@ -72,7 +77,21 @@ public class Bobo {
         }
     }
 
+    /**
+     * Gets the JDA instance.
+     *
+     * @return JDA instance
+     */
     public static JDA getJDA() {
         return jda;
+    }
+
+    /**
+     * Gets the OpenAI service instance.
+     *
+     * @return OpenAI service instance
+     */
+    public static OpenAiService getService() {
+        return service;
     }
 }
