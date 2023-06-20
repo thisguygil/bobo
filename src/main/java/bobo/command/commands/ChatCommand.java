@@ -27,7 +27,6 @@ public class ChatCommand implements ICommand {
         ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest.builder()
                 .model("gpt-3.5-turbo")
                 .messages(messages)
-                .maxTokens(350)
                 .build();
         ChatMessage assistantMessage = service.createChatCompletion(chatCompletionRequest)
                 .getChoices()
