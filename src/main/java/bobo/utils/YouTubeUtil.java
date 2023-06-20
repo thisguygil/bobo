@@ -8,6 +8,7 @@ import com.google.api.services.youtube.model.SearchResult;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.List;
@@ -90,5 +91,18 @@ public class YouTubeUtil {
             e.printStackTrace();
         }
         return null;
+    }
+
+    /**
+     * @param url the URL
+     * @return true if the given URL is a valid URL
+     */
+    public static boolean isValidURL(String url) {
+        try {
+            new URL(url);
+            return true;
+        } catch (MalformedURLException e) {
+            return false;
+        }
     }
 }
