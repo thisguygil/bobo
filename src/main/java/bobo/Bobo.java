@@ -25,8 +25,6 @@ public class Bobo {
         jda.updateCommands()
                 .addCommands(
                         // Admin commands
-                        Commands.slash("reload", "Reloads the bot.")
-                                .setDefaultPermissions(DefaultMemberPermissions.DISABLED),
                         Commands.slash("set-activity", "Sets bobo's activity with specified type (playing, streaming, listening, watching, competing).")
                                 .addOption(STRING, "type", "Activity type to set (playing, streaming, listening, watching, competing)", true)
                                 .addOption(STRING, "activity", "Activity to set", true)

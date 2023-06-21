@@ -18,7 +18,6 @@ public class CommandManager {
 
     public CommandManager() {
         // Admin commands
-        commands.add(new ReloadCommand());
         commands.add(new SetActivityCommand());
 
         // General commands
