@@ -1,11 +1,12 @@
 package bobo;
 
-import bobo.command.commands.ChatCommand;
-import bobo.command.commands.SetActivityCommand;
+import bobo.command.commands.ai.ChatCommand;
+import bobo.command.commands.admin.SetActivityCommand;
 import com.github.ygimenez.model.PaginatorBuilder;
 import com.theokanning.openai.service.OpenAiService;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 
@@ -13,7 +14,7 @@ import static net.dv8tion.jda.api.interactions.commands.OptionType.*;
 
 public class Bobo {
     private static JDA jda;
-    private static final OpenAiService service = new OpenAiService(Config.get("OPENAI_API_KEY"));
+    private static OpenAiService service;
 
     public static void main(String[] args) {
         jda = JDABuilder.createDefault(Config.get("TOKEN"))
@@ -23,28 +24,34 @@ public class Bobo {
 
         jda.updateCommands()
                 .addCommands(
-                        // Message commands
-                        Commands.slash("help", "Shows the list of commands or gets info on a specific command.")
-                                .addOption(STRING, "command", "Command to explain", false),
+                        // Admin commands
+                        Commands.slash("reload", "Reloads the bot.")
+                                .setDefaultPermissions(DefaultMemberPermissions.DISABLED),
                         Commands.slash("set-activity", "Sets bobo's activity with specified type (playing, streaming, listening, watching, competing).")
                                 .addOption(STRING, "type", "Activity type to set (playing, streaming, listening, watching, competing)", true)
-                                .addOption(STRING, "activity", "Activity to set", true),
+                                .addOption(STRING, "activity", "Activity to set", true)
+                                .setDefaultPermissions(DefaultMemberPermissions.DISABLED),
+
+                        // General commands
+                        Commands.slash("help", "Shows the list of commands or gets info on a specific command.")
+                                .addOption(STRING, "command", "Command to explain", false),
                         Commands.slash("search", "Searches given query on Google.")
                                 .addOption(STRING, "query", "What to search", true),
-                        Commands.slash("chat", "Uses OpenAI to generate a response to the given prompt.")
-                                .addOption(STRING, "prompt", "Prompt to respond to", true),
-                        Commands.slash("chat-reset", "Resets the current OpenAI chat conversation."),
-                        Commands.slash("ai-image", "Uses OpenAI to generate an image of the given prompt.")
-                                .addOption(STRING, "prompt", "Image to generate", true),
                         Commands.slash("say", "Make bobo say what you tell it to.")
                                 .addOption(STRING, "content", "What bobo should say", true),
                         Commands.slash("get-quote", "Gets a random quote from #boquafiquotes."),
                         Commands.slash("steelix", "steelix"),
 
+                        // AI commands
+                        Commands.slash("chat", "Uses OpenAI to generate a response to the given prompt.")
+                                .addOption(STRING, "prompt", "Prompt to respond to", true),
+                        Commands.slash("chat-reset", "Resets the current OpenAI chat conversation."),
+                        Commands.slash("ai-image", "Uses OpenAI to generate an image of the given prompt.")
+                                .addOption(STRING, "prompt", "Image to generate", true),
+
                         // Voice commands
                         Commands.slash("join", "Joins the voice channel."),
                         Commands.slash("leave", "Leaves the voice channel."),
-
                         // Music commands
                         Commands.slash("play", "Joins the voice channel and plays given/searched YouTube link/query.")
                                 .addOption(STRING, "track", "YouTube link/query to play/search", true),
@@ -63,6 +70,7 @@ public class Bobo {
                 )
                 .queue();
 
+        service = new OpenAiService(Config.get("OPENAI_API_KEY"));
         ChatCommand.initializeMessages();
 
         try {

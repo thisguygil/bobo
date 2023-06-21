@@ -1,4 +1,4 @@
-package bobo.command.commands;
+package bobo.command.commands.ai;
 
 import bobo.Bobo;
 import bobo.command.ICommand;

@@ -1,4 +1,4 @@
-package bobo.command.commands;
+package bobo.command.commands.general;
 
 import bobo.command.ICommand;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;

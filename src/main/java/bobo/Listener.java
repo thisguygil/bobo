@@ -1,10 +1,11 @@
 package bobo;
 
-import bobo.command.commands.GetQuoteCommand;
+import bobo.command.commands.general.GetQuoteCommand;
 import bobo.lavaplayer.GuildMusicManager;
 import bobo.lavaplayer.PlayerManager;
 import bobo.lavaplayer.TrackScheduler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
@@ -55,15 +56,15 @@ public class Listener extends ListenerAdapter {
      */
     @Override
     public void onGuildVoiceUpdate(@Nonnull GuildVoiceUpdateEvent event) {
-        if (event.getEntity().equals(event.getGuild().getSelfMember()) && event.getChannelLeft() != null) {
-            final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuild());
+        Guild guild = event.getGuild();
+        if (event.getEntity().equals(guild.getSelfMember()) && event.getChannelLeft() != null) {
+            final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(guild);
             final AudioPlayer player = musicManager.player;
             final TrackScheduler scheduler = musicManager.scheduler;
             scheduler.queue.clear();
             scheduler.looping = false;
             player.stopTrack();
             player.setPaused(false);
-            musicManager.removeEventListener();
         }
     }
 

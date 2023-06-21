@@ -1,19 +1,19 @@
-package bobo.command.commands;
+package bobo.command.commands.general;
 
 import bobo.command.ICommand;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 import javax.annotation.Nonnull;
 
-public class ChatResetCommand implements ICommand {
+public class SteelixCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
-        ChatCommand.initializeMessages();
-        event.reply("Chat reset").queue();
+        event.reply("https://assets.pokemon.com/assets/cms2/img/pokedex/full/208.png").queue();
     }
 
     @Override
     public String getName() {
-        return "chat-reset";
+        return "steelix";
     }
+
 }

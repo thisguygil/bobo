@@ -1,4 +1,4 @@
-package bobo.command.commands;
+package bobo.command.commands.admin;
 
 import bobo.Bobo;
 import bobo.Config;
