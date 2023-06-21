@@ -89,8 +89,8 @@ public class YouTubeUtil {
             return image;
         } catch (Exception e) {
             e.printStackTrace();
+            return null;
         }
-        return null;
     }
 
     /**
