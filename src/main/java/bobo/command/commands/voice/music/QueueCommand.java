@@ -23,6 +23,7 @@ import java.util.concurrent.BlockingQueue;
 public class QueueCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
+        event.deferReply().queue();
         final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuildChannel().getGuild());
         final TrackScheduler scheduler = musicManager.scheduler;
         final BlockingQueue<AudioTrack> queue = scheduler.queue;
@@ -33,7 +34,7 @@ public class QueueCommand implements ICommand {
         if (currentTrack != null) {
             trackList.add(0, currentTrack);
         } else {
-            event.reply("The queue is currently empty").queue();
+            event.getHook().editOriginal("The queue is currently empty").queue();
             return;
         }
 
@@ -51,7 +52,9 @@ public class QueueCommand implements ICommand {
         for (int i = 0; i < numPages; i++) {
             track = trackList.get(i);
             info = track.getInfo();
-            builder.addField((i + 1) + ":", "[" + info.title + "](" + info.uri + ") by **" + info.author + "** [" + (i == 0 ? TimeFormat.formatTime(track.getDuration() - track.getPosition()) : TimeFormat.formatTime(track.getDuration())) + (i == 0 ? (scheduler.looping ? " left] (currently looping)\n" : " left] (currently playing)\n") : "]\n"), false);
+            builder.addField((i + 1) + ":", "[" + info.title + "](" + info.uri + ") by **" + info.author + "** [" +
+                    (i == 0 ? TimeFormat.formatTime(track.getDuration() - track.getPosition()) : TimeFormat.formatTime(track.getDuration())) +
+                    (i == 0 ? (scheduler.looping ? " left] (currently looping)\n" : " left] (currently playing)\n") : "]\n"), false);
             count++;
             if (count == 10) {
                 pages.add(InteractPage.of(builder.build()));
@@ -69,8 +72,7 @@ public class QueueCommand implements ICommand {
         if (pages.size() == 1) {
             event.replyEmbeds((MessageEmbed) pages.get(0).getContent()).queue();
         } else {
-            event.getMessageChannel().sendMessageEmbeds((MessageEmbed) pages.get(0).getContent()).queue(success -> Pages.paginate(success, pages, true));
-            event.reply("Queue sent").setEphemeral(true).queue();
+            event.getHook().editOriginalEmbeds((MessageEmbed) pages.get(0).getContent()).queue(success -> Pages.paginate(success, pages, true));
         }
     }
 
