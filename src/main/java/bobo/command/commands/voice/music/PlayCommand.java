@@ -5,6 +5,7 @@ import bobo.command.commands.voice.JoinCommand;
 import bobo.lavaplayer.PlayerManager;
 import bobo.utils.YouTubeUtil;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import org.apache.commons.validator.routines.UrlValidator;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
@@ -17,7 +18,7 @@ public class PlayCommand implements ICommand {
 
         String track = Objects.requireNonNull(event.getOption("track")).getAsString();
         String trackURL;
-        if (YouTubeUtil.isValidURL(track)) {
+        if ((new UrlValidator()).isValid(track)) {
             trackURL = track;
         } else {
             try {

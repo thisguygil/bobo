@@ -27,6 +27,7 @@ dependencies {
     implementation("com.google.oauth-client:google-oauth-client-jetty:1.34.1")
     implementation("com.google.apis:google-api-services-youtube:v3-rev20230123-2.0.0")
     implementation("com.google.code.gson:gson:2.10.1")
+    implementation("commons-validator:commons-validator:1.7")
     implementation("ch.qos.logback:logback-classic:1.4.7")
     implementation("io.github.cdimascio:dotenv-java:3.0.0")
 }
