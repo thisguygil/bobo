@@ -1,4 +1,4 @@
-package bobo.command.commands.general;
+package bobo.command.commands.admin;
 
 import bobo.command.ICommand;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -17,5 +17,4 @@ public class SayCommand implements ICommand {
     public String getName() {
         return "say";
     }
-
 }

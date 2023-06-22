@@ -29,14 +29,15 @@ public class Bobo {
                                 .addOption(STRING, "type", "Activity type to set (playing, streaming, listening, watching, competing)", true)
                                 .addOption(STRING, "activity", "Activity to set", true)
                                 .setDefaultPermissions(DefaultMemberPermissions.DISABLED),
+                        Commands.slash("say", "Make bobo say what you tell it to.")
+                                .addOption(STRING, "content", "What bobo should say", true)
+                                .setDefaultPermissions(DefaultMemberPermissions.DISABLED),
 
                         // General commands
                         Commands.slash("help", "Shows the list of commands or gets info on a specific command.")
                                 .addOption(STRING, "command", "Command to explain", false),
                         Commands.slash("search", "Searches given query on Google.")
                                 .addOption(STRING, "query", "What to search", true),
-                        Commands.slash("say", "Make bobo say what you tell it to.")
-                                .addOption(STRING, "content", "What bobo should say", true),
                         Commands.slash("get-quote", "Gets a random quote from #boquafiquotes."),
                         Commands.slash("steelix", "steelix"),
 

@@ -19,11 +19,11 @@ public class CommandManager {
     public CommandManager() {
         // Admin commands
         commands.add(new SetActivityCommand());
+        commands.add(new SayCommand());
 
         // General commands
         commands.add(new HelpCommand());
         commands.add(new SearchCommand());
-        commands.add(new SayCommand());
         commands.add(new GetQuoteCommand());
         commands.add(new SteelixCommand());
 
