@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
@@ -17,8 +18,10 @@ public class AIImageCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         event.deferReply().queue();
+        InteractionHook hook = event.getHook();
         OpenAiService service = Bobo.getService();
         String prompt = Objects.requireNonNull(event.getOption("prompt")).getAsString();
+
         CreateImageRequest createImageRequest = CreateImageRequest.builder()
                 .prompt(prompt)
                 .build();
@@ -35,7 +38,7 @@ public class AIImageCommand implements ICommand {
                 .setColor(Color.red)
                 .setImage(imageUrl)
                 .build();
-        event.getHook().editOriginalEmbeds(embed).queue();
+        hook.editOriginalEmbeds(embed).queue();
     }
 
     @Override

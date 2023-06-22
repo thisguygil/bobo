@@ -2,6 +2,7 @@ package bobo.command.commands.general;
 
 import bobo.command.ICommand;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 
@@ -11,11 +12,14 @@ import java.util.List;
 public class HelpCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
+        event.deferReply().queue();
+        InteractionHook hook = event.getHook();
         StringBuilder message = new StringBuilder();
         List<Command> commands = event.getJDA().retrieveCommands().complete();
         OptionMapping input = event.getOption("command");
+
         if (input == null) {
-            message.append("List of commands\n")
+            message.append("**List of commands**\n")
                     .append("To get info on a specific command: `/help <command name>`\n");
             for (Command command : commands) {
                 if (!command.getName().equals("help")) {
@@ -40,7 +44,7 @@ public class HelpCommand implements ICommand {
                         .append(command.getDescription());
             }
         }
-        event.reply(message.toString()).queue();
+        hook.editOriginal(message.toString()).queue();
     }
 
     @Override

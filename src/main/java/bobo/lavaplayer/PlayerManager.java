@@ -70,6 +70,7 @@ public class PlayerManager {
                     event.getMessageChannel().sendFiles(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg")).setEmbeds(embed.build()).queue();
                 } catch (IOException e) {
                     event.getMessageChannel().sendMessageEmbeds(embed.build()).queue();
+                    e.printStackTrace();
                 }
                 musicManager.removeAudioEventListener(event);
             }

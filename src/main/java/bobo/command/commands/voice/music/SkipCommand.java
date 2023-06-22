@@ -6,19 +6,23 @@ import bobo.lavaplayer.PlayerManager;
 import bobo.lavaplayer.TrackScheduler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 
 import javax.annotation.Nonnull;
 
 public class SkipCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
+        event.deferReply().queue();
+        InteractionHook hook = event.getHook();
         final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuildChannel().getGuild());
         final AudioPlayer player = musicManager.player;
         final TrackScheduler scheduler = musicManager.scheduler;
+
         if (player.getPlayingTrack() == null) {
-            event.reply("There is nothing currently playing").queue();
+            hook.editOriginal("There is nothing currently playing.").queue();
         } else {
-            event.reply(scheduler.looping ? "Skipped. Looping has been turned off." : "Skipped").queue();
+            hook.editOriginal(scheduler.looping ? "Skipped. Looping has been turned off." : "Skipped.").queue();
             scheduler.looping = false;
             scheduler.nextTrack();
         }
@@ -28,5 +32,4 @@ public class SkipCommand implements ICommand {
     public String getName() {
         return "skip";
     }
-
 }

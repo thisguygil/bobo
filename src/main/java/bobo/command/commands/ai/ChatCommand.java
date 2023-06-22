@@ -7,6 +7,7 @@ import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.completion.chat.ChatMessageRole;
 import com.theokanning.openai.service.OpenAiService;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -19,8 +20,10 @@ public class ChatCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         event.deferReply().queue();
+        InteractionHook hook = event.getHook();
         OpenAiService service = Bobo.getService();
         String prompt = Objects.requireNonNull(event.getOption("prompt")).getAsString();
+
         ChatMessage userMessage = new ChatMessage(ChatMessageRole.USER.value(), prompt);
         messages.add(userMessage);
 
@@ -28,6 +31,7 @@ public class ChatCommand implements ICommand {
                 .model("gpt-3.5-turbo")
                 .messages(messages)
                 .build();
+
         ChatMessage assistantMessage = service.createChatCompletion(chatCompletionRequest)
                 .getChoices()
                 .get(0)
@@ -35,9 +39,12 @@ public class ChatCommand implements ICommand {
         messages.add(assistantMessage);
 
         String response = "**" + prompt + "**\n" + assistantMessage.getContent();
-        event.getHook().editOriginal(response).queue();
+        hook.editOriginal(response).queue();
     }
 
+    /**
+     * Clears the messages list and adds a system message to it.
+     */
     public static void initializeMessages() {
         messages.clear();
         final ChatMessage systemMessage = new ChatMessage(ChatMessageRole.SYSTEM.value(), "You are Bobo, " +

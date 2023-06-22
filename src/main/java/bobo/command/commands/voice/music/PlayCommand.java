@@ -5,6 +5,7 @@ import bobo.command.commands.voice.JoinCommand;
 import bobo.lavaplayer.PlayerManager;
 import bobo.utils.YouTubeUtil;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import org.apache.commons.validator.routines.UrlValidator;
 
 import javax.annotation.Nonnull;
@@ -14,6 +15,8 @@ public class PlayCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         event.deferReply().queue();
+        InteractionHook hook = event.getHook();
+
         JoinCommand.join(event);
 
         String track = Objects.requireNonNull(event.getOption("track")).getAsString();
@@ -24,10 +27,12 @@ public class PlayCommand implements ICommand {
             try {
                 trackURL = YouTubeUtil.searchForVideo(track);
             } catch (Exception e) {
-                event.getHook().editOriginal("Nothing found by **" + track + "**").queue();
+                hook.editOriginal("Nothing found by **" + track + "**").queue();
+                e.printStackTrace();
                 return;
             }
         }
+
         PlayerManager.getInstance().loadAndPlay(event, trackURL);
     }
 

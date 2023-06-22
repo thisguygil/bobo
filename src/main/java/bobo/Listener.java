@@ -65,6 +65,7 @@ public class Listener extends ListenerAdapter {
             scheduler.looping = false;
             player.stopTrack();
             player.setPaused(false);
+            musicManager.eventListenerMap.clear();
         }
     }
 

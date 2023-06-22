@@ -3,8 +3,9 @@ package bobo.command.commands.voice.music;
 import bobo.command.ICommand;
 import bobo.command.commands.voice.JoinCommand;
 import bobo.lavaplayer.PlayerManager;
-import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.Message.Attachment;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
@@ -13,15 +14,17 @@ public class PlayFileCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         event.deferReply().queue();
+        InteractionHook hook = event.getHook();
+
         JoinCommand.join(event);
 
-        Message.Attachment attachment = Objects.requireNonNull(event.getOption("file")).getAsAttachment();
-        if (isAudioFile(attachment.getFileName())) {
-            String url = attachment.getUrl();
-            PlayerManager.getInstance().loadAndPlay(event, url);
-        } else {
-            event.getHook().editOriginal("Please attach a valid audio file.").queue();
+        Attachment attachment = Objects.requireNonNull(event.getOption("file")).getAsAttachment();
+        if (!isAudioFile(attachment.getFileName())) {
+            hook.editOriginal("Please attach a valid audio file.").queue();
+            return;
         }
+
+        PlayerManager.getInstance().loadAndPlay(event, attachment.getUrl());
     }
 
     /**
@@ -45,5 +48,4 @@ public class PlayFileCommand implements ICommand {
     public String getName() {
         return "play-file";
     }
-
 }

@@ -8,6 +8,7 @@ import com.google.gson.stream.JsonReader;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Activity.ActivityType;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 
 import javax.annotation.Nonnull;
@@ -24,6 +25,7 @@ public class SetActivityCommand implements ICommand {
 
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         event.deferReply().queue();
+        InteractionHook hook = event.getHook();
         String activity = Objects.requireNonNull(event.getOption("activity")).getAsString();
         OptionMapping typeInput = event.getOption("type");
         ActivityType activityType = null;
@@ -45,15 +47,17 @@ public class SetActivityCommand implements ICommand {
             }
             saveActivityToFile(activityType, activity);
             setActivity();
-        } catch (Exception e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
 
         if (message.isEmpty()) {
             message = "Activity type set to **" + activityType + "**\n";
         }
+
         message += "Activity set to **" + activity + "**";
-        event.getHook().editOriginal(message).queue();
+
+        hook.editOriginal(message).queue();
     }
 
     /**

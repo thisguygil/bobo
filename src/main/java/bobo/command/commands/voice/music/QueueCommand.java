@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
@@ -24,6 +25,7 @@ public class QueueCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         event.deferReply().queue();
+        InteractionHook hook = event.getHook();
         final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuildChannel().getGuild());
         final TrackScheduler scheduler = musicManager.scheduler;
         final BlockingQueue<AudioTrack> queue = scheduler.queue;
@@ -34,7 +36,7 @@ public class QueueCommand implements ICommand {
         if (currentTrack != null) {
             trackList.add(0, currentTrack);
         } else {
-            event.getHook().editOriginal("The queue is currently empty").queue();
+            hook.editOriginal("The queue is currently empty").queue();
             return;
         }
 
@@ -70,9 +72,9 @@ public class QueueCommand implements ICommand {
         }
 
         if (pages.size() == 1) {
-            event.replyEmbeds((MessageEmbed) pages.get(0).getContent()).queue();
+            hook.editOriginalEmbeds((MessageEmbed) pages.get(0).getContent()).queue();
         } else {
-            event.getHook().editOriginalEmbeds((MessageEmbed) pages.get(0).getContent()).queue(success -> Pages.paginate(success, pages, true));
+           hook.editOriginalEmbeds((MessageEmbed) pages.get(0).getContent()).queue(success -> Pages.paginate(success, pages, true));
         }
     }
 
@@ -80,5 +82,4 @@ public class QueueCommand implements ICommand {
     public String getName() {
         return "queue";
     }
-
 }

@@ -16,7 +16,7 @@ public class GuildMusicManager {
     public final AudioPlayer player;
     public final TrackScheduler scheduler;
     public final AudioPlayerSendHandler sendHandler;
-    private final Map<SlashCommandInteractionEvent, AudioEventListener> eventListenerMap;
+    public final Map<SlashCommandInteractionEvent, AudioEventListener> eventListenerMap;
 
     /**
      * Creates a player and a track scheduler.

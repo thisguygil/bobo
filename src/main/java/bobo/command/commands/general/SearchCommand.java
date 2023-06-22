@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 
 import javax.annotation.Nonnull;
 import java.awt.*;
@@ -26,16 +27,17 @@ import java.util.List;
 import java.util.Objects;
 
 public class SearchCommand implements ICommand {
-    private static final String API_KEY = Config.get("GOOGLE_API_KEY");
+    private static final String GOOGLE_API_KEY = Config.get("GOOGLE_API_KEY");
     private static final String SEARCH_ENGINE_ID = Config.get("SEARCH_ENGINE_ID");
 
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         event.deferReply().queue();
+        InteractionHook hook = event.getHook();
         int numPages;
         JsonArray images;
         String query = Objects.requireNonNull(event.getOption("query")).getAsString();
-        String url = "https://www.googleapis.com/customsearch/v1?key=" + API_KEY + "&cx=" + SEARCH_ENGINE_ID +
+        String url = "https://www.googleapis.com/customsearch/v1?key=" + GOOGLE_API_KEY + "&cx=" + SEARCH_ENGINE_ID +
                 "&q=" + URLEncoder.encode(query, StandardCharsets.UTF_8) + "&searchType=image";
 
         try {
@@ -43,15 +45,15 @@ public class SearchCommand implements ICommand {
             HttpRequest request = HttpRequest.newBuilder().uri(URI.create(url)).build();
             HttpResponse<String> response = client.send(request, HttpResponse.BodyHandlers.ofString());
             JsonObject json = JsonParser.parseString(response.body()).getAsJsonObject();
-
             images = json.getAsJsonArray("items");
             numPages = images.size();
             if (numPages == 0) {
-                event.getHook().editOriginal("No images found for query: " + query).queue();
+                hook.editOriginal("No images found for query: " + query).queue();
                 return;
             }
         } catch (Exception e) {
-            event.getHook().editOriginal("Error: " + e.getMessage()).queue();
+            hook.editOriginal("Error: " + e.getMessage()).queue();
+            e.printStackTrace();
             return;
         }
 
@@ -77,16 +79,14 @@ public class SearchCommand implements ICommand {
         }
 
         if (pages.size() == 1) {
-            event.getHook().editOriginalEmbeds((MessageEmbed) pages.get(0).getContent()).queue();
+            hook.editOriginalEmbeds((MessageEmbed) pages.get(0).getContent()).queue();
         } else {
-            event.getHook().editOriginalEmbeds((MessageEmbed) pages.get(0).getContent()).queue(success -> Pages.paginate(success, pages, true));
+            hook.editOriginalEmbeds((MessageEmbed) pages.get(0).getContent()).queue(success -> Pages.paginate(success, pages, true));
         }
-
     }
 
     @Override
     public String getName() {
         return "search";
     }
-
 }

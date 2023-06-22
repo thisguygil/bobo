@@ -7,6 +7,7 @@ import bobo.lavaplayer.TrackScheduler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 
 import javax.annotation.Nonnull;
 import java.util.Iterator;
@@ -16,17 +17,21 @@ import java.util.concurrent.BlockingQueue;
 public class RemoveCommand implements ICommand {
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
+        event.deferReply().queue();
+        InteractionHook hook = event.getHook();
         final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuildChannel().getGuild());
         final AudioPlayer player = musicManager.player;
         final TrackScheduler scheduler = musicManager.scheduler;
         final BlockingQueue<AudioTrack> queue = scheduler.queue;
+
         if (player.getPlayingTrack() == null) {
-            event.reply("The queue is currently empty").queue();
+            hook.editOriginal("The queue is currently empty").queue();
             return;
         }
+
         int position = Objects.requireNonNull(event.getOption("position")).getAsInt();
         if (position < 1 || position > queue.size() + 1) {
-            event.reply("Please enter an integer corresponding to a track's position in the queue").queue();
+            hook.editOriginal("Please enter an integer corresponding to a track's position in the queue").queue();
         } else {
             if (position == 1) {
                 scheduler.nextTrack();
@@ -44,7 +49,7 @@ public class RemoveCommand implements ICommand {
                     iterator.remove();
                 }
             }
-            event.reply("Removed track at position **" + position + "**").queue();
+            hook.editOriginal("Removed track at position **" + position + "**").queue();
         }
     }
 
@@ -52,5 +57,4 @@ public class RemoveCommand implements ICommand {
     public String getName() {
         return "remove";
     }
-
 }

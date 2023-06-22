@@ -6,6 +6,7 @@ import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 
 import javax.annotation.Nonnull;
 import java.time.format.DateTimeFormatter;
@@ -19,16 +20,18 @@ public class GetQuoteCommand implements ICommand {
 
     @Override
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
+        event.deferReply().queue();
+        InteractionHook hook = event.getHook();
+
         loadQuotes();
 
         int randomIndex = (int) (Math.random() * allMessages.size());
         Message randomMessage = allMessages.get(randomIndex);
         String messageContent = spoileredQuote(randomMessage.getContentDisplay());
-
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
         String time = randomMessage.getTimeCreated().format(formatter);
 
-        event.reply(messageContent + "\n" + time).queue();
+        hook.editOriginal(messageContent + "\n" + time).queue();
     }
 
     /**
@@ -40,15 +43,13 @@ public class GetQuoteCommand implements ICommand {
         TextChannel channel = jda.getTextChannelById("826951218135826463");
         assert channel != null;
         for (Message message : channel.getIterableHistory()) {
-            try {
-                if (!allMessages.contains(message)) {
-                    if (message.getContentDisplay().contains("\"")) {
-                        allMessages.add(message);
-                    }
-                } else {
-                    break;
+            if (!allMessages.contains(message)) {
+                if (message.getContentDisplay().contains("\"")) {
+                    allMessages.add(message);
                 }
-            } catch (Exception ignored) {}
+            } else {
+                break;
+            }
         }
     }
 
@@ -76,5 +77,4 @@ public class GetQuoteCommand implements ICommand {
     public String getName() {
         return "get-quote";
     }
-
 }
