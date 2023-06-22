@@ -1,26 +1,19 @@
 package bobo.lavaplayer;
 
-import bobo.utils.TimeFormat;
-import bobo.utils.YouTubeUtil;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
-import com.sedmelluq.discord.lavaplayer.player.event.AudioEventListener;
-import com.sedmelluq.discord.lavaplayer.player.event.TrackStartEvent;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
-import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.utils.FileUpload;
 
-import javax.imageio.ImageIO;
-import java.awt.*;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.InteractionHook;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -47,61 +40,36 @@ public class PlayerManager {
     }
 
     public void loadAndPlay(SlashCommandInteractionEvent event, String trackURL) {
-        final GuildMusicManager musicManager = this.getMusicManager(event.getGuildChannel().getGuild());
+        InteractionHook hook = event.getHook();
+        MessageChannel channel = event.getMessageChannel();
+        final GuildMusicManager musicManager = this.getMusicManager(Objects.requireNonNull(event.getGuild()));
         TrackScheduler scheduler = musicManager.scheduler;
-
-        // Set event listener for music queue
-        AudioEventListener listener = audioEvent -> {
-            if (audioEvent instanceof TrackStartEvent) {
-                AudioTrackInfo info = ((TrackStartEvent) audioEvent).track.getInfo();
-
-                // Creates embedded message with track info
-                EmbedBuilder embed = new EmbedBuilder()
-                        .setAuthor(scheduler.looping ? "Now Looping" : "Now Playing")
-                        .setTitle(info.title, info.uri)
-                        .setImage("attachment://thumbnail.jpg")
-                        .setColor(Color.red)
-                        .setFooter(TimeFormat.formatTime(((TrackStartEvent) audioEvent).track.getDuration()));
-
-                // Sets image in embed to proper aspect ratio
-                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                try {
-                    ImageIO.write(Objects.requireNonNull(YouTubeUtil.getThumbnailImage(info.uri)), "jpg", outputStream);
-                    event.getMessageChannel().sendFiles(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg")).setEmbeds(embed.build()).queue();
-                } catch (IOException e) {
-                    event.getMessageChannel().sendMessageEmbeds(embed.build()).queue();
-                    e.printStackTrace();
-                }
-                musicManager.removeAudioEventListener(event);
-            }
-        };
-        musicManager.addAudioEventListener(event, listener);
 
         this.audioPlayerManager.loadItemOrdered(musicManager, trackURL, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
                 AudioTrackInfo info = track.getInfo();
-                event.getHook().editOriginal("Adding to queue [" + info.title + "](<" + info.uri + ">) by **" + info.author + "**").queue();
-                scheduler.queue(track);
+                hook.editOriginal("Adding to queue [" + info.title + "](<" + info.uri + ">) by **" + info.author + "**").queue();
+                scheduler.queue(track, channel);
             }
 
             @Override
             public void playlistLoaded(AudioPlaylist playlist) {
                 final List<AudioTrack> tracks = playlist.getTracks();
-                event.getHook().editOriginal("Adding to queue **" + tracks.size() + "** tracks from playlist **" + playlist.getName() + "**").queue();
+                hook.editOriginal("Adding to queue **" + tracks.size() + "** tracks from playlist **" + playlist.getName() + "**").queue();
                 for (final AudioTrack track : tracks) {
-                    scheduler.queue(track);
+                    scheduler.queue(track, channel);
                 }
             }
 
             @Override
             public void noMatches() {
-                event.getHook().editOriginal("Nothing found by **" + trackURL + "**").queue();
+                hook.editOriginal("Nothing found by **" + trackURL + "**").queue();
             }
 
             @Override
             public void loadFailed(FriendlyException e) {
-                event.getMessageChannel().sendMessage("Could not play: **" + e.getMessage() + "**").queue();
+                hook.editOriginal("Could not load: **" + e.getMessage() + "**").queue();
             }
         });
     }

@@ -1,27 +1,19 @@
-package bobo.command.commands.ai;
+package bobo.commands.ai;
 
-import bobo.Bobo;
-import bobo.command.ICommand;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.completion.chat.ChatMessageRole;
-import com.theokanning.openai.service.OpenAiService;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 
-import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class ChatCommand implements ICommand {
+public class ChatCommand extends AbstractAI {
     private static final List<ChatMessage> messages = new ArrayList<>();
 
     @Override
-    public void handle(@Nonnull SlashCommandInteractionEvent event) {
+    protected void handleAICommand() {
         event.deferReply().queue();
-        InteractionHook hook = event.getHook();
-        OpenAiService service = Bobo.getService();
         String prompt = Objects.requireNonNull(event.getOption("prompt")).getAsString();
 
         ChatMessage userMessage = new ChatMessage(ChatMessageRole.USER.value(), prompt);

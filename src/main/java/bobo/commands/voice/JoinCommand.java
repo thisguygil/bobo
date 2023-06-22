@@ -1,19 +1,16 @@
-package bobo.command.commands.voice;
+package bobo.commands.voice;
 
-import bobo.command.ICommand;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.GuildVoiceState;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
 
-public class JoinCommand implements ICommand {
+public class JoinCommand extends AbstractVoice {
     @Override
-    public void handle(@Nonnull SlashCommandInteractionEvent event) {
+    protected void handleVoiceCommand() {
         event.deferReply().queue();
-        InteractionHook hook = event.getHook();
 
         if (Objects.requireNonNull(event.getGuild()).getAudioManager().isConnected()) {
             hook.editOriginal("I must not be connected to a voice channel to use this command.").queue();

@@ -1,11 +1,11 @@
 package bobo;
 
-import bobo.command.ICommand;
-import bobo.command.commands.admin.*;
-import bobo.command.commands.ai.*;
-import bobo.command.commands.general.*;
-import bobo.command.commands.voice.*;
-import bobo.command.commands.voice.music.*;
+import bobo.commands.AbstractCommand;
+import bobo.commands.admin.*;
+import bobo.commands.ai.*;
+import bobo.commands.general.*;
+import bobo.commands.voice.*;
+import bobo.commands.voice.music.*;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 import javax.annotation.Nonnull;
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CommandManager {
-    private final List<ICommand> commands = new ArrayList<>();
+    private final List<AbstractCommand> commands = new ArrayList<>();
 
     public CommandManager() {
         // Admin commands
@@ -25,7 +25,6 @@ public class CommandManager {
         commands.add(new HelpCommand());
         commands.add(new SearchCommand());
         commands.add(new GetQuoteCommand());
-        commands.add(new SteelixCommand());
 
         // AI commands
         commands.add(new ChatCommand());
@@ -50,8 +49,8 @@ public class CommandManager {
     }
 
     @Nullable
-    public ICommand getCommand(String search) {
-        for (ICommand command : this.commands) {
+    public AbstractCommand getCommand(String search) {
+        for (AbstractCommand command : this.commands) {
             if (command.getName().equals(search)) {
                 return command;
             }
@@ -60,7 +59,7 @@ public class CommandManager {
     }
 
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
-        ICommand command = getCommand(event.getName());
+        AbstractCommand command = getCommand(event.getName());
         if (command != null) {
             command.handle(event);
         } else {
@@ -68,5 +67,4 @@ public class CommandManager {
             throw new RuntimeException();
         }
     }
-
 }

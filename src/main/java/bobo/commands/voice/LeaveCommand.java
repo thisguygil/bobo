@@ -1,17 +1,14 @@
-package bobo.command.commands.voice;
+package bobo.commands.voice;
 
-import bobo.command.ICommand;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
 
-public class LeaveCommand implements ICommand {
+public class LeaveCommand extends AbstractVoice {
     @Override
-    public void handle(@Nonnull SlashCommandInteractionEvent event) {
+    protected void handleVoiceCommand() {
         event.deferReply().queue();
-        InteractionHook hook = event.getHook();
 
         if (!Objects.requireNonNull(event.getGuild()).getAudioManager().isConnected()) {
             hook.editOriginal("I must already be connected to a voice channel to use this command.").queue();

@@ -1,6 +1,6 @@
 package bobo;
 
-import bobo.command.commands.general.GetQuoteCommand;
+import bobo.commands.general.GetQuoteCommand;
 import bobo.lavaplayer.GuildMusicManager;
 import bobo.lavaplayer.PlayerManager;
 import bobo.lavaplayer.TrackScheduler;
@@ -65,7 +65,6 @@ public class Listener extends ListenerAdapter {
             scheduler.looping = false;
             player.stopTrack();
             player.setPaused(false);
-            musicManager.eventListenerMap.clear();
         }
     }
 

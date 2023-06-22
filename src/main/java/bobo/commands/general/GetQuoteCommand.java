@@ -1,28 +1,22 @@
-package bobo.command.commands.general;
+package bobo.commands.general;
 
 import bobo.Bobo;
-import bobo.command.ICommand;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 
-import javax.annotation.Nonnull;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class GetQuoteCommand implements ICommand {
+public class GetQuoteCommand extends AbstractGeneral {
     private static final List<Message> allMessages = new ArrayList<>();
 
     @Override
-    public void handle(@Nonnull SlashCommandInteractionEvent event) {
+    protected void handleGeneralCommand() {
         event.deferReply().queue();
-        InteractionHook hook = event.getHook();
-
         loadQuotes();
 
         int randomIndex = (int) (Math.random() * allMessages.size());

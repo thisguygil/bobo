@@ -1,7 +1,7 @@
 package bobo;
 
-import bobo.command.commands.ai.ChatCommand;
-import bobo.command.commands.admin.SetActivityCommand;
+import bobo.commands.ai.ChatCommand;
+import bobo.commands.admin.SetActivityCommand;
 import com.github.ygimenez.model.PaginatorBuilder;
 import com.theokanning.openai.service.OpenAiService;
 import net.dv8tion.jda.api.JDA;
@@ -39,7 +39,6 @@ public class Bobo {
                         Commands.slash("search", "Searches given query on Google.")
                                 .addOption(STRING, "query", "What to search", true),
                         Commands.slash("get-quote", "Gets a random quote from #boquafiquotes."),
-                        Commands.slash("steelix", "steelix"),
 
                         // AI commands
                         Commands.slash("chat", "Uses OpenAI to generate a response to the given prompt.")

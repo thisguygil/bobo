@@ -1,7 +1,6 @@
-package bobo.command.commands.general;
+package bobo.commands.general;
 
 import bobo.Config;
-import bobo.command.ICommand;
 import com.github.ygimenez.method.Pages;
 import com.github.ygimenez.model.InteractPage;
 import com.github.ygimenez.model.Page;
@@ -11,10 +10,7 @@ import com.google.gson.JsonParser;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 
-import javax.annotation.Nonnull;
 import java.awt.*;
 import java.net.URI;
 import java.net.URLEncoder;
@@ -26,14 +22,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class SearchCommand implements ICommand {
+public class SearchCommand extends AbstractGeneral {
     private static final String GOOGLE_API_KEY = Config.get("GOOGLE_API_KEY");
     private static final String SEARCH_ENGINE_ID = Config.get("SEARCH_ENGINE_ID");
 
     @Override
-    public void handle(@Nonnull SlashCommandInteractionEvent event) {
+    protected void handleGeneralCommand() {
         event.deferReply().queue();
-        InteractionHook hook = event.getHook();
         int numPages;
         JsonArray images;
         String query = Objects.requireNonNull(event.getOption("query")).getAsString();
@@ -68,7 +63,7 @@ public class SearchCommand implements ICommand {
             String imageContextUrl = image.getAsJsonObject().get("image").getAsJsonObject().get("contextLink").getAsString();
 
             embed = new EmbedBuilder()
-                    .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getAvatarUrl())
+                    .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getEffectiveAvatarUrl())
                     .setTitle("Search Results for: " + query)
                     .setFooter("Page " + (i + 1) + "/" + numPages)
                     .setColor(Color.red)

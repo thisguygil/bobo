@@ -1,22 +1,15 @@
-package bobo.command.commands.voice.music;
+package bobo.commands.voice.music;
 
-import bobo.command.ICommand;
-import bobo.command.commands.voice.JoinCommand;
-import bobo.lavaplayer.PlayerManager;
+import bobo.commands.voice.JoinCommand;
 import bobo.utils.YouTubeUtil;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 import org.apache.commons.validator.routines.UrlValidator;
 
-import javax.annotation.Nonnull;
 import java.util.Objects;
 
-public class PlayCommand implements ICommand {
+public class PlayCommand extends AbstractMusic {
     @Override
-    public void handle(@Nonnull SlashCommandInteractionEvent event) {
+    protected void handleMusicCommand() {
         event.deferReply().queue();
-        InteractionHook hook = event.getHook();
-
         JoinCommand.join(event);
 
         String track = Objects.requireNonNull(event.getOption("track")).getAsString();
@@ -27,13 +20,13 @@ public class PlayCommand implements ICommand {
             try {
                 trackURL = YouTubeUtil.searchForVideo(track);
             } catch (Exception e) {
-                hook.editOriginal("Nothing found by **" + track + "**").queue();
+                hook.editOriginal("Nothing found by **" + track + "**.").queue();
                 e.printStackTrace();
                 return;
             }
         }
 
-        PlayerManager.getInstance().loadAndPlay(event, trackURL);
+        playerManager.loadAndPlay(event, trackURL);
     }
 
     @Override

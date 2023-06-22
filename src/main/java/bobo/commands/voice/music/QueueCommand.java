@@ -1,8 +1,5 @@
-package bobo.command.commands.voice.music;
+package bobo.commands.voice.music;
 
-import bobo.command.ICommand;
-import bobo.lavaplayer.GuildMusicManager;
-import bobo.lavaplayer.PlayerManager;
 import bobo.lavaplayer.TrackScheduler;
 import bobo.utils.TimeFormat;
 import com.github.ygimenez.method.Pages;
@@ -13,30 +10,22 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 
-import javax.annotation.Nonnull;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
 
-public class QueueCommand implements ICommand {
+public class QueueCommand extends AbstractMusic {
     @Override
-    public void handle(@Nonnull SlashCommandInteractionEvent event) {
+    protected void handleMusicCommand() {
         event.deferReply().queue();
-        InteractionHook hook = event.getHook();
-        final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(event.getGuildChannel().getGuild());
-        final TrackScheduler scheduler = musicManager.scheduler;
-        final BlockingQueue<AudioTrack> queue = scheduler.queue;
-        final List<AudioTrack> trackList = new ArrayList<>(queue);
+        final List<TrackScheduler.TrackChannelPair> trackList = new ArrayList<>(queue);
         final List<Page> pages = new ArrayList<>();
-        AudioTrack currentTrack = musicManager.player.getPlayingTrack();
 
         if (currentTrack != null) {
-            trackList.add(0, currentTrack);
+            trackList.add(0, new TrackScheduler.TrackChannelPair(currentTrack, event.getMessageChannel()));
         } else {
-            hook.editOriginal("The queue is currently empty").queue();
+            hook.editOriginal("The queue is currently empty.").queue();
             return;
         }
 
@@ -47,12 +36,13 @@ public class QueueCommand implements ICommand {
         Member member = event.getMember();
         assert member != null;
         EmbedBuilder builder = new EmbedBuilder()
-                .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getAvatarUrl())
+                .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getEffectiveAvatarUrl())
                 .setTitle("Current Queue")
+                .setColor(Color.red)
                 .setFooter("Page 1/" + (int) Math.ceil((double) numPages / 10));
 
         for (int i = 0; i < numPages; i++) {
-            track = trackList.get(i);
+            track = trackList.get(i).track();
             info = track.getInfo();
             builder.addField((i + 1) + ":", "[" + info.title + "](" + info.uri + ") by **" + info.author + "** [" +
                     (i == 0 ? TimeFormat.formatTime(track.getDuration() - track.getPosition()) : TimeFormat.formatTime(track.getDuration())) +
@@ -61,8 +51,9 @@ public class QueueCommand implements ICommand {
             if (count == 10) {
                 pages.add(InteractPage.of(builder.build()));
                 builder = new EmbedBuilder()
-                        .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getAvatarUrl())
+                        .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getEffectiveAvatarUrl())
                         .setTitle("Current Queue")
+                        .setColor(Color.red)
                         .setFooter("Page " + ((int) Math.ceil((double) (i + 1) / 10) + 1) + "/" + (int) Math.ceil((double) numPages / 10));
                 count = 0;
             }

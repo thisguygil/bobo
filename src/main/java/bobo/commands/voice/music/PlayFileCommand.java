@@ -1,21 +1,14 @@
-package bobo.command.commands.voice.music;
+package bobo.commands.voice.music;
 
-import bobo.command.ICommand;
-import bobo.command.commands.voice.JoinCommand;
-import bobo.lavaplayer.PlayerManager;
+import bobo.commands.voice.JoinCommand;
 import net.dv8tion.jda.api.entities.Message.Attachment;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 
-import javax.annotation.Nonnull;
 import java.util.Objects;
 
-public class PlayFileCommand implements ICommand {
+public class PlayFileCommand extends AbstractMusic {
     @Override
-    public void handle(@Nonnull SlashCommandInteractionEvent event) {
+    protected void handleMusicCommand() {
         event.deferReply().queue();
-        InteractionHook hook = event.getHook();
-
         JoinCommand.join(event);
 
         Attachment attachment = Objects.requireNonNull(event.getOption("file")).getAsAttachment();
@@ -24,7 +17,7 @@ public class PlayFileCommand implements ICommand {
             return;
         }
 
-        PlayerManager.getInstance().loadAndPlay(event, attachment.getUrl());
+        playerManager.loadAndPlay(event, attachment.getUrl());
     }
 
     /**

@@ -1,21 +1,17 @@
-package bobo.command.commands.admin;
+package bobo.commands.admin;
 
 import bobo.Bobo;
 import bobo.Config;
-import bobo.command.ICommand;
 import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Activity.ActivityType;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 
-import javax.annotation.Nonnull;
 import java.io.*;
 import java.util.Objects;
 
-public class SetActivityCommand implements ICommand {
+public class SetActivityCommand extends AbstractAdmin {
     private static final String activityFileName = Config.get("ACTIVITY_FILE");
 
     private static class BotActivity {
@@ -23,9 +19,9 @@ public class SetActivityCommand implements ICommand {
         String activity;
     }
 
-    public void handle(@Nonnull SlashCommandInteractionEvent event) {
+    @Override
+    protected void handleAdminCommand() {
         event.deferReply().queue();
-        InteractionHook hook = event.getHook();
         String activity = Objects.requireNonNull(event.getOption("activity")).getAsString();
         OptionMapping typeInput = event.getOption("type");
         ActivityType activityType = null;

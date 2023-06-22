@@ -1,19 +1,14 @@
-package bobo.command.commands.general;
+package bobo.commands.general;
 
-import bobo.command.ICommand;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 
-import javax.annotation.Nonnull;
 import java.util.List;
 
-public class HelpCommand implements ICommand {
+public class HelpCommand extends AbstractGeneral {
     @Override
-    public void handle(@Nonnull SlashCommandInteractionEvent event) {
+    protected void handleGeneralCommand() {
         event.deferReply().queue();
-        InteractionHook hook = event.getHook();
         StringBuilder message = new StringBuilder();
         List<Command> commands = event.getJDA().retrieveCommands().complete();
         OptionMapping input = event.getOption("command");

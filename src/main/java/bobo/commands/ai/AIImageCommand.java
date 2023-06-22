@@ -1,25 +1,17 @@
-package bobo.command.commands.ai;
+package bobo.commands.ai;
 
-import bobo.Bobo;
-import bobo.command.ICommand;
 import com.theokanning.openai.image.CreateImageRequest;
-import com.theokanning.openai.service.OpenAiService;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 
-import javax.annotation.Nonnull;
 import java.awt.*;
 import java.util.Objects;
 
-public class AIImageCommand implements ICommand {
+public class AIImageCommand extends AbstractAI {
     @Override
-    public void handle(@Nonnull SlashCommandInteractionEvent event) {
+    protected void handleAICommand() {
         event.deferReply().queue();
-        InteractionHook hook = event.getHook();
-        OpenAiService service = Bobo.getService();
         String prompt = Objects.requireNonNull(event.getOption("prompt")).getAsString();
 
         CreateImageRequest createImageRequest = CreateImageRequest.builder()

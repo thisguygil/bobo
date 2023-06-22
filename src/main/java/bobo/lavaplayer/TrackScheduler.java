@@ -4,6 +4,7 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -12,9 +13,15 @@ import java.util.concurrent.LinkedBlockingQueue;
  * This class schedules tracks for the audio player. It contains the queue of tracks.
  */
 public class TrackScheduler extends AudioEventAdapter {
+    /**
+     * A pair of an audio track and the channel it was queued in
+     */
+    public record TrackChannelPair(AudioTrack track, MessageChannel channel) {}
+
     public final AudioPlayer player;
-    public BlockingQueue<AudioTrack> queue;
-    public boolean looping = false;
+    public BlockingQueue<TrackChannelPair> queue;
+    public TrackChannelPair currentTrack;
+    public boolean looping;
 
     /**
      * @param player The audio player this scheduler uses
@@ -22,16 +29,21 @@ public class TrackScheduler extends AudioEventAdapter {
     public TrackScheduler(AudioPlayer player) {
         this.player = player;
         this.queue = new LinkedBlockingQueue<>();
+        this.looping = false;
     }
 
     /**
      * Add the next track to queue or play right away if nothing is in the queue.
      *
-     * @param track the track to play or add to queue.
+     * @param track The track to play or add to queue.
+     * @param channel The channel to send messages to
      */
-    public void queue(AudioTrack track) {
+    public void queue(AudioTrack track, MessageChannel channel) {
+        TrackChannelPair oldTrack = this.currentTrack;
+        this.currentTrack = new TrackChannelPair(track, channel);
         if (!this.player.startTrack(track, true)) {
-            this.queue.add(track);
+            this.queue.add(new TrackChannelPair(track, channel));
+            this.currentTrack = oldTrack;
         }
     }
 
@@ -41,11 +53,13 @@ public class TrackScheduler extends AudioEventAdapter {
     public void nextTrack() {
         // Start the next track, regardless of if something is already playing or not. In case queue was empty, we are
         // giving null to startTrack, which is a valid argument and will simply stop the player.
-        this.player.startTrack(this.queue.poll(), false);
+        this.currentTrack = this.queue.poll();
+        this.player.startTrack(currentTrack == null ? null : currentTrack.track(), false);
     }
 
     /**
      * Starts the next track (or loops current track) upon track completion
+     *
      * @param player Audio player
      * @param track Audio track that ended
      * @param endReason The reason why the track stopped playing
