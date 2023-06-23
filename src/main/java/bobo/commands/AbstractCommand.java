@@ -3,6 +3,8 @@ package bobo.commands;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 
+import javax.annotation.Nonnull;
+
 public abstract class AbstractCommand {
     protected SlashCommandInteractionEvent event;
     protected InteractionHook hook;
@@ -12,7 +14,7 @@ public abstract class AbstractCommand {
      *
      * @param event The event that triggered this action.
      */
-    public void handle(SlashCommandInteractionEvent event) {
+    public void handle(@Nonnull SlashCommandInteractionEvent event) {
         this.event = event;
         this.hook = event.getHook();
 
