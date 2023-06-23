@@ -3,14 +3,13 @@ package bobo.commands.voice;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 
 import javax.annotation.Nonnull;
-import java.util.Objects;
 
 public class LeaveCommand extends AbstractVoice {
     @Override
     protected void handleVoiceCommand() {
         event.deferReply().queue();
 
-        if (!Objects.requireNonNull(event.getGuild()).getAudioManager().isConnected()) {
+        if (!event.getGuildChannel().getGuild().getAudioManager().isConnected()) {
             hook.editOriginal("I must already be connected to a voice channel to use this command.").queue();
             return;
         }
@@ -25,7 +24,7 @@ public class LeaveCommand extends AbstractVoice {
      * @param event The event that triggered this action.
      */
     public static void leave(@Nonnull SlashCommandInteractionEvent event) {
-        Objects.requireNonNull(event.getGuild()).getAudioManager().closeAudioConnection();
+        event.getGuildChannel().getGuild().getAudioManager().closeAudioConnection();
     }
 
     @Override

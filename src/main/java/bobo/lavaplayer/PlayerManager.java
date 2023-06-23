@@ -17,7 +17,6 @@ import net.dv8tion.jda.api.interactions.InteractionHook;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 public class PlayerManager {
     private static PlayerManager INSTANCE;
@@ -42,7 +41,7 @@ public class PlayerManager {
     public void loadAndPlay(SlashCommandInteractionEvent event, String trackURL) {
         InteractionHook hook = event.getHook();
         MessageChannel channel = event.getMessageChannel();
-        final GuildMusicManager musicManager = this.getMusicManager(Objects.requireNonNull(event.getGuild()));
+        final GuildMusicManager musicManager = this.getMusicManager(event.getGuildChannel().getGuild());
         TrackScheduler scheduler = musicManager.scheduler;
 
         this.audioPlayerManager.loadItemOrdered(musicManager, trackURL, new AudioLoadResultHandler() {
