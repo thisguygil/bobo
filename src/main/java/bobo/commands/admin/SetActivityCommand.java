@@ -45,6 +45,8 @@ public class SetActivityCommand extends AbstractAdmin {
             setActivity();
         } catch (IOException e) {
             e.printStackTrace();
+            hook.editOriginal(e.getMessage()).queue();
+            return;
         }
 
         if (message.isEmpty()) {

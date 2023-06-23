@@ -47,7 +47,7 @@ public class SearchCommand extends AbstractGeneral {
                 return;
             }
         } catch (Exception e) {
-            hook.editOriginal("Error: " + e.getMessage()).queue();
+            hook.editOriginal(e.getMessage()).queue();
             e.printStackTrace();
             return;
         }
