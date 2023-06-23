@@ -28,7 +28,6 @@ public class CommandManager {
 
         // AI commands
         commands.add(new ChatCommand());
-        commands.add(new ChatResetCommand());
         commands.add(new AIImageCommand());
 
         // Voice commands

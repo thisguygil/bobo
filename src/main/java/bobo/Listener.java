@@ -1,5 +1,6 @@
 package bobo;
 
+import bobo.commands.ai.ChatCommand;
 import bobo.commands.general.GetQuoteCommand;
 import bobo.lavaplayer.GuildMusicManager;
 import bobo.lavaplayer.PlayerManager;
@@ -8,6 +9,7 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -33,6 +35,7 @@ public class Listener extends ListenerAdapter {
 
     /**
      * Sends all DM messages to a private server
+     * Sends all thread messages to the AI
      *
      * @param event the message event
      */
@@ -46,6 +49,17 @@ public class Listener extends ListenerAdapter {
                     .build();
             assert channel != null;
             channel.sendMessage(message).queue();
+        }
+
+        if (event.isFromType(ChannelType.GUILD_PRIVATE_THREAD)) {
+            ChatCommand.handleThreadMessage(event);
+        }
+    }
+
+    @Override
+    public void onChannelDelete(@Nonnull ChannelDeleteEvent event) {
+        if (event.getChannel().getType() == ChannelType.GUILD_PRIVATE_THREAD) {
+            ChatCommand.handleThreadDelete(event);
         }
     }
 

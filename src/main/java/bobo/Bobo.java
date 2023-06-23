@@ -1,6 +1,5 @@
 package bobo;
 
-import bobo.commands.ai.ChatCommand;
 import bobo.commands.admin.SetActivityCommand;
 import com.github.ygimenez.model.PaginatorBuilder;
 import com.theokanning.openai.service.OpenAiService;
@@ -41,9 +40,7 @@ public class Bobo {
                         Commands.slash("get-quote", "Gets a random quote from #boquafiquotes."),
 
                         // AI commands
-                        Commands.slash("chat", "Uses OpenAI to generate a response to the given prompt.")
-                                .addOption(STRING, "prompt", "Prompt to respond to", true),
-                        Commands.slash("chat-reset", "Resets the current OpenAI chat conversation."),
+                        Commands.slash("chat", "Starts an OpenAI chat conversation."),
                         Commands.slash("ai-image", "Uses OpenAI to generate an image of the given prompt.")
                                 .addOption(STRING, "prompt", "Image to generate", true),
 
@@ -69,7 +66,6 @@ public class Bobo {
                 .queue();
 
         service = new OpenAiService(Config.get("OPENAI_API_KEY"));
-        ChatCommand.initializeMessages();
 
         try {
             SetActivityCommand.setActivity();

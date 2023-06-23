@@ -1,24 +1,70 @@
 package bobo.commands.ai;
 
+import bobo.Bobo;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.completion.chat.ChatMessageRole;
+import com.theokanning.openai.service.OpenAiService;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
+import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import javax.annotation.Nonnull;
+import java.util.*;
 
 public class ChatCommand extends AbstractAI {
-    private static final List<ChatMessage> messages = new ArrayList<>();
+    private static final Map<ThreadChannel, List<ChatMessage>> channelMessageMap = new HashMap<>();
 
     @Override
     protected void handleAICommand() {
         event.deferReply().queue();
-        String prompt = Objects.requireNonNull(event.getOption("prompt")).getAsString();
 
+        Member member = event.getMember();
+        assert member != null;
+        String memberName = member.getUser().getGlobalName();
+        assert memberName != null;
+
+        ThreadChannel threadChannel = event.getChannel()
+                .asTextChannel()
+                .createThreadChannel(memberName + "'s conversation", true)
+                .complete();
+        threadChannel.addThreadMember(member).queue();
+
+        startConversation(threadChannel);
+        hook.editOriginal("Started a conversation with " + memberName + " in " + threadChannel.getAsMention()).queue();
+    }
+
+    /**
+     * Starts a conversation with the given thread channel.
+     *
+     * @param threadChannel the thread channel to start a conversation with
+     */
+    public static void startConversation(ThreadChannel threadChannel) {
+        List<ChatMessage> messages = new ArrayList<>();
+        initializeMessages(messages);
+        channelMessageMap.put(threadChannel, messages);
+    }
+
+    /**
+     * Handles a message received in a thread.
+     *
+     * @param event the message received to handle
+     */
+    public static void handleThreadMessage(@Nonnull MessageReceivedEvent event) {
+        ThreadChannel threadChannel = event.getChannel().asThreadChannel();
+        if (!channelMessageMap.containsKey(threadChannel) || event.getAuthor().isSystem() || event.getAuthor().isBot()) {
+            return;
+        }
+
+        threadChannel.sendTyping().queue();
+        List<ChatMessage> messages = channelMessageMap.get(threadChannel);
+
+        String prompt = event.getMessage().getContentDisplay();
         ChatMessage userMessage = new ChatMessage(ChatMessageRole.USER.value(), prompt);
         messages.add(userMessage);
 
+        OpenAiService service = Bobo.getService();
         ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest.builder()
                 .model("gpt-3.5-turbo")
                 .messages(messages)
@@ -30,19 +76,30 @@ public class ChatCommand extends AbstractAI {
                 .getMessage();
         messages.add(assistantMessage);
 
-        String response = "**" + prompt + "**\n" + assistantMessage.getContent();
-        hook.editOriginal(response).queue();
+        channelMessageMap.replace(threadChannel, messages);
+        threadChannel.sendMessage(assistantMessage.getContent()).queue();
+    }
+
+    /**
+     * Handles a thread delete event.
+     *
+     * @param event the thread delete event to handle
+     */
+    public static void handleThreadDelete(@Nonnull ChannelDeleteEvent event) {
+        channelMessageMap.remove(event.getChannel().asThreadChannel());
     }
 
     /**
      * Clears the messages list and adds a system message to it.
+     *
+     * @param messages the messages list to initialize
      */
-    public static void initializeMessages() {
+    public static void initializeMessages(List<ChatMessage> messages) {
         messages.clear();
         final ChatMessage systemMessage = new ChatMessage(ChatMessageRole.SYSTEM.value(), "You are Bobo, " +
                 "a Discord bot. You use slash commands and provide music, chat, image creation, and other features. " +
-                "Don't refer to yourself as an AI language model. When users call you with the 'chat' command, " +
-                "engage with them. For help, direct users to the 'help' command.");
+                "Don't refer to yourself as an AI language model. When users talk to you, engage with them. For help, " +
+                "direct users to the 'help' command.");
         messages.add(systemMessage);
     }
 
