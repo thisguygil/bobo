@@ -1,6 +1,15 @@
 package bobo.commands.voice.music;
 
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+
 public class ResumeCommand extends AbstractMusic {
+    /**
+     * Creates a new resume command.
+     */
+    public ResumeCommand() {
+        super(Commands.slash("resume", "Resumes the currently paused track."));
+    }
+
     @Override
     protected void handleMusicCommand() {
         event.deferReply().queue();

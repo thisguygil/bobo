@@ -10,12 +10,20 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class QueueCommand extends AbstractMusic {
+    /**
+     * Creates a new queue command.
+     */
+    public QueueCommand() {
+        super(Commands.slash("queue", "Shows the currently queued tracks."));
+    }
+
     @Override
     protected void handleMusicCommand() {
         event.deferReply().queue();

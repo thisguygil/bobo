@@ -10,6 +10,7 @@ import com.google.gson.JsonParser;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.awt.*;
 import java.net.URI;
@@ -22,9 +23,19 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static net.dv8tion.jda.api.interactions.commands.OptionType.STRING;
+
 public class SearchCommand extends AbstractGeneral {
     private static final String GOOGLE_API_KEY = Config.get("GOOGLE_API_KEY");
     private static final String SEARCH_ENGINE_ID = Config.get("SEARCH_ENGINE_ID");
+
+    /**
+     * Creates a new search command.
+     */
+    public SearchCommand() {
+        super(Commands.slash("search", "Searches given query on Google.")
+                .addOption(STRING, "query", "What to search", true));
+    }
 
     @Override
     protected void handleGeneralCommand() {

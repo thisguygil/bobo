@@ -1,20 +1,26 @@
 package bobo.commands.ai;
 
-import bobo.Bobo;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.completion.chat.ChatMessageRole;
-import com.theokanning.openai.service.OpenAiService;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import javax.annotation.Nonnull;
 import java.util.*;
 
 public class ChatCommand extends AbstractAI {
     private static final Map<ThreadChannel, List<ChatMessage>> channelMessageMap = new HashMap<>();
+
+    /**
+     * Creates a new chat command.
+     */
+    public ChatCommand() {
+        super(Commands.slash("chat", "Starts an OpenAI chat conversation."));
+    }
 
     @Override
     protected void handleAICommand() {
@@ -64,7 +70,6 @@ public class ChatCommand extends AbstractAI {
         ChatMessage userMessage = new ChatMessage(ChatMessageRole.USER.value(), prompt);
         messages.add(userMessage);
 
-        OpenAiService service = Bobo.getService();
         ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest.builder()
                 .model("gpt-3.5-turbo")
                 .messages(messages)

@@ -6,6 +6,7 @@ import bobo.lavaplayer.PlayerManager;
 import bobo.lavaplayer.TrackScheduler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
 import java.util.concurrent.BlockingQueue;
 
@@ -16,6 +17,15 @@ public abstract class AbstractMusic extends AbstractVoice {
     protected TrackScheduler scheduler;
     protected BlockingQueue<TrackScheduler.TrackChannelPair> queue;
     protected AudioTrack currentTrack;
+
+    /**
+     * Creates a new music command.
+     *
+     * @param commandData The command data.
+     */
+    public AbstractMusic(CommandData commandData) {
+        super(commandData);
+    }
 
     @Override
     protected void handleVoiceCommand() {

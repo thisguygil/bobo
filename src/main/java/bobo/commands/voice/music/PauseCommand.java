@@ -1,6 +1,15 @@
 package bobo.commands.voice.music;
 
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
+
 public class PauseCommand extends AbstractMusic {
+    /**
+     * Creates a new pause command.
+     */
+    public PauseCommand() {
+        super(Commands.slash("pause", "Pauses the currently playing track."));
+    }
+
     @Override
     protected void handleMusicCommand() {
         event.deferReply().queue();

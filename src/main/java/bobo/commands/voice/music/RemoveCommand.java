@@ -1,11 +1,22 @@
 package bobo.commands.voice.music;
 
 import bobo.lavaplayer.TrackScheduler;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.util.Iterator;
 import java.util.Objects;
 
+import static net.dv8tion.jda.api.interactions.commands.OptionType.INTEGER;
+
 public class RemoveCommand extends AbstractMusic {
+    /**
+     * Creates a new remove command.
+     */
+    public RemoveCommand() {
+        super(Commands.slash("remove", "Removes track at given position in the queue.")
+                .addOption(INTEGER, "position", "What position in the queue to remove the track from", true));
+    }
+
     @Override
     protected void handleMusicCommand() {
         event.deferReply().queue();

@@ -4,6 +4,7 @@ import bobo.Bobo;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -13,6 +14,13 @@ import java.util.regex.Pattern;
 
 public class GetQuoteCommand extends AbstractGeneral {
     private static final List<Message> allMessages = new ArrayList<>();
+
+    /**
+     * Creates a new get-quote command.
+     */
+    public GetQuoteCommand() {
+        super(Commands.slash("get-quote", "Gets a random quote from #boquafiquotes."));
+    }
 
     @Override
     protected void handleGeneralCommand() {

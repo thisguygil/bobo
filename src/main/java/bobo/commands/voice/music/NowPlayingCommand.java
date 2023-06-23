@@ -4,6 +4,7 @@ import bobo.utils.TimeFormat;
 import bobo.utils.YouTubeUtil;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.utils.FileUpload;
 
 import javax.imageio.ImageIO;
@@ -12,6 +13,13 @@ import java.io.ByteArrayOutputStream;
 import java.util.Objects;
 
 public class NowPlayingCommand extends AbstractMusic {
+    /**
+     * Creates a new now-playing command.
+     */
+    public NowPlayingCommand() {
+        super(Commands.slash("now-playing", "Shows the currently playing track."));
+    }
+
     @Override
     protected void handleMusicCommand() {
         event.deferReply().queue();

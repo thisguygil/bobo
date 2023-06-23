@@ -1,10 +1,18 @@
 package bobo.commands.voice;
 
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import javax.annotation.Nonnull;
 
 public class LeaveCommand extends AbstractVoice {
+    /**
+     * Creates a new leave command.
+     */
+    public LeaveCommand() {
+        super(Commands.slash("leave", "Leaves the voice channel."));
+    }
+
     @Override
     protected void handleVoiceCommand() {
         event.deferReply().queue();

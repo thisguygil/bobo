@@ -3,11 +3,19 @@ package bobo.commands.voice;
 import net.dv8tion.jda.api.entities.GuildVoiceState;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
 
 public class JoinCommand extends AbstractVoice {
+    /**
+     * Creates a new join command.
+     */
+    public JoinCommand() {
+        super(Commands.slash("join", "Joins the voice channel."));
+    }
+
     @Override
     protected void handleVoiceCommand() {
         event.deferReply().queue();

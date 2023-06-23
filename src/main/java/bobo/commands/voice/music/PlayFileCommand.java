@@ -2,10 +2,21 @@ package bobo.commands.voice.music;
 
 import bobo.commands.voice.JoinCommand;
 import net.dv8tion.jda.api.entities.Message.Attachment;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.util.Objects;
 
+import static net.dv8tion.jda.api.interactions.commands.OptionType.ATTACHMENT;
+
 public class PlayFileCommand extends AbstractMusic {
+    /**
+     * Creates a new play-file command.
+     */
+    public PlayFileCommand() {
+        super(Commands.slash("play-file", "Joins the voice channel and plays audio from attached audio/video file.")
+                .addOption(ATTACHMENT, "file", "Audio file to play", true));
+    }
+
     @Override
     protected void handleMusicCommand() {
         event.deferReply().queue();

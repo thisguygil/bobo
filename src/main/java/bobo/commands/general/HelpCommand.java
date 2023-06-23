@@ -2,10 +2,20 @@ package bobo.commands.general;
 
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.util.List;
 
+import static net.dv8tion.jda.api.interactions.commands.OptionType.STRING;
+
 public class HelpCommand extends AbstractGeneral {
+    /**
+     * Creates a new help command.
+     */
+    public HelpCommand() {
+        super(Commands.slash("help", "Shows the list of commands or gets info on a specific command.")
+                .addOption(STRING, "command", "Command to explain", false));
+    }
     @Override
     protected void handleGeneralCommand() {
         event.deferReply().queue();
