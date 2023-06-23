@@ -10,7 +10,7 @@ public abstract class AbstractCommand {
     protected InteractionHook hook;
 
     /**
-     * Sets event and hook.
+     * Sets event and hook, then calls {@link #handleCommand()}.
      *
      * @param event The event that triggered this action.
      */
