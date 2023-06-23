@@ -25,7 +25,8 @@ public class GuildMusicManager {
     public final AudioPlayerSendHandler sendHandler;
 
     /**
-     * Creates a player and a track scheduler.
+     * Creates a new GuildMusicManager, which contains instances of AudioPlayer, TrackScheduler and AudioPlayerSendHandler.
+     * It also contains a listener for the AudioPlayer, which sends a message with info about the track when it starts.
      *
      * @param manager Audio player manager to use for creating the player.
      */
