@@ -1,7 +1,7 @@
 package bobo.commands.voice.music;
 
 import bobo.commands.voice.JoinCommand;
-import net.dv8tion.jda.api.entities.Message.Attachment;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.util.Objects;
@@ -22,7 +22,7 @@ public class PlayFileCommand extends AbstractMusic {
         event.deferReply().queue();
         JoinCommand.join(event);
 
-        Attachment attachment = Objects.requireNonNull(event.getOption("file")).getAsAttachment();
+        Message.Attachment attachment = Objects.requireNonNull(event.getOption("file")).getAsAttachment();
         if (!isAudioFile(attachment.getFileName())) {
             hook.editOriginal("Please attach a valid audio file.").queue();
             return;
