@@ -56,6 +56,11 @@ public class Listener extends ListenerAdapter {
         }
     }
 
+    /**
+     * Handles thread deletion
+     *
+     * @param event the channel delete event
+     */
     @Override
     public void onChannelDelete(@Nonnull ChannelDeleteEvent event) {
         if (event.getChannel().getType() == ChannelType.GUILD_PRIVATE_THREAD) {
@@ -84,7 +89,7 @@ public class Listener extends ListenerAdapter {
 
     /**
      * Loads quotes on bot startup
-     * Prints "Bobo is ready!" to console due to time it takes to load quotes
+     * Prints "Bobo is ready!" to console when finally ready
      *
      * @param event the ready event
      */
