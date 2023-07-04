@@ -12,6 +12,8 @@ public class ClearCommand extends AbstractMusic {
 
     @Override
     protected void handleMusicCommand() {
+        event.deferReply().queue();
+
         if (player.getPlayingTrack() == null) {
             hook.editOriginal("There is nothing currently playing.").queue();
             return;
