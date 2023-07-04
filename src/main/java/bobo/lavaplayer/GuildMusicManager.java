@@ -5,6 +5,7 @@ import bobo.utils.YouTubeUtil;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.event.TrackStartEvent;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
@@ -36,26 +37,28 @@ public class GuildMusicManager {
         this.player.addListener(this.scheduler);
         this.sendHandler = new AudioPlayerSendHandler(this.player);
 
-        player.addListener(event -> {
+        this.player.addListener(event -> {
             if (event instanceof TrackStartEvent startEvent) {
+                TrackScheduler scheduler = this.scheduler;
                 TrackScheduler.TrackChannelPair pair = scheduler.currentTrack;
 
-                if (pair.track().equals(startEvent.track)) {
+                AudioTrack track = startEvent.track;
+                if (pair.track().equals(track)) {
                     MessageChannel channel = pair.channel();
-                    AudioTrackInfo info = startEvent.track.getInfo();
+                    AudioTrackInfo trackInfo = track.getInfo();
 
                     // Creates embedded message with track info
                     EmbedBuilder embed = new EmbedBuilder()
                             .setAuthor(scheduler.looping ? "Now Looping" : "Now Playing")
-                            .setTitle(info.title, info.uri)
+                            .setTitle(trackInfo.title, trackInfo.uri)
                             .setImage("attachment://thumbnail.jpg")
                             .setColor(Color.red)
-                            .setFooter(TimeFormat.formatTime((startEvent.track.getDuration())));
+                            .setFooter(TimeFormat.formatTime((track.getDuration())));
 
                     // Sets image in embed to proper aspect ratio
                     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                     try {
-                        ImageIO.write(Objects.requireNonNull(YouTubeUtil.getThumbnailImage(info.uri)), "jpg", outputStream);
+                        ImageIO.write(Objects.requireNonNull(YouTubeUtil.getThumbnailImage(trackInfo.uri)), "jpg", outputStream);
                         channel.sendFiles(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg")).setEmbeds(embed.build()).queue();
                     } catch (IOException e) {
                         channel.sendMessageEmbeds(embed.build()).queue();
