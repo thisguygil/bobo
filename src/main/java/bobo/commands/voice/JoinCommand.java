@@ -1,9 +1,11 @@
 package bobo.commands.voice;
 
+import bobo.lavaplayer.AudioReceiveListener;
 import net.dv8tion.jda.api.entities.GuildVoiceState;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.managers.AudioManager;
 
 import javax.annotation.Nonnull;
 import java.util.Objects;
@@ -42,7 +44,9 @@ public class JoinCommand extends AbstractVoice {
             return;
         }
 
-        event.getGuildChannel().getGuild().getAudioManager().openAudioConnection(voiceChannel);
+        AudioManager audioManager = event.getGuildChannel().getGuild().getAudioManager();
+        audioManager.openAudioConnection(voiceChannel);
+        audioManager.setReceivingHandler(new AudioReceiveListener(1));
     }
 
     @Override

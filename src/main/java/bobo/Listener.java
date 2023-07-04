@@ -15,6 +15,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
+import net.dv8tion.jda.api.managers.AudioManager;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
@@ -69,7 +70,7 @@ public class Listener extends ListenerAdapter {
     }
 
     /**
-     * Clears queue if bot disconnects
+     * Clears queue and resets audio listener if bot disconnects
      *
      * @param event the voice update event
      */
@@ -80,6 +81,8 @@ public class Listener extends ListenerAdapter {
             final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(guild);
             final AudioPlayer player = musicManager.player;
             final TrackScheduler scheduler = musicManager.scheduler;
+            final AudioManager audioManager = guild.getAudioManager();
+            audioManager.setReceivingHandler(null);
             scheduler.queue.clear();
             scheduler.looping = false;
             player.stopTrack();

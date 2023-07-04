@@ -33,6 +33,9 @@ public class CommandManager {
         // Voice commands
         commands.add(new JoinCommand());
         commands.add(new LeaveCommand());
+        commands.add(new ClipCommand());
+        commands.add(new DeafenCommand());
+        commands.add(new UndeafenCommand());
         // Music commands
         commands.add(new PlayCommand());
         commands.add(new PlayFileCommand());
