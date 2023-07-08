@@ -10,7 +10,8 @@ import javax.sound.sampled.AudioSystem;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -70,7 +71,8 @@ public class AudioReceiveListener implements AudioReceiveHandler {
                 }
             }
 
-            file = new File(LocalDate.now() + ".wav");
+            String currentDateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
+            file = new File(currentDateTime + ".wav");
             AudioSystem.write(new AudioInputStream(new ByteArrayInputStream(decodedData), AudioReceiveHandler.OUTPUT_FORMAT, decodedData.length), AudioFileFormat.Type.WAVE, file);
         } catch (IOException | OutOfMemoryError e) {
             file = null;
