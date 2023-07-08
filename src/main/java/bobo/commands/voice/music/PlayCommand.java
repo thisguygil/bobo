@@ -21,7 +21,11 @@ public class PlayCommand extends AbstractMusic {
     @Override
     protected void handleMusicCommand() {
         event.deferReply().queue();
-        JoinCommand.join(event);
+        if (!event.getGuildChannel().getGuild().getAudioManager().isConnected()) {
+            if (!JoinCommand.join(event)) {
+                return;
+            }
+        }
 
         String track = Objects.requireNonNull(event.getOption("track")).getAsString();
         String trackURL;

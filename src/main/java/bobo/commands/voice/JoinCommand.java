@@ -27,26 +27,36 @@ public class JoinCommand extends AbstractVoice {
             return;
         }
 
-        join(event);
-        hook.editOriginal("Joined.").queue();
+        if (join(event)) {
+            hook.editOriginal("Joined.").queue();
+        }
     }
 
     /**
      * Joins the voice channel of the user who sent the command.
      *
      * @param event The event that triggered this action.
+     * @return Whether the bot successfully joined the voice channel.
      */
-    public static void join(@Nonnull SlashCommandInteractionEvent event) {
+    public static boolean join(@Nonnull SlashCommandInteractionEvent event) {
         GuildVoiceState voiceState = Objects.requireNonNull(Objects.requireNonNull(event.getMember()).getVoiceState());
         AudioChannelUnion voiceChannel = voiceState.getChannel();
         if (voiceChannel == null) {
             event.getHook().editOriginal("You must be connected to a voice channel to use this command.").queue();
-            return;
+            return false;
         }
 
-        AudioManager audioManager = event.getGuildChannel().getGuild().getAudioManager();
-        audioManager.openAudioConnection(voiceChannel);
-        audioManager.setReceivingHandler(new AudioReceiveListener(1));
+        try {
+            AudioManager audioManager = event.getGuildChannel().getGuild().getAudioManager();
+            audioManager.openAudioConnection(voiceChannel);
+            audioManager.setReceivingHandler(new AudioReceiveListener(1));
+        } catch (Exception e) {
+            event.getHook().editOriginal("Failed to join voice channel.").queue();
+            e.printStackTrace();
+            return false;
+        }
+
+        return true;
     }
 
     @Override

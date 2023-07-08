@@ -20,7 +20,11 @@ public class PlayFileCommand extends AbstractMusic {
     @Override
     protected void handleMusicCommand() {
         event.deferReply().queue();
-        JoinCommand.join(event);
+        if (!event.getGuildChannel().getGuild().getAudioManager().isConnected()) {
+            if (!JoinCommand.join(event)) {
+                return;
+            }
+        }
 
         Message.Attachment attachment = Objects.requireNonNull(event.getOption("file")).getAsAttachment();
         if (!isAudioFile(attachment.getFileName())) {
