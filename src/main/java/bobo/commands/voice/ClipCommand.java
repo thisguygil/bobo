@@ -39,6 +39,14 @@ public class ClipCommand extends AbstractVoice {
         }
 
         File file = ((AudioReceiveListener) receiveHandler).createFile(30);
-        hook.editOriginalAttachments(FileUpload.fromData(file)).queue(success -> file.delete());
+        if (file != null) {
+            hook.editOriginalAttachments(FileUpload.fromData(file)).queue(success -> {
+                if (!file.delete()) {
+                    System.err.println("Failed to delete file: " + file.getName());
+                }
+            });
+        } else {
+            hook.editOriginal("Clip creation failed.").queue();
+        }
     }
 }
