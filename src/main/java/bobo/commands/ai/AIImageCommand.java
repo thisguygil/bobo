@@ -43,7 +43,7 @@ public class AIImageCommand extends AbstractAI {
         Member member = event.getMember();
         assert member != null;
         MessageEmbed embed = new EmbedBuilder()
-                .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getAvatarUrl())
+                .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getEffectiveAvatarUrl())
                 .setTitle(prompt.substring(0, Math.min(prompt.length(), 256)))
                 .setColor(Color.red)
                 .setImage(imageUrl)
