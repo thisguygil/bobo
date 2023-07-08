@@ -1,6 +1,7 @@
 package bobo.commands.general;
 
 import bobo.Bobo;
+import bobo.Config;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -12,6 +13,13 @@ import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * NOTE: ONLY WORKS WITH QUOTES OF THE FORMAT:
+ * <p>
+ * "quote" -author
+ * <p>
+ * There can be multiple quotes in one message, and blank space does not matter.
+ */
 public class GetQuoteCommand extends AbstractGeneral {
     private static final List<Message> allMessages = new ArrayList<>();
 
@@ -19,7 +27,7 @@ public class GetQuoteCommand extends AbstractGeneral {
      * Creates a new get-quote command.
      */
     public GetQuoteCommand() {
-        super(Commands.slash("get-quote", "Gets a random quote from #boquafiquotes."));
+        super(Commands.slash("get-quote", "Gets a random quote from the quotes channel."));
     }
 
     @Override
@@ -37,12 +45,12 @@ public class GetQuoteCommand extends AbstractGeneral {
     }
 
     /**
-     * Compiles all messages from #boquafiquotes channel into an ArrayList
+     * Compiles all messages from the quotes channel into an ArrayList
      * Keeps ArrayList as static for faster access in subsequent command calls
      */
     public static void loadQuotes() {
         JDA jda = Bobo.getJDA();
-        TextChannel channel = jda.getTextChannelById("826951218135826463");
+        TextChannel channel = jda.getTextChannelById(Long.parseLong(Config.get("QUOTE_CHANNEL_ID")));
         assert channel != null;
         for (Message message : channel.getIterableHistory()) {
             if (!allMessages.contains(message)) {

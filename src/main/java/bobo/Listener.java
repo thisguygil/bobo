@@ -43,7 +43,7 @@ public class Listener extends ListenerAdapter {
     @Override
     public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
         if (event.isFromType(ChannelType.PRIVATE)) {
-            TextChannel channel = event.getJDA().getTextChannelById("1080252409726644355");
+            TextChannel channel = event.getJDA().getTextChannelById(Long.parseLong(Config.get("DM_LOG_CHANNEL_ID")));
             MessageCreateData message = new MessageCreateBuilder()
                     .addContent("**" + event.getAuthor().getGlobalName() + "**\n" + event.getMessage().getContentDisplay())
                     .addEmbeds(event.getMessage().getEmbeds())
