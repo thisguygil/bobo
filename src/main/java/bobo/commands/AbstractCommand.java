@@ -17,7 +17,7 @@ public abstract class AbstractCommand {
      * @param commandData The command data.
      */
     public AbstractCommand(CommandData commandData) {
-        Bobo.getJDA().upsertCommand(commandData).queue();
+        Bobo.getJDA().upsertCommand(commandData.setGuildOnly(true)).queue();
     }
 
     /**
