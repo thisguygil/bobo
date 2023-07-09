@@ -1,10 +1,9 @@
 package bobo.commands.admin;
 
+import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.util.Objects;
-
-import static net.dv8tion.jda.api.interactions.commands.OptionType.STRING;
 
 public class SayCommand extends AbstractAdmin {
     /**
@@ -12,7 +11,7 @@ public class SayCommand extends AbstractAdmin {
      */
     public SayCommand() {
         super(Commands.slash("say", "Make bobo say what you tell it to.")
-                .addOption(STRING, "content", "What bobo should say", true));
+                .addOption(OptionType.STRING, "content", "What bobo should say", true));
     }
 
     @Override

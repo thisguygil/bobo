@@ -7,12 +7,11 @@ import com.google.gson.stream.JsonReader;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Activity.ActivityType;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.io.*;
 import java.util.Objects;
-
-import static net.dv8tion.jda.api.interactions.commands.OptionType.STRING;
 
 public class SetActivityCommand extends AbstractAdmin {
     private static final String activityFileName = Config.get("ACTIVITY_FILE");
@@ -22,8 +21,8 @@ public class SetActivityCommand extends AbstractAdmin {
      */
     public SetActivityCommand() {
         super(Commands.slash("set-activity", "Sets bobo's activity with specified type (playing, streaming, listening, watching, competing).")
-                .addOption(STRING, "type", "Activity type to set (playing, streaming, listening, watching, competing)", true)
-                .addOption(STRING, "activity", "Activity to set", true));
+                .addOption(OptionType.STRING, "type", "Activity type to set (playing, streaming, listening, watching, competing)", true)
+                .addOption(OptionType.STRING, "activity", "Activity to set", true));
     }
 
     /**

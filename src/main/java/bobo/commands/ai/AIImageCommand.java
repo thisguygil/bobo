@@ -5,12 +5,11 @@ import com.theokanning.openai.image.CreateImageRequest;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.awt.*;
 import java.util.Objects;
-
-import static net.dv8tion.jda.api.interactions.commands.OptionType.STRING;
 
 public class AIImageCommand extends AbstractAI {
     /**
@@ -18,7 +17,7 @@ public class AIImageCommand extends AbstractAI {
      */
     public AIImageCommand() {
         super(Commands.slash("ai-image", "Uses OpenAI to generate an image of the given prompt.")
-                .addOption(STRING, "prompt", "Image to generate", true));
+                .addOption(OptionType.STRING, "prompt", "Image to generate", true));
     }
     @Override
     protected void handleAICommand() {

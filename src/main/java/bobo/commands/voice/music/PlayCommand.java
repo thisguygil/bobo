@@ -3,14 +3,12 @@ package bobo.commands.voice.music;
 import bobo.commands.voice.JoinCommand;
 import bobo.utils.YouTubeUtil;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.apache.commons.validator.routines.UrlValidator;
 
 import java.util.Objects;
-
-import static net.dv8tion.jda.api.interactions.commands.OptionType.ATTACHMENT;
-import static net.dv8tion.jda.api.interactions.commands.OptionType.STRING;
 
 public class PlayCommand extends AbstractMusic {
     /**
@@ -19,9 +17,9 @@ public class PlayCommand extends AbstractMusic {
     public PlayCommand() {
         super(Commands.slash("play", "Joins the voice channel and plays given track.")
                 .addSubcommands(new SubcommandData("track", "Joins the voice channel and plays given track or searched YouTube query.")
-                        .addOption(STRING, "track", "URL to play or query to search", true))
+                        .addOption(OptionType.STRING, "track", "URL to play or query to search", true))
                 .addSubcommands(new SubcommandData("file", "Joins the voice channel and plays audio from attached audio/video file.")
-                        .addOption(ATTACHMENT, "file", "Audio/video file to play", true))
+                        .addOption(OptionType.ATTACHMENT, "file", "Audio/video file to play", true))
         );
     }
 
