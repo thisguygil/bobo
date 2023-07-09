@@ -10,10 +10,12 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 
 import java.awt.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
 
 public class QueueCommand extends AbstractMusic {
@@ -21,59 +23,112 @@ public class QueueCommand extends AbstractMusic {
      * Creates a new queue command.
      */
     public QueueCommand() {
-        super(Commands.slash("queue", "Shows the currently queued tracks."));
+        super(Commands.slash("queue", "View or manipulate the music queue.")
+                .addSubcommands(new SubcommandData("show", "Shows the currently queued tracks."))
+                .addSubcommands(new SubcommandData("shuffle", "Shuffles the queue (does not stop the current track)."))
+                .addSubcommands(new SubcommandData("clear", "Clears queue and stops current track."))
+                .addSubcommands(new SubcommandData("remove", "Removes track at given position in the queue.")
+                        .addOption(OptionType.INTEGER, "position", "What position in the queue to remove the track from", true))
+        );
     }
 
     @Override
     protected void handleMusicCommand() {
         event.deferReply().queue();
-        final List<TrackScheduler.TrackChannelPair> trackList = new ArrayList<>(queue);
-        final List<Page> pages = new ArrayList<>();
 
-        if (currentTrack != null) {
-            trackList.add(0, new TrackScheduler.TrackChannelPair(currentTrack, event.getMessageChannel()));
-        } else {
+        if (currentTrack == null) {
             hook.editOriginal("The queue is currently empty.").queue();
             return;
         }
 
-        AudioTrack track;
-        AudioTrackInfo info;
-        int count = 0;
-        int numPages = trackList.size();
-        Member member = event.getMember();
-        assert member != null;
-        EmbedBuilder builder = new EmbedBuilder()
-                .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getEffectiveAvatarUrl())
-                .setTitle("Current Queue")
-                .setColor(Color.red)
-                .setFooter("Page 1/" + (int) Math.ceil((double) numPages / 10));
+        String subcommandName = Objects.requireNonNull(event.getSubcommandName());
+        switch (subcommandName) {
+            case "show" -> {
+                final List<TrackScheduler.TrackChannelPair> trackList = new ArrayList<>(queue);
+                final List<Page> pages = new ArrayList<>();
+                trackList.add(0, new TrackScheduler.TrackChannelPair(currentTrack, event.getMessageChannel()));
 
-        for (int i = 0; i < numPages; i++) {
-            track = trackList.get(i).track();
-            info = track.getInfo();
-            builder.addField((i + 1) + ":", "[" + info.title + "](" + info.uri + ") by **" + info.author + "** [" +
-                    (i == 0 ? TimeFormat.formatTime(track.getDuration() - track.getPosition()) : TimeFormat.formatTime(track.getDuration())) +
-                    (i == 0 ? (scheduler.looping ? " left] (currently looping)\n" : " left] (currently playing)\n") : "]\n"), false);
-            count++;
-            if (count == 10) {
-                pages.add(InteractPage.of(builder.build()));
-                builder = new EmbedBuilder()
+                AudioTrack track;
+                AudioTrackInfo info;
+                int count = 0;
+                int numPages = trackList.size();
+                Member member = event.getMember();
+                assert member != null;
+                EmbedBuilder builder = new EmbedBuilder()
                         .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getEffectiveAvatarUrl())
                         .setTitle("Current Queue")
                         .setColor(Color.red)
-                        .setFooter("Page " + ((int) Math.ceil((double) (i + 1) / 10) + 1) + "/" + (int) Math.ceil((double) numPages / 10));
-                count = 0;
-            }
-        }
-        if (!builder.getFields().isEmpty()) {
-            pages.add(InteractPage.of(builder.build()));
-        }
+                        .setFooter("Page 1/" + (int) Math.ceil((double) numPages / 10));
 
-        if (pages.size() == 1) {
-            hook.editOriginalEmbeds((MessageEmbed) pages.get(0).getContent()).queue();
-        } else {
-           hook.editOriginalEmbeds((MessageEmbed) pages.get(0).getContent()).queue(success -> Pages.paginate(success, pages, true));
+                for (int i = 1; i <= numPages; i++) {
+                    track = trackList.get(i).track();
+                    info = track.getInfo();
+                    builder.addField(i + ":", "[" + info.title + "](" + info.uri + ") by **" + info.author + "** [" +
+                            (i == 1 ? TimeFormat.formatTime(track.getDuration() - track.getPosition()) : TimeFormat.formatTime(track.getDuration())) +
+                            (i == 1 ? (scheduler.looping ? " left] (currently looping)\n" : " left] (currently playing)\n") : "]\n"), false);
+                    count++;
+                    if (count == 10) {
+                        pages.add(InteractPage.of(builder.build()));
+                        builder = new EmbedBuilder()
+                                .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getEffectiveAvatarUrl())
+                                .setTitle("Current Queue")
+                                .setColor(Color.red)
+                                .setFooter("Page " + ((int) Math.ceil((double) i / 10) + 1) + "/" + ((int) Math.ceil((double) numPages / 10)));
+                        count = 0;
+                    }
+                }
+                if (!builder.getFields().isEmpty()) {
+                    pages.add(InteractPage.of(builder.build()));
+                }
+
+                if (pages.size() == 1) {
+                    hook.editOriginalEmbeds((MessageEmbed) pages.get(0).getContent()).queue();
+                } else {
+                    hook.editOriginalEmbeds((MessageEmbed) pages.get(0).getContent()).queue(success -> Pages.paginate(success, pages, true));
+                }
+            }
+            case "shuffle" -> {
+                List<TrackScheduler.TrackChannelPair> trackList = new ArrayList<>();
+                queue.drainTo(trackList);
+                Collections.shuffle(trackList);
+                queue.clear();
+                queue.addAll(trackList);
+                hook.editOriginal("Shuffled.").queue();
+            }
+            case "clear" -> {
+                queue.clear();
+                scheduler.looping = false;
+                player.stopTrack();
+                player.setPaused(false);
+                hook.editOriginal("Queue cleared.").queue();
+            }
+            case "remove" -> {
+                int position = Objects.requireNonNull(event.getOption("position")).getAsInt();
+                if (position < 1 || position > queue.size() + 1) {
+                    hook.editOriginal("Please enter an integer corresponding to a track's position in the queue.").queue();
+                    return;
+                }
+
+                if (position == 1) {
+                    scheduler.nextTrack();
+                    scheduler.looping = false;
+                } else {
+                    int count = 1;
+                    Iterator<TrackScheduler.TrackChannelPair> iterator = queue.iterator();
+                    while (iterator.hasNext()) {
+                        if (count == position) {
+                            iterator.remove();
+                        }
+                        count++;
+                        iterator.next();
+                    }
+                    if (count == position) {
+                        iterator.remove();
+                    }
+                }
+
+                hook.editOriginal("Removed track at position **" + position + "**.").queue();
+            }
         }
     }
 
