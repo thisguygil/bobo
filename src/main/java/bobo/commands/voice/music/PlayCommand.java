@@ -30,6 +30,11 @@ public class PlayCommand extends AbstractMusic {
             if (!JoinCommand.join(event)) {
                 return;
             }
+        } else {
+            if (Objects.requireNonNull(Objects.requireNonNull(event.getMember()).getVoiceState()).getChannel() == null) {
+                event.getHook().editOriginal("You must be connected to a voice channel to use this command.").queue();
+                return;
+            }
         }
 
         String trackURL = null;
