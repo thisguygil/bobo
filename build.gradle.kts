@@ -21,7 +21,7 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
     implementation("net.dv8tion:JDA:5.0.0-beta.13")
     implementation("com.github.ygimenez:Pagination-Utils:4.0.4")
-    implementation("com.theokanning.openai-gpt3-java:service:0.14.0")
+    implementation("com.theokanning.openai-gpt3-java:service:0.15.0")
     implementation("com.sedmelluq:lavaplayer:1.3.78")
     implementation("com.google.api-client:google-api-client:2.2.0")
     implementation("com.google.oauth-client:google-oauth-client-jetty:1.34.1")
