@@ -13,7 +13,7 @@ import javax.annotation.Nonnull;
 import java.util.*;
 
 public class ChatCommand extends AbstractAI {
-    private static final Map<ThreadChannel, List<ChatMessage>> channelMessageMap = new HashMap<>();
+    private static final Map<ThreadChannel, List<ChatMessage>> CHANNEL_MESSAGE_MAP = new HashMap<>();
 
     /**
      * Creates a new chat command.
@@ -49,7 +49,7 @@ public class ChatCommand extends AbstractAI {
     public static void startConversation(ThreadChannel threadChannel) {
         List<ChatMessage> messages = new ArrayList<>();
         initializeMessages(messages);
-        channelMessageMap.put(threadChannel, messages);
+        CHANNEL_MESSAGE_MAP.put(threadChannel, messages);
     }
 
     /**
@@ -59,12 +59,12 @@ public class ChatCommand extends AbstractAI {
      */
     public static void handleThreadMessage(@Nonnull MessageReceivedEvent event) {
         ThreadChannel threadChannel = event.getChannel().asThreadChannel();
-        if (!channelMessageMap.containsKey(threadChannel) || event.getAuthor().isSystem() || event.getAuthor().isBot()) {
+        if (!CHANNEL_MESSAGE_MAP.containsKey(threadChannel) || event.getAuthor().isSystem() || event.getAuthor().isBot()) {
             return;
         }
 
         threadChannel.sendTyping().queue();
-        List<ChatMessage> messages = channelMessageMap.get(threadChannel);
+        List<ChatMessage> messages = CHANNEL_MESSAGE_MAP.get(threadChannel);
 
         String prompt = event.getMessage().getContentDisplay();
         ChatMessage userMessage = new ChatMessage(ChatMessageRole.USER.value(), prompt);
@@ -81,7 +81,7 @@ public class ChatCommand extends AbstractAI {
                 .getMessage();
         messages.add(assistantMessage);
 
-        channelMessageMap.replace(threadChannel, messages);
+        CHANNEL_MESSAGE_MAP.replace(threadChannel, messages);
         threadChannel.sendMessage(assistantMessage.getContent()).queue();
     }
 
@@ -91,7 +91,7 @@ public class ChatCommand extends AbstractAI {
      * @param event the thread delete event to handle
      */
     public static void handleThreadDelete(@Nonnull ChannelDeleteEvent event) {
-        channelMessageMap.remove(event.getChannel().asThreadChannel());
+        CHANNEL_MESSAGE_MAP.remove(event.getChannel().asThreadChannel());
     }
 
     /**
