@@ -6,9 +6,9 @@ import com.google.gson.Gson;
 import com.google.gson.stream.JsonReader;
 import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Activity.ActivityType;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 
 import java.io.*;
 import java.util.Objects;
@@ -21,8 +21,19 @@ public class SetActivityCommand extends AbstractAdmin {
      */
     public SetActivityCommand() {
         super(Commands.slash("set-activity", "Sets bobo's activity with specified type (playing, streaming, listening, watching, competing).")
-                .addOption(OptionType.STRING, "type", "Activity type to set (playing, streaming, listening, watching, competing)", true)
-                .addOption(OptionType.STRING, "activity", "Activity to set", true));
+                .addSubcommands(
+                        new SubcommandData("playing", "Sets bobo's activity to playing.")
+                                .addOption(OptionType.STRING, "activity", "Activity to set.", true),
+                        new SubcommandData("streaming", "Sets bobo's activity to streaming.")
+                                .addOption(OptionType.STRING, "activity", "Activity to set.", true),
+                        new SubcommandData("listening", "Sets bobo's activity to listening.")
+                                .addOption(OptionType.STRING, "activity", "Activity to set.", true),
+                        new SubcommandData("watching", "Sets bobo's activity to watching.")
+                                .addOption(OptionType.STRING, "activity", "Activity to set.", true),
+                        new SubcommandData("competing", "Sets bobo's activity to competing.")
+                                .addOption(OptionType.STRING, "activity", "Activity to set.", true)
+                )
+        );
     }
 
     /**
@@ -36,25 +47,18 @@ public class SetActivityCommand extends AbstractAdmin {
     @Override
     protected void handleAdminCommand() {
         event.deferReply().queue();
-        String activity = Objects.requireNonNull(event.getOption("activity")).getAsString();
-        OptionMapping typeInput = event.getOption("type");
-        ActivityType activityType = null;
-        String message = "";
 
-        if (typeInput != null) {
-            String typeName = typeInput.getAsString().toUpperCase();
-            activityType = getActivityType(typeName);
-            if (activityType == null) {
-                message = "Invalid activity type " + typeName + ", will remain unchanged.\n";
-            }
-        }
+        String activity = Objects.requireNonNull(event.getOption("activity")).getAsString();
+
+        ActivityType activityType = switch (Objects.requireNonNull(event.getSubcommandName())) {
+            case "playing" -> ActivityType.PLAYING;
+            case "listening" -> ActivityType.LISTENING;
+            case "watching" -> ActivityType.WATCHING;
+            case "competing" -> ActivityType.COMPETING;
+            default -> ActivityType.STREAMING;
+        };
 
         try {
-            if (activityType == null) {
-                BotActivity botActivity = getActivityFromFile();
-                activityType = botActivity.activityType;
-                message += "Activity type not specified, will remain unchanged.\n";
-            }
             saveActivityToFile(activityType, activity);
             setActivity();
         } catch (IOException e) {
@@ -63,13 +67,7 @@ public class SetActivityCommand extends AbstractAdmin {
             return;
         }
 
-        if (message.isEmpty()) {
-            message = "Activity type set to **" + activityType + "**\n";
-        }
-
-        message += "Activity set to **" + activity + "**";
-
-        hook.editOriginal(message).queue();
+        hook.editOriginal("Activity type set to **" + activityType + "**" + "\n" + "Activity set to **" + activity + "**").queue();
     }
 
     /**
@@ -90,22 +88,6 @@ public class SetActivityCommand extends AbstractAdmin {
             default -> Activity.streaming(activityName, "https://www.youtube.com/watch?v=dQw4w9WgXcQ");
         };
         Bobo.getJDA().getPresence().setActivity(activity);
-    }
-
-    /**
-     * Gets the activity type given a string
-     *
-     * @param activityType activity type string
-     * @return activity type
-     */
-    private static ActivityType getActivityType(String activityType) {
-        return switch (activityType) {
-            case "PLAYING" -> ActivityType.PLAYING;
-            case "LISTENING" -> ActivityType.LISTENING;
-            case "WATCHING" -> ActivityType.WATCHING;
-            case "COMPETING" -> ActivityType.COMPETING;
-            default -> ActivityType.STREAMING;
-        };
     }
 
     /**
