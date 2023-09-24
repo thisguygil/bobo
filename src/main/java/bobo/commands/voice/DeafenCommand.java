@@ -12,9 +12,11 @@ public class DeafenCommand extends AbstractVoice {
      * Creates a new deafen command.
      */
     public DeafenCommand() {
-        super(Commands.slash("deafen", "Deafens the bot.")
-                .addSubcommands(new SubcommandData("on", "Deafens the bot."))
-                .addSubcommands(new SubcommandData("off", "Undeafens the bot."))
+        super(Commands.slash("deafen", "Deafens/undeafens the bot.")
+                .addSubcommands(
+                        new SubcommandData("on", "Deafens the bot."),
+                        new SubcommandData("off", "Undeafens the bot.")
+                )
         );
     }
 
