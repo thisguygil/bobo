@@ -28,7 +28,7 @@ public class JoinCommand extends AbstractVoice {
         }
 
         if (join(event)) {
-            hook.editOriginal("Joined.").queue();
+            hook.editOriginal("Joined " + event.getChannel().asTextChannel().getAsMention()).queue();
         }
     }
 
