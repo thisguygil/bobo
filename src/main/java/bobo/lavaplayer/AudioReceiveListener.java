@@ -48,7 +48,7 @@ public class AudioReceiveListener implements AudioReceiveHandler {
      * @param seconds the number of seconds to record
      * @return the file created
      */
-    public File createFile(int seconds) {
+    public File createFile(int seconds, String name) {
         int packetCount = (seconds * 1000) / 20;
         File file;
         try {
@@ -71,8 +71,7 @@ public class AudioReceiveListener implements AudioReceiveHandler {
                 }
             }
 
-            String currentDateTime = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss"));
-            file = new File(currentDateTime + ".wav");
+            file = new File(name + ".wav");
             AudioSystem.write(new AudioInputStream(new ByteArrayInputStream(decodedData), AudioReceiveHandler.OUTPUT_FORMAT, decodedData.length), AudioFileFormat.Type.WAVE, file);
         } catch (IOException | OutOfMemoryError e) {
             file = null;
