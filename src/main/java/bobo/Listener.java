@@ -43,16 +43,14 @@ public class Listener extends ListenerAdapter {
     @Override
     public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
         if (event.isFromType(ChannelType.PRIVATE)) {
-            TextChannel channel = event.getJDA().getTextChannelById(Long.parseLong(Config.get("DM_LOG_CHANNEL_ID")));
+            TextChannel channel = Bobo.getJDA().getTextChannelById(Long.parseLong(Config.get("DM_LOG_CHANNEL_ID")));
             MessageCreateData message = new MessageCreateBuilder()
                     .addContent("**" + event.getAuthor().getGlobalName() + "**\n" + event.getMessage().getContentDisplay())
                     .addEmbeds(event.getMessage().getEmbeds())
                     .build();
             assert channel != null;
             channel.sendMessage(message).queue();
-        }
-
-        if (event.isFromType(ChannelType.GUILD_PRIVATE_THREAD)) {
+        } else if (event.isFromType(ChannelType.GUILD_PRIVATE_THREAD)) {
             ChatCommand.handleThreadMessage(event);
         }
     }
