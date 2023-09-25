@@ -70,12 +70,12 @@ public class QueueCommand extends AbstractMusic {
                 .setColor(Color.red)
                 .setFooter("Page 1/" + (int) Math.ceil((double) numPages / 10));
 
-        for (int i = 1; i <= numPages; i++) {
+        for (int i = 0; i < numPages; i++) {
             track = trackList.get(i).track();
             info = track.getInfo();
-            builder.addField(i + ":", "[" + info.title + "](" + info.uri + ") by **" + info.author + "** [" +
-                    (i == 1 ? TimeFormat.formatTime(track.getDuration() - track.getPosition()) : TimeFormat.formatTime(track.getDuration())) +
-                    (i == 1 ? (scheduler.looping ? " left] (currently looping)\n" : " left] (currently playing)\n") : "]\n"), false);
+            builder.addField((i + 1) + ":", "[" + info.title + "](" + info.uri + ") by **" + info.author + "** [" +
+                    (i == 0 ? TimeFormat.formatTime(track.getDuration() - track.getPosition()) : TimeFormat.formatTime(track.getDuration())) +
+                    (i == 0 ? (scheduler.looping ? " left] (currently looping)\n" : " left] (currently playing)\n") : "]\n"), false);
             count++;
             if (count == 10) {
                 pages.add(InteractPage.of(builder.build()));
@@ -83,7 +83,7 @@ public class QueueCommand extends AbstractMusic {
                         .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getEffectiveAvatarUrl())
                         .setTitle("Current Queue")
                         .setColor(Color.red)
-                        .setFooter("Page " + ((int) Math.ceil((double) i / 10) + 1) + "/" + ((int) Math.ceil((double) numPages / 10)));
+                        .setFooter("Page " + ((int) Math.ceil((double) (i + 1) / 10) + 1) + "/" + ((int) Math.ceil((double) numPages / 10)));
                 count = 0;
             }
         }
