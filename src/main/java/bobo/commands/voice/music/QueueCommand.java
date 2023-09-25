@@ -41,8 +41,7 @@ public class QueueCommand extends AbstractMusic {
             return;
         }
 
-        String subcommandName = Objects.requireNonNull(event.getSubcommandName());
-        switch (subcommandName) {
+        switch (Objects.requireNonNull(event.getSubcommandName())) {
             case "show" -> show();
             case "shuffle" -> shuffle();
             case "clear" -> clear();
