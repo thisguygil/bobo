@@ -2,6 +2,7 @@ package bobo.lavaplayer;
 
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
+import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
@@ -74,5 +75,17 @@ public class TrackScheduler extends AudioEventAdapter {
                 nextTrack();
             }
         }
+    }
+
+    /**
+     * Sends a message to the channel if the track fails to start
+     *
+     * @param player Audio player
+     * @param track Audio track that threw the exception
+     * @param exception The exception thrown
+     */
+    @Override
+    public void onTrackException(AudioPlayer player, AudioTrack track, FriendlyException exception) {
+        currentTrack.channel().sendMessage("Failed to start track: **" + exception.getMessage() + "**").queue();
     }
 }
