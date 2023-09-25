@@ -15,8 +15,10 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 
-public class YouTubeUtil {
+public final class YouTubeUtil {
     private static final String API_KEY = Config.get("GOOGLE_API_KEY");
+
+    private YouTubeUtil() {} // Prevent instantiation
 
     /**
      * Search for a YouTube video based on the specified query and return its link.

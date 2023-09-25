@@ -2,7 +2,15 @@ package bobo.utils;
 
 import java.util.concurrent.TimeUnit;
 
-public class TimeFormat {
+public final class TimeFormat {
+    private TimeFormat() {} // Prevent instantiation
+
+    /**
+     * Formats the given time in milliseconds to a string in the format HH:MM:SS.
+     *
+     * @param timeInMillis The time in milliseconds.
+     * @return The formatted time.
+     */
     public static String formatTime(long timeInMillis) {
         final long hours = timeInMillis / TimeUnit.HOURS.toMillis(1);
         timeInMillis %= TimeUnit.HOURS.toMillis(1);
