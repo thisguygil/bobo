@@ -38,28 +38,29 @@ public class PlayCommand extends AbstractMusic {
         }
 
         String trackURL = null;
-        String subcommandName = Objects.requireNonNull(event.getSubcommandName());
-        if (subcommandName.equals("track")) {
-            String track = Objects.requireNonNull(event.getOption("track")).getAsString();
-            if ((new UrlValidator()).isValid(track)) {
-                trackURL = track;
-            } else {
-                try {
-                    trackURL = YouTubeUtil.searchForVideo(track);
-                } catch (Exception e) {
-                    hook.editOriginal("Nothing found by **" + track + "**.").queue();
-                    e.printStackTrace();
+        switch (Objects.requireNonNull(event.getSubcommandName())) {
+            case "track" -> {
+                String track = Objects.requireNonNull(event.getOption("track")).getAsString();
+                if ((new UrlValidator()).isValid(track)) {
+                    trackURL = track;
+                } else {
+                    try {
+                        trackURL = YouTubeUtil.searchForVideo(track);
+                    } catch (Exception e) {
+                        hook.editOriginal("Nothing found by **" + track + "**.").queue();
+                        e.printStackTrace();
+                        return;
+                    }
+                }
+            } case "file" -> {
+                Message.Attachment attachment = Objects.requireNonNull(event.getOption("file")).getAsAttachment();
+                if (!isAudioFile(attachment.getFileName())) {
+                    hook.editOriginal("Please attach a valid audio file.").queue();
                     return;
                 }
-            }
-        } else if (subcommandName.equals("file")) {
-            Message.Attachment attachment = Objects.requireNonNull(event.getOption("file")).getAsAttachment();
-            if (!isAudioFile(attachment.getFileName())) {
-                hook.editOriginal("Please attach a valid audio file.").queue();
-                return;
-            }
 
-            trackURL = attachment.getUrl();
+                trackURL = attachment.getUrl();
+            }
         }
 
         playerManager.loadAndPlay(event, trackURL);
