@@ -75,8 +75,9 @@ public class ClipCommand extends AbstractVoice {
             }
 
             assert channel != null;
-            channel.sendFiles(FileUpload.fromData(file)).queue();
-            hook.editOriginalAttachments(FileUpload.fromData(file)).queue(success -> {
+            FileUpload fileUpload = FileUpload.fromData(file);
+            channel.sendFiles(fileUpload).queue();
+            hook.editOriginalAttachments(fileUpload).queue(success -> {
                 if (!file.delete()) {
                     System.err.println("Failed to delete file: " + file.getName());
                 }
