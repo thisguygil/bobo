@@ -42,19 +42,17 @@ public class ConfigCommand extends AbstractAdmin {
         String channelId = channelIdOption == null ? event.getChannel().getId() : channelIdOption.getAsString();
 
         if (Objects.requireNonNull(event.getSubcommandName()).equals("clips")) {
-            try (Connection connection = SQLConnection.getConnection();
-                 Statement statement = connection.createStatement()) {
-                statement.execute(ConfigCommand.createClipsTableSQL);
-            } catch (SQLException e) {
-                e.printStackTrace();
-            }
+            try (Connection connection = SQLConnection.getConnection()) {
+                try (Statement statement = connection.createStatement()) {
+                    statement.execute(ConfigCommand.createClipsTableSQL);
+                }
 
-            try (Connection connection = SQLConnection.getConnection();
-                 PreparedStatement statement = connection.prepareStatement(ConfigCommand.insertOrUpdateClipsSQL)) {
-                statement.setString(1, guildId);
-                statement.setString(2, channelId);
-                statement.setString(3, channelId);
-                statement.executeUpdate();
+                try (PreparedStatement statement = connection.prepareStatement(ConfigCommand.insertOrUpdateClipsSQL)) {
+                    statement.setString(1, guildId);
+                    statement.setString(2, channelId);
+                    statement.setString(3, channelId);
+                    statement.executeUpdate();
+                }
             } catch (SQLException e) {
                 e.printStackTrace();
             }
