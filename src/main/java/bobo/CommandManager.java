@@ -1,7 +1,8 @@
 package bobo;
 
-import bobo.commands.AbstractCommand;
+import bobo.commands.*;
 import bobo.commands.admin.*;
+import bobo.commands.admin.owner.*;
 import bobo.commands.ai.*;
 import bobo.commands.general.*;
 import bobo.commands.voice.*;

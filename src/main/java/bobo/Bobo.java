@@ -1,6 +1,6 @@
 package bobo;
 
-import bobo.commands.admin.SetActivityCommand;
+import bobo.commands.admin.owner.SetActivityCommand;
 import com.github.ygimenez.model.PaginatorBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -16,8 +16,9 @@ public class Bobo {
 
         jda.addEventListener(new Listener());
 
+        SetActivityCommand.setActivity();
+
         try {
-            SetActivityCommand.setActivity();
             PaginatorBuilder.createPaginator(jda)
                     .shouldRemoveOnReact(false)
                     .shouldEventLock(false)
