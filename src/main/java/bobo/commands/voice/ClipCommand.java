@@ -65,7 +65,7 @@ public class ClipCommand extends AbstractVoice {
                 if (resultSet.next()) {
                     channel = Bobo.getJDA().getTextChannelById(resultSet.getString("channel_id"));
                 } else {
-                    hook.editOriginal("No clips channel has been configured. Please configure one with **/config clips-channel**").queue();
+                    hook.editOriginal("No clips channel has been configured. Please configure one with **/config clips**").queue();
                     return;
                 }
             } catch (SQLException e) {
