@@ -73,7 +73,7 @@ public class ClipCommand extends AbstractVoice {
             }
 
             FileUpload fileUpload = FileUpload.fromData(file);
-            if (channel != null) {
+            if (channel != null && channel != event.getChannel().asTextChannel()) {
                 channel.sendFiles(fileUpload).queue();
             }
             hook.editOriginalAttachments(fileUpload).queue(success -> {
