@@ -65,18 +65,17 @@ public class ClipCommand extends AbstractVoice {
                 if (resultSet.next()) {
                     channel = Bobo.getJDA().getTextChannelById(resultSet.getString("channel_id"));
                 } else {
-                    hook.editOriginal("No clips channel has been configured. Please configure one with **/config clips**").queue();
-                    return;
+                    channel = null;
                 }
             } catch (SQLException e) {
                 e.printStackTrace();
-                hook.editOriginal("Clip creation failed.").queue();
-                return;
+                channel = null;
             }
 
-            assert channel != null;
             FileUpload fileUpload = FileUpload.fromData(file);
-            channel.sendFiles(fileUpload).queue();
+            if (channel != null) {
+                channel.sendFiles(fileUpload).queue();
+            }
             hook.editOriginalAttachments(fileUpload).queue(success -> {
                 if (!file.delete()) {
                     System.err.println("Failed to delete file: " + file.getName());
