@@ -20,8 +20,9 @@ public class CommandManager {
     public CommandManager() {
         // Admin commands
         commands.add(new ConfigCommand());
-        commands.add(new SetActivityCommand());
         commands.add(new SayCommand());
+        // Owner commands
+        commands.add(new SetActivityCommand());
 
         // General commands
         commands.add(new HelpCommand());
