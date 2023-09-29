@@ -62,8 +62,7 @@ public class CommandManager {
         if (command != null) {
             command.handle(event);
         } else {
-            event.reply("Error retrieving command").queue();
-            throw new RuntimeException();
+            event.reply("Error retrieving command.").queue();
         }
     }
 }
