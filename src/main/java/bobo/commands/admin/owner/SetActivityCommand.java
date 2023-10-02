@@ -7,7 +7,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
-import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 
 import java.sql.*;
 
@@ -23,21 +22,17 @@ public class SetActivityCommand extends AbstractOwner {
     public SetActivityCommand() {
         super(Commands.slash("set-activity", "Sets Bobo's activity.")
                 .addSubcommands(new SubcommandData("custom", "Sets Bobo's activity to a custom status.")
-                        .addOption(OptionType.STRING, "status", "Status to set.", true))
-                .addSubcommandGroups(new SubcommandGroupData("activity", "Sets Bobo's status to an activity.")
-                        .addSubcommands(
-                                new SubcommandData("playing", "Sets Bobo's activity to playing.")
-                                        .addOption(OptionType.STRING, "activity", "Activity to set.", true),
-                                new SubcommandData("streaming", "Sets Bobo's activity to streaming.")
-                                        .addOption(OptionType.STRING, "activity", "Activity to set.", true),
-                                new SubcommandData("listening", "Sets Bobo's activity to listening.")
-                                        .addOption(OptionType.STRING, "activity", "Activity to set.", true),
-                                new SubcommandData("watching", "Sets Bobo's activity to watching.")
-                                        .addOption(OptionType.STRING, "activity", "Activity to set.", true),
-                                new SubcommandData("competing", "Sets Bobo's activity to competing.")
-                                        .addOption(OptionType.STRING, "activity", "Activity to set.", true)
-                        )
-                )
+                        .addOption(OptionType.STRING, "status", "Status to set.", true),
+                new SubcommandData("playing", "Sets Bobo's activity to playing.")
+                        .addOption(OptionType.STRING, "activity", "Activity to set.", true),
+                new SubcommandData("streaming", "Sets Bobo's activity to streaming.")
+                        .addOption(OptionType.STRING, "activity", "Activity to set.", true),
+                new SubcommandData("listening", "Sets Bobo's activity to listening.")
+                        .addOption(OptionType.STRING, "activity", "Activity to set.", true),
+                new SubcommandData("watching", "Sets Bobo's activity to watching.")
+                        .addOption(OptionType.STRING, "activity", "Activity to set.", true),
+                new SubcommandData("competing", "Sets Bobo's activity to competing.")
+                        .addOption(OptionType.STRING, "activity", "Activity to set.", true))
         );
     }
 
