@@ -1,6 +1,6 @@
 package bobo;
 
-import bobo.commands.admin.owner.SetActivityCommand;
+import bobo.commands.owner.SetActivityCommand;
 import com.github.ygimenez.model.PaginatorBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;

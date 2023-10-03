@@ -1,4 +1,4 @@
-package bobo.commands.admin.owner;
+package bobo.commands.owner;
 
 import bobo.Bobo;
 import bobo.utils.SQLConnection;

@@ -2,7 +2,7 @@ package bobo;
 
 import bobo.commands.*;
 import bobo.commands.admin.*;
-import bobo.commands.admin.owner.*;
+import bobo.commands.owner.*;
 import bobo.commands.ai.*;
 import bobo.commands.general.*;
 import bobo.commands.voice.*;
@@ -18,11 +18,12 @@ public class CommandManager {
     private final List<AbstractCommand> commands = new ArrayList<>();
 
     public CommandManager() {
-        // Admin commands
+        // Bot Owner commands
+        commands.add(new SetActivityCommand());
+
+        // Server Admin commands
         commands.add(new ConfigCommand());
         commands.add(new SayCommand());
-        // Owner commands
-        commands.add(new SetActivityCommand());
 
         // General commands
         commands.add(new HelpCommand());

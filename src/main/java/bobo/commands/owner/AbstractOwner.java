@@ -1,10 +1,10 @@
-package bobo.commands.admin.owner;
+package bobo.commands.owner;
 
 import bobo.Config;
-import bobo.commands.admin.AbstractAdmin;
+import bobo.commands.AbstractCommand;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
-public abstract class AbstractOwner extends AbstractAdmin {
+public abstract class AbstractOwner extends AbstractCommand {
     /**
      * Creates a new owner command.
      *
@@ -15,7 +15,7 @@ public abstract class AbstractOwner extends AbstractAdmin {
     }
 
     @Override
-    protected void handleAdminCommand() {
+    protected void handleCommand() {
         if (event.getUser().getId().equals(Config.get("OWNER_ID"))) {
             handleOwnerCommand();
         } else {
