@@ -76,6 +76,9 @@ public class Listener extends ListenerAdapter {
     public void onGuildVoiceUpdate(@Nonnull GuildVoiceUpdateEvent event) {
         Guild guild = event.getGuild();
         if (event.getEntity().equals(guild.getSelfMember()) && event.getChannelLeft() != null) {
+            if (event.getChannelJoined() != null) {
+                return;
+            }
             final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(guild);
             final AudioPlayer player = musicManager.player;
             final TrackScheduler scheduler = musicManager.scheduler;
@@ -96,7 +99,7 @@ public class Listener extends ListenerAdapter {
      */
     @Override
     public void onReady(@Nonnull ReadyEvent event) {
-        GetQuoteCommand.loadQuotes();
+        GetQuoteCommand.loadMap();
         System.out.println("Bobo is ready!");
     }
 }
