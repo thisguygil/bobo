@@ -1,15 +1,22 @@
 package bobo.commands.general;
 
 import bobo.Bobo;
-import bobo.Config;
+import bobo.utils.SQLConnection;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -21,22 +28,44 @@ import java.util.regex.Pattern;
  * There can be multiple quotes in one message, and blank space does not matter.
  */
 public class GetQuoteCommand extends AbstractGeneral {
-    private static final List<Message> allMessages = new ArrayList<>();
+    public static final Map<Guild, List<Message>> guildListMap = new HashMap<>();
+    private static final String selectSQL = "SELECT channel_id FROM quotes_channels WHERE guild_id = ?";
+    private static final String selectAllSQL = "SELECT * FROM quotes_channels";
+
 
     /**
      * Creates a new get-quote command.
      */
     public GetQuoteCommand() {
-        super(Commands.slash("get-quote", "Gets a random quote from the quotes channel."));
+        super(Commands.slash("get-quote", "Gets a random quote from the configured quotes channel."));
     }
 
     @Override
     protected void handleGeneralCommand() {
         event.deferReply().queue();
-        loadQuotes();
 
-        int randomIndex = (int) (Math.random() * allMessages.size());
-        Message randomMessage = allMessages.get(randomIndex);
+        Guild guild = event.getGuild();
+        assert guild != null;
+        try {
+            loadGuild(guild);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            hook.editOriginal("An error occurred while getting the quote.").queue();
+            return;
+        }
+
+        List<Message> guildList = guildListMap.get(guild);
+        if (guildList == null) {
+            hook.editOriginal("No quotes channel has been configured for this server. Configure one with **/config quotes**").queue();
+            return;
+        }
+        if (guildList.isEmpty()) {
+            hook.editOriginal("No quotes have been added to the quotes channel.").queue();
+            return;
+        }
+
+        int randomIndex = (int) (Math.random() * guildList.size());
+        Message randomMessage = guildList.get(randomIndex);
         String messageContent = spoileredQuote(randomMessage.getContentDisplay());
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
         String time = randomMessage.getTimeCreated().format(formatter);
@@ -45,21 +74,64 @@ public class GetQuoteCommand extends AbstractGeneral {
     }
 
     /**
-     * Compiles all messages from the quotes channel into an ArrayList
-     * Keeps ArrayList as static for faster access in subsequent command calls
+     * Loads all quotes from the quotes channel of the given guild into the map
+     * Since all quotes are loaded when the bot starts, this is for when new quotes are added or new channels are configured
+     *
+     * @param guild the guild to load quotes from
      */
-    public static void loadQuotes() {
-        JDA jda = Bobo.getJDA();
-        TextChannel channel = jda.getTextChannelById(Long.parseLong(Config.get("QUOTE_CHANNEL_ID")));
-        assert channel != null;
+    private static void loadGuild(Guild guild) throws SQLException {
+        TextChannel channel;
+        try (Connection connection = SQLConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(selectSQL)) {
+            statement.setString(1, guild.getId());
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                channel = Bobo.getJDA().getTextChannelById(resultSet.getString("channel_id"));
+            } else {
+                channel = null;
+            }
+        }
+
+        if (channel == null) {
+            return;
+        }
+
+        List<Message> messages = guildListMap.computeIfAbsent(guild, k -> new ArrayList<>());
         for (Message message : channel.getIterableHistory()) {
-            if (!allMessages.contains(message)) {
+            if (!messages.contains(message)) {
                 if (message.getContentDisplay().contains("\"")) {
-                    allMessages.add(message);
+                    messages.add(message);
                 }
             } else {
                 break;
             }
+        }
+    }
+
+    /**
+     * Loads all quotes from all quotes channels into the map
+     */
+    public static void loadMap() {
+        try (Connection connection = SQLConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(selectAllSQL)) {
+            ResultSet resultSet = statement.executeQuery();
+            JDA jda = Bobo.getJDA();
+            while (resultSet.next()) {
+                Guild guild = jda.getGuildById(resultSet.getString("guild_id"));
+                TextChannel channel = jda.getTextChannelById(resultSet.getString("channel_id"));
+                assert guild != null;
+                assert channel != null;
+
+                List<Message> messages = new ArrayList<>();
+                for (Message message : channel.getIterableHistory()) {
+                    if (message.getContentDisplay().contains("\"")) {
+                        messages.add(message);
+                    }
+                }
+                guildListMap.put(guild, messages);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
         }
     }
 
