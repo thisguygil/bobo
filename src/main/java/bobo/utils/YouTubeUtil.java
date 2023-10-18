@@ -52,6 +52,37 @@ public final class YouTubeUtil {
     }
 
     /**
+     * Search for a YouTube playlist based on the specified query and return its link.
+     *
+     * @param query The search query.
+     * @return The link to the first playlist in the search results, or null if no playlists were found.
+     * @throws Exception If an error occurs while communicating with the YouTube Data API.
+     */
+    public static String searchForPlaylist(String query) throws Exception {
+        YouTube youtube = new YouTube.Builder(GoogleNetHttpTransport.newTrustedTransport(), GsonFactory.getDefaultInstance(), null)
+                .setApplicationName("Bobo")
+                .build();
+
+        List<SearchResult> searchResultList = youtube.search().list(Arrays.asList("id", "snippet"))
+                .setKey(API_KEY)
+                .setQ(query)
+                .setType(List.of("playlist"))
+                .setMaxResults((long) 1)
+                .setFields("items(id/playlistId)")
+                .execute()
+                .getItems();
+
+        if (searchResultList == null || searchResultList.isEmpty()) {
+            return null;
+        }
+
+        SearchResult firstResult = searchResultList.get(0);
+        String playlistId = firstResult.getId().getPlaylistId();
+
+        return "https://www.youtube.com/playlist?list=" + playlistId;
+    }
+
+    /**
      * @param youTubeURL the YouTube link
      * @return the id of the given YouTube link
      */

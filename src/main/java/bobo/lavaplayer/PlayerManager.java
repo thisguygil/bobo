@@ -55,7 +55,7 @@ public class PlayerManager {
             @Override
             public void playlistLoaded(AudioPlaylist playlist) {
                 final List<AudioTrack> tracks = playlist.getTracks();
-                hook.editOriginal("Adding to queue **" + tracks.size() + "** tracks from playlist **" + playlist.getName() + "**").queue();
+                hook.editOriginal("Adding to queue **" + tracks.size() + "** tracks from playlist [" + playlist.getName() + "](<" + trackURL + ">)").queue();
                 for (final AudioTrack track : tracks) {
                     scheduler.queue(track, channel);
                 }

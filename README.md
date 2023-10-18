@@ -10,15 +10,10 @@ The greatest Discord bot on the planet.
 * Search Google for Images
 
 ## Supported sources and formats for music
-Bobo supports all sources and formats supported by [lavaplayer](https://github.com/sedmelluq/lavaplayer#supported-formats):
+Bobo supports the following web sources and file formats:
 ### Sources
 * YouTube
-* SoundCloud
-* Bandcamp
-* Vimeo
-* Twitch streams
-* Local files
-* HTTP URLs
+* Spotify (through YouTube)
 ### Formats
 * MP3
 * FLAC
@@ -64,8 +59,12 @@ Bobo supports all sources and formats supported by [lavaplayer](https://github.c
 ### Music commands
 * `/play` - Plays a track in the voice channel you are in
     * Subcommands:
-    * `/play track <url/query>` - Plays given `<url>` or the first result from `<query>`
-    * `/play file <file>` - Plays the given `<file>` (must be a valid audio file)
+    * `/play youtube track <url/query>` - Plays given YouTube `<url>` or the first track result from `<query>`
+    * `/play youtube playlist <url/query>` - Plays given YouTube `<url>` or the first playlist result from `<query>`
+    * `/play spotify track <url/query>` - Plays given Spotify `<url>` or the first track result from `<query>`
+    * `/play spotify playlist <url/query>` - Plays given Spotify `<url>` or the first playlist result from `<query>`
+    * `/play spotify album <url/query>` - Plays given Spotify `<url>` or the first album result from `<query>
+    * `/play file <file>` - Plays the given `<file>` (must be a valid audio file as detailed above)
 * `/pause` - Pauses the current song
 * `/resume` - Resumes the current song
 * `/skip` - Skips the current song
