@@ -1,13 +1,17 @@
 package bobo.commands.voice.music;
 
 import bobo.commands.voice.JoinCommand;
+import bobo.utils.Spotify;
 import bobo.utils.YouTubeUtil;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.apache.commons.validator.routines.UrlValidator;
+import se.michaelthelin.spotify.SpotifyApi;
+import se.michaelthelin.spotify.model_objects.specification.Track;
 
+import java.net.URI;
 import java.util.Objects;
 
 public class PlayCommand extends AbstractMusic {
@@ -16,7 +20,7 @@ public class PlayCommand extends AbstractMusic {
      */
     public PlayCommand() {
         super(Commands.slash("play", "Joins the voice channel and plays given track.")
-                .addSubcommands(new SubcommandData("track", "Joins the voice channel and plays given track or searched YouTube query.")
+                .addSubcommands(new SubcommandData("track", "Joins the voice channel and plays given YouTube/Spotify link or query.")
                         .addOption(OptionType.STRING, "track", "URL to play or query to search", true))
                 .addSubcommands(new SubcommandData("file", "Joins the voice channel and plays audio from attached audio/video file.")
                         .addOption(OptionType.ATTACHMENT, "file", "Audio/video file to play", true))
@@ -42,7 +46,31 @@ public class PlayCommand extends AbstractMusic {
             case "track" -> {
                 String track = Objects.requireNonNull(event.getOption("track")).getAsString();
                 if ((new UrlValidator()).isValid(track)) {
-                    trackURL = track;
+                    String youtubeRegex = "^(https?://)?(www\\.)?(m\\.)?youtube\\.com/watch\\?v=.*|^(https?://)?youtu.be/.*";
+                    String spotifyRegex = "^(https?://)?open.spotify.com/(track|playlist|album)/.*";
+
+                    if (track.matches(youtubeRegex)) {
+                        trackURL = track;
+                    } else if (track.matches(spotifyRegex)) {
+                        try {
+                            SpotifyApi spotifyApi = Spotify.getSpotifyApi();
+
+                            URI uri = URI.create(track);
+                            String path = uri.getPath();
+                            String[] pathComponents = path.split("/");
+
+                            Track spotifyTrack = spotifyApi.getTrack(pathComponents[pathComponents.length - 1]).build().execute();
+
+                            trackURL = YouTubeUtil.searchForVideo(spotifyTrack.getName() + " " + spotifyTrack.getArtists()[0].getName());
+                        } catch (Exception e) {
+                            hook.editOriginal("Error: " + e.getMessage()).queue();
+                            e.printStackTrace();
+                            return;
+                        }
+                    } else {
+                        hook.editOriginal("Please enter a valid YouTube or Spotify link.").queue();
+                        return;
+                    }
                 } else {
                     try {
                         trackURL = YouTubeUtil.searchForVideo(track);
