@@ -40,8 +40,12 @@ public class PlayCommand extends AbstractMusic {
                                         .addOption(OptionType.STRING, "album", "URL to play or query to search", true)
                         )
                 )
-                .addSubcommands(new SubcommandData("file", "Plays audio from attached audio/video file.")
-                        .addOption(OptionType.ATTACHMENT, "file", "Audio/video file to play", true))
+                .addSubcommands(
+                        new SubcommandData("file", "Plays audio from attached audio/video file.")
+                                .addOption(OptionType.ATTACHMENT, "file", "Audio/video file to play", true),
+                        new SubcommandData("other", "Plays audio from any Lavaplayer-supported URL.")
+                                .addOption(OptionType.STRING, "url", "URL to play", true)
+                )
         );
     }
 
@@ -65,7 +69,11 @@ public class PlayCommand extends AbstractMusic {
 
         String trackURL;
         if (subcommandGroupName == null) {
-            trackURL = playFile();
+            trackURL = switch (subcommandName) {
+                case "file" -> playFile();
+                case "other" -> playOther();
+                default -> throw new IllegalStateException("Unexpected value: " + subcommandName);
+            };
         } else {
             trackURL = switch (subcommandGroupName) {
                 case "youtube" -> switch (subcommandName) {
@@ -99,7 +107,7 @@ public class PlayCommand extends AbstractMusic {
             if (track.matches(youtubeTrackRegex)) {
                 return track;
             } else {
-                hook.editOriginal("Please enter a valid YouTube link.").queue();
+                hook.editOriginal("Please enter a valid YouTube link or query to search.").queue();
                 return null;
             }
         } else {
@@ -125,7 +133,7 @@ public class PlayCommand extends AbstractMusic {
             if (playlist.matches(youtubePlaylistRegex)) {
                 return playlist;
             } else {
-                hook.editOriginal("Please enter a valid YouTube playlist link.").queue();
+                hook.editOriginal("Please enter a valid YouTube playlist link or query to search.").queue();
                 return null;
             }
         } else {
@@ -173,7 +181,7 @@ public class PlayCommand extends AbstractMusic {
                     return null;
                 }
             } else {
-                hook.editOriginal("Please enter a valid Spotify track link.").queue();
+                hook.editOriginal("Please enter a valid Spotify track link or query to search.").queue();
                 return null;
             }
         } else {
@@ -225,7 +233,7 @@ public class PlayCommand extends AbstractMusic {
                     return null;
                 }
             } else {
-                hook.editOriginal("Please enter a valid Spotify playlist link.").queue();
+                hook.editOriginal("Please enter a valid Spotify playlist link or query to search.").queue();
                 return null;
             }
         } else {
@@ -277,7 +285,7 @@ public class PlayCommand extends AbstractMusic {
                     return null;
                 }
             } else {
-                hook.editOriginal("Please enter a valid Spotify album link.").queue();
+                hook.editOriginal("Please enter a valid Spotify album link or query to search.").queue();
                 return null;
             }
         } else {
@@ -316,6 +324,20 @@ public class PlayCommand extends AbstractMusic {
         }
 
         return attachment.getUrl();
+    }
+
+    /**
+     * Plays audio from a Lavaplayer-supported URL.
+     */
+    @Nullable
+    private String playOther() {
+        String url = Objects.requireNonNull(event.getOption("url")).getAsString();
+        if ((new UrlValidator()).isValid(url)) {
+            return url;
+        } else {
+            hook.editOriginal("Please enter a valid Lavaplayer-supported URL (YouTube, SoundCloud, Twitch, BandCamp, Vimeo, HTTP URLs).").queue();
+            return null;
+        }
     }
 
     /**

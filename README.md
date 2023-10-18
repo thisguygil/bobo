@@ -3,7 +3,7 @@
 The greatest Discord bot on the planet.
 
 ## Features
-* Playing music in voice channels from all Lavaplayer-supported sources (see below)
+* Playing music in voice channels from all Lavaplayer-supported sources (see below) and Spotify
 * Clipping audio from voice channels (can configure channel to receive all clips)
 * Chat with AI (ChatGPT)
 * AI-generate Images (DALL-E)
@@ -14,6 +14,12 @@ Bobo supports the following web sources and file formats:
 ### Sources
 * YouTube
 * Spotify (through YouTube)
+* SoundCloud
+* Bandcamp
+* Vimeo
+* Twitch streams
+* Local files
+* HTTP URLs
 ### Formats
 * MP3
 * FLAC
