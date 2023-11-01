@@ -2,6 +2,7 @@ package bobo;
 
 import bobo.commands.ai.ChatCommand;
 import bobo.commands.general.GetQuoteCommand;
+import bobo.commands.voice.music.SearchCommand;
 import bobo.lavaplayer.GuildMusicManager;
 import bobo.lavaplayer.PlayerManager;
 import bobo.lavaplayer.TrackScheduler;
@@ -13,6 +14,7 @@ import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.managers.AudioManager;
@@ -89,6 +91,15 @@ public class Listener extends ListenerAdapter {
             player.stopTrack();
             player.setPaused(false);
         }
+    }
+
+    @Override
+    public void onMessageReactionAdd(@Nonnull MessageReactionAddEvent event) {
+        if (event.retrieveUser().complete().isBot()) {
+            return;
+        }
+
+        SearchCommand.handleReaction(event);
     }
 
     /**

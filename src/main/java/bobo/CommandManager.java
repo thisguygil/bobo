@@ -41,6 +41,7 @@ public class CommandManager {
         commands.add(new DeafenCommand());
         // Music commands
         commands.add(new PlayCommand());
+        commands.add(new SearchCommand());
         commands.add(new PauseCommand());
         commands.add(new ResumeCommand());
         commands.add(new NowPlayingCommand());

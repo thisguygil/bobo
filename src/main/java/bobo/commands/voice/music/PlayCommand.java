@@ -7,7 +7,6 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
-import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 import org.apache.commons.validator.routines.UrlValidator;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.model_objects.specification.*;
@@ -22,29 +21,11 @@ public class PlayCommand extends AbstractMusic {
      */
     public PlayCommand() {
         super(Commands.slash("play", "Joins the voice channel and plays given track.")
-                .addSubcommandGroups(new SubcommandGroupData("youtube", "Plays/searches a YouTube track/playlist.")
-                        .addSubcommands(
-                                new SubcommandData("track", "Plays a YouTube track.")
-                                        .addOption(OptionType.STRING, "track", "URL to play or query to search", true),
-                                new SubcommandData("playlist", "Plays a YouTube playlist.")
-                                        .addOption(OptionType.STRING, "playlist", "URL to play or query to search", true)
-                        )
-                )
-                .addSubcommandGroups(new SubcommandGroupData("spotify", "Plays/searches a Spotify track/playlist/album.")
-                        .addSubcommands(
-                                new SubcommandData("track", "Plays a Spotify track.")
-                                        .addOption(OptionType.STRING, "track", "URL to play or query to search", true),
-                                new SubcommandData("playlist", "Plays a Spotify playlist.")
-                                        .addOption(OptionType.STRING, "playlist", "URL to play or query to search", true),
-                                new SubcommandData("album", "Plays a Spotify album.")
-                                        .addOption(OptionType.STRING, "album", "URL to play or query to search", true)
-                        )
-                )
                 .addSubcommands(
+                        new SubcommandData("track", "Plays given track (or searches YouTube tracks and plays first result, use /search otherwise).")
+                                .addOption(OptionType.STRING, "track", "URL to play or query to search", true),
                         new SubcommandData("file", "Plays audio from attached audio/video file.")
-                                .addOption(OptionType.ATTACHMENT, "file", "Audio/video file to play", true),
-                        new SubcommandData("other", "Plays audio from any Lavaplayer-supported URL.")
-                                .addOption(OptionType.STRING, "url", "URL to play", true)
+                                .addOption(OptionType.ATTACHMENT, "file", "Audio/video file to play", true)
                 )
         );
     }
@@ -63,33 +44,14 @@ public class PlayCommand extends AbstractMusic {
             }
         }
 
-        String subcommandGroupName = event.getSubcommandGroup();
         String subcommandName = event.getSubcommandName();
         assert subcommandName != null;
 
-        String trackURL;
-        if (subcommandGroupName == null) {
-            trackURL = switch (subcommandName) {
+        String trackURL = switch (subcommandName) {
+                case "track" -> playTrack();
                 case "file" -> playFile();
-                case "other" -> playOther();
                 default -> throw new IllegalStateException("Unexpected value: " + subcommandName);
-            };
-        } else {
-            trackURL = switch (subcommandGroupName) {
-                case "youtube" -> switch (subcommandName) {
-                    case "track" -> playYoutubeTrack();
-                    case "playlist" -> playYoutubePlaylist();
-                    default -> throw new IllegalStateException("Unexpected value: " + subcommandName);
-                };
-                case "spotify" -> switch (subcommandName) {
-                    case "track" -> playSpotifyTrack();
-                    case "playlist" -> playSpotifyPlaylist();
-                    case "album" -> playSpotifyAlbum();
-                    default -> throw new IllegalStateException("Unexpected value: " + subcommandName);
-                };
-                default -> throw new IllegalStateException("Unexpected value: " + subcommandGroupName);
-            };
-        }
+        };
 
         if (trackURL != null) {
             playerManager.loadAndPlay(event, trackURL);
@@ -97,65 +59,14 @@ public class PlayCommand extends AbstractMusic {
     }
 
     /**
-     * Plays a YouTube track.
+     * Plays a track.
      */
     @Nullable
-    private String playYoutubeTrack() {
+    private String playTrack() {
         String track = Objects.requireNonNull(event.getOption("track")).getAsString();
         if ((new UrlValidator()).isValid(track)) {
-            String youtubeTrackRegex = "^(https?://)?(www\\.)?(m\\.)?youtube\\.com/watch\\?v=.*|^(https?://)?youtu.be/.*";
-            if (track.matches(youtubeTrackRegex)) {
-                return track;
-            } else {
-                hook.editOriginal("Please enter a valid YouTube link or query to search.").queue();
-                return null;
-            }
-        } else {
-            try {
-                return YouTubeUtil.searchForVideo(track);
-            } catch (Exception e) {
-                hook.editOriginal("Nothing found by **" + track + "**.").queue();
-                e.printStackTrace();
-                return null;
-            }
-        }
-    }
-
-    /**
-     * Plays a YouTube playlist.
-     */
-    @Nullable
-    private String playYoutubePlaylist() {
-        String playlist = Objects.requireNonNull(event.getOption("playlist")).getAsString();
-        if ((new UrlValidator()).isValid(playlist)) {
-            String youtubePlaylistRegex = "^(https?://)?(www\\.)?(m\\.)?youtube\\.com/playlist\\?list=.*";
-
-            if (playlist.matches(youtubePlaylistRegex)) {
-                return playlist;
-            } else {
-                hook.editOriginal("Please enter a valid YouTube playlist link or query to search.").queue();
-                return null;
-            }
-        } else {
-            try {
-                return YouTubeUtil.searchForPlaylist(playlist);
-            } catch (Exception e) {
-                hook.editOriginal("Nothing found by **" + playlist + "**.").queue();
-                e.printStackTrace();
-                return null;
-            }
-        }
-    }
-
-    /**
-     * Plays a Spotify track.
-     */
-    @Nullable
-    private String playSpotifyTrack() {
-        String track = Objects.requireNonNull(event.getOption("track")).getAsString();
-        if ((new UrlValidator()).isValid(track)) {
-            String spotifyTrackRegex = "^(https?://)?open.spotify.com/track/.*";
-            if (track.matches(spotifyTrackRegex)) {
+            String spotifyRegex = "^(https?://)?open.spotify.com/.*";
+            if (track.matches(spotifyRegex)) {
                 try {
                     SpotifyApi spotifyApi = Spotify.getSpotifyApi();
 
@@ -174,138 +85,31 @@ public class PlayCommand extends AbstractMusic {
                         }
                     }
 
-                    return YouTubeUtil.searchForVideo(query.toString());
+                    String[] videoLinks = YouTubeUtil.searchForVideos(query.toString());
+                    if (videoLinks == null) {
+                        hook.editOriginal("Nothing found by **" + track + "**.").queue();
+                        return null;
+                    }
+                    return videoLinks[0];
                 } catch (Exception e) {
                     hook.editOriginal("Error: " + e.getMessage()).queue();
                     e.printStackTrace();
                     return null;
                 }
             } else {
-                hook.editOriginal("Please enter a valid Spotify track link or query to search.").queue();
-                return null;
+                return track;
             }
         } else {
             try {
-                SpotifyApi spotifyApi = Spotify.getSpotifyApi();
-
-                Track spotifyTrack = spotifyApi.searchTracks(track).build().execute().getItems()[0];
-                ArtistSimplified[] artists = spotifyTrack.getArtists();
-
-                StringBuilder query = new StringBuilder(spotifyTrack.getName() + " ");
-                for (int i = 0; i < artists.length; i++) {
-                    query.append(artists[i].getName());
-                    if (i != artists.length - 1) {
-                        query.append(" ");
-                    }
+                String[] videoLinks = YouTubeUtil.searchForVideos(track);
+                if (videoLinks == null) {
+                    hook.editOriginal("Nothing found by **" + track + "**.").queue();
+                    return null;
                 }
 
-                return YouTubeUtil.searchForVideo(query.toString());
+                return videoLinks[0];
             } catch (Exception e) {
                 hook.editOriginal("Nothing found by **" + track + "**.").queue();
-                e.printStackTrace();
-                return null;
-            }
-        }
-    }
-
-    /**
-     * Plays a Spotify playlist.
-     */
-    @Nullable
-    private String playSpotifyPlaylist() {
-        String playlist = Objects.requireNonNull(event.getOption("playlist")).getAsString();
-        if ((new UrlValidator()).isValid(playlist)) {
-            String spotifyPlaylistRegex = "^(https?://)?open.spotify.com/playlist/.*";
-            if (playlist.matches(spotifyPlaylistRegex)) {
-                try {
-                    SpotifyApi spotifyApi = Spotify.getSpotifyApi();
-
-                    URI uri = URI.create(playlist);
-                    String path = uri.getPath();
-                    String[] pathComponents = path.split("/");
-
-                    Playlist spotifyPlaylist = spotifyApi.getPlaylist(pathComponents[pathComponents.length - 1]).build().execute();
-
-                    return YouTubeUtil.searchForPlaylist(spotifyPlaylist.getName());
-                } catch (Exception e) {
-                    hook.editOriginal("Error: " + e.getMessage()).queue();
-                    e.printStackTrace();
-                    return null;
-                }
-            } else {
-                hook.editOriginal("Please enter a valid Spotify playlist link or query to search.").queue();
-                return null;
-            }
-        } else {
-            try {
-                SpotifyApi spotifyApi = Spotify.getSpotifyApi();
-
-                PlaylistSimplified spotifyPlaylist = spotifyApi.searchPlaylists(playlist).build().execute().getItems()[0];
-
-                return YouTubeUtil.searchForPlaylist(spotifyPlaylist.getName());
-            } catch (Exception e) {
-                hook.editOriginal("Nothing found by **" + playlist + "**.").queue();
-                e.printStackTrace();
-                return null;
-            }
-        }
-    }
-
-    /**
-     * Plays a Spotify album.
-     */
-    @Nullable
-    private String playSpotifyAlbum() {
-        String album = Objects.requireNonNull(event.getOption("album")).getAsString();
-        if ((new UrlValidator()).isValid(album)) {
-            String spotifyAlbumRegex = "^(https?://)?open.spotify.com/album/.*";
-            if (album.matches(spotifyAlbumRegex)) {
-                try {
-                    SpotifyApi spotifyApi = Spotify.getSpotifyApi();
-
-                    URI uri = URI.create(album);
-                    String path = uri.getPath();
-                    String[] pathComponents = path.split("/");
-
-                    Album spotifyAlbum = spotifyApi.getAlbum(pathComponents[pathComponents.length - 1]).build().execute();
-                    ArtistSimplified[] artists = spotifyAlbum.getArtists();
-
-                    StringBuilder query = new StringBuilder(spotifyAlbum.getName() + " ");
-                    for (int i = 0; i < artists.length; i++) {
-                        query.append(artists[i].getName());
-                        if (i != artists.length - 1) {
-                            query.append(" ");
-                        }
-                    }
-
-                    return YouTubeUtil.searchForPlaylist(query.toString());
-                } catch (Exception e) {
-                    hook.editOriginal("Error: " + e.getMessage()).queue();
-                    e.printStackTrace();
-                    return null;
-                }
-            } else {
-                hook.editOriginal("Please enter a valid Spotify album link or query to search.").queue();
-                return null;
-            }
-        } else {
-            try {
-                SpotifyApi spotifyApi = Spotify.getSpotifyApi();
-
-                AlbumSimplified spotifyAlbum = spotifyApi.searchAlbums(album).build().execute().getItems()[0];
-                ArtistSimplified[] artists = spotifyAlbum.getArtists();
-
-                StringBuilder query = new StringBuilder(spotifyAlbum.getName() + " ");
-                for (int i = 0; i < artists.length; i++) {
-                    query.append(artists[i].getName());
-                    if (i != artists.length - 1) {
-                        query.append(" ");
-                    }
-                }
-
-                return YouTubeUtil.searchForPlaylist(query.toString());
-            } catch (Exception e) {
-                hook.editOriginal("Nothing found by **" + album + "**.").queue();
                 e.printStackTrace();
                 return null;
             }
@@ -324,20 +128,6 @@ public class PlayCommand extends AbstractMusic {
         }
 
         return attachment.getUrl();
-    }
-
-    /**
-     * Plays audio from a Lavaplayer-supported URL.
-     */
-    @Nullable
-    private String playOther() {
-        String url = Objects.requireNonNull(event.getOption("url")).getAsString();
-        if ((new UrlValidator()).isValid(url)) {
-            return url;
-        } else {
-            hook.editOriginal("Please enter a valid Lavaplayer-supported URL (YouTube, SoundCloud, Twitch, BandCamp, Vimeo, HTTP URLs).").queue();
-            return null;
-        }
     }
 
     /**
