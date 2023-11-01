@@ -11,14 +11,15 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import java.awt.*;
 import java.util.Objects;
 
-public class AIImageCommand extends AbstractAI {
+public class ImageCommand extends AbstractAI {
     /**
-     * Creates a new ai-image command.
+     * Creates a new image command.
      */
-    public AIImageCommand() {
-        super(Commands.slash("ai-image", "Uses OpenAI to generate an image of the given prompt.")
+    public ImageCommand() {
+        super(Commands.slash("image", "Uses OpenAI (DALL-E) to generate an image of the given prompt.")
                 .addOption(OptionType.STRING, "prompt", "Image to generate", true));
     }
+
     @Override
     protected void handleAICommand() {
         event.deferReply().queue();
@@ -52,6 +53,6 @@ public class AIImageCommand extends AbstractAI {
 
     @Override
     public String getName() {
-        return "ai-image";
+        return "image";
     }
 }
