@@ -27,12 +27,12 @@ public class CommandManager {
 
         // General commands
         commands.add(new HelpCommand());
-        commands.add(new SearchCommand());
+        commands.add(new GoogleCommand());
         commands.add(new GetQuoteCommand());
 
         // AI commands
         commands.add(new ChatCommand());
-        commands.add(new AIImageCommand());
+        commands.add(new ImageCommand());
 
         // Voice commands
         commands.add(new JoinCommand());

@@ -24,15 +24,15 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class SearchCommand extends AbstractGeneral {
+public class GoogleCommand extends AbstractGeneral {
     private static final String GOOGLE_API_KEY = Config.get("GOOGLE_API_KEY");
     private static final String SEARCH_ENGINE_ID = Config.get("SEARCH_ENGINE_ID");
 
     /**
-     * Creates a new search command.
+     * Creates a new Google command.
      */
-    public SearchCommand() {
-        super(Commands.slash("search", "Searches given query on Google.")
+    public GoogleCommand() {
+        super(Commands.slash("google", "Searches given query on Google.")
                 .addOption(OptionType.STRING, "query", "What to search", true));
     }
 
@@ -92,6 +92,6 @@ public class SearchCommand extends AbstractGeneral {
 
     @Override
     public String getName() {
-        return "search";
+        return "google";
     }
 }
