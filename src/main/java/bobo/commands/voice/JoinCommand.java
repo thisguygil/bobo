@@ -22,13 +22,16 @@ public class JoinCommand extends AbstractVoice {
     protected void handleVoiceCommand() {
         event.deferReply().queue();
 
-        if (event.getGuildChannel().getGuild().getAudioManager().isConnected()) {
-            hook.editOriginal("I must not be connected to a voice channel to use this command.").queue();
+        AudioManager manager = event.getGuildChannel().getGuild().getAudioManager();
+        AudioChannelUnion memberChannel = Objects.requireNonNull(Objects.requireNonNull(event.getMember()).getVoiceState()).getChannel();
+        if (manager.isConnected() && memberChannel != null && memberChannel == manager.getConnectedChannel()) {
+            hook.editOriginal("Already connected to " + memberChannel.getAsMention()).queue();
             return;
         }
 
         if (join(event)) {
-            hook.editOriginal("Joined " + Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(event.getMember()).getVoiceState()).getChannel()).getAsMention()).queue();
+            assert memberChannel != null;
+            hook.editOriginal("Joined " + memberChannel.getAsMention()).queue();
         }
     }
 

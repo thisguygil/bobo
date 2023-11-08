@@ -4,9 +4,11 @@ import bobo.commands.voice.JoinCommand;
 import bobo.utils.Spotify;
 import bobo.utils.YouTubeUtil;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
+import net.dv8tion.jda.api.managers.AudioManager;
 import org.apache.commons.validator.routines.UrlValidator;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.model_objects.specification.*;
@@ -33,14 +35,21 @@ public class PlayCommand extends AbstractMusic {
     @Override
     protected void handleMusicCommand() {
         event.deferReply().queue();
-        if (!event.getGuildChannel().getGuild().getAudioManager().isConnected()) {
+
+        AudioManager manager = event.getGuildChannel().getGuild().getAudioManager();
+        if (!manager.isConnected()) {
             if (!JoinCommand.join(event)) {
                 return;
             }
         } else {
-            if (Objects.requireNonNull(Objects.requireNonNull(event.getMember()).getVoiceState()).getChannel() == null) {
+            AudioChannelUnion memberChannel = Objects.requireNonNull(Objects.requireNonNull(event.getMember()).getVoiceState()).getChannel();
+            if (memberChannel == null) {
                 event.getHook().editOriginal("You must be connected to a voice channel to use this command.").queue();
                 return;
+            } else if (memberChannel != manager.getConnectedChannel()) {
+                if (!JoinCommand.join(event)) {
+                    return;
+                }
             }
         }
 

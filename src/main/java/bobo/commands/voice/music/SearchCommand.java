@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
+import net.dv8tion.jda.api.managers.AudioManager;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.model_objects.specification.AlbumSimplified;
 import se.michaelthelin.spotify.model_objects.specification.ArtistSimplified;
@@ -349,9 +350,16 @@ public class SearchCommand extends AbstractMusic {
             return;
         }
 
-        if (!commandEvent.getGuildChannel().getGuild().getAudioManager().isConnected()) {
+        AudioManager manager = commandEvent.getGuildChannel().getGuild().getAudioManager();
+        if (!manager.isConnected()) {
             if (!JoinCommand.join(commandEvent)) {
                 return;
+            }
+        } else {
+            if (Objects.requireNonNull(Objects.requireNonNull(commandEvent.getMember()).getVoiceState()).getChannel() != manager.getConnectedChannel()) {
+                if (!JoinCommand.join(commandEvent)) {
+                    return;
+                }
             }
         }
 
