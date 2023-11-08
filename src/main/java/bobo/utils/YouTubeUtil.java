@@ -165,7 +165,7 @@ public final class YouTubeUtil {
             SearchResult result = searchResultList.get(0);
             String title = result.getSnippet().getTitle();
 
-            return StringEscapeUtils.escapeHtml4(title);
+            return StringEscapeUtils.unescapeHtml4(title);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -199,7 +199,7 @@ public final class YouTubeUtil {
             SearchResult result = searchResultList.get(0);
             String title = result.getSnippet().getTitle();
 
-            return StringEscapeUtils.escapeHtml4(title);
+            return StringEscapeUtils.unescapeHtml4(title);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
