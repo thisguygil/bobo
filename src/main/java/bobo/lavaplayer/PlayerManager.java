@@ -10,19 +10,25 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 
+import javax.annotation.Nonnull;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 public class PlayerManager {
     private static PlayerManager INSTANCE;
     private final Map<Long, GuildMusicManager> musicManagers;
     private final AudioPlayerManager audioPlayerManager;
 
+    /**
+     * Creates a new player manager.
+     */
     public PlayerManager() {
         this.musicManagers = new HashMap<>();
         this.audioPlayerManager = new DefaultAudioPlayerManager();
@@ -30,7 +36,13 @@ public class PlayerManager {
         AudioSourceManagers.registerLocalSource(this.audioPlayerManager);
     }
 
-    public GuildMusicManager getMusicManager(Guild guild) {
+    /**
+     * Gets the guild music manager.
+     *
+     * @param guild The guild to get the music manager for.
+     * @return The guild music manager.
+     */
+    public GuildMusicManager getMusicManager(@Nonnull Guild guild) {
         return this.musicManagers.computeIfAbsent(guild.getIdLong(), (guildId) -> {
             final GuildMusicManager guildMusicManager = new GuildMusicManager(this.audioPlayerManager);
             guild.getAudioManager().setSendingHandler(guildMusicManager.sendHandler);
@@ -38,11 +50,22 @@ public class PlayerManager {
         });
     }
 
-    public void loadAndPlay(SlashCommandInteractionEvent event, String trackURL) {
+    /**
+     * Loads and plays a track.
+     *
+     * @param event The event that triggered this action.
+     * @param trackURL The URL of the track to play.
+     */
+    public void loadAndPlay(@Nonnull SlashCommandInteractionEvent event, String trackURL) {
         InteractionHook hook = event.getHook();
         MessageChannel channel = event.getMessageChannel();
-        final GuildMusicManager musicManager = this.getMusicManager(event.getGuildChannel().getGuild());
+        Guild guild = event.getGuildChannel().getGuild();
+        final GuildMusicManager musicManager = this.getMusicManager(guild);
         TrackScheduler scheduler = musicManager.scheduler;
+
+        if (Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(event.getMember()).getVoiceState()).getChannel()).getType() == ChannelType.STAGE) {
+            guild.requestToSpeak();
+        }
 
         this.audioPlayerManager.loadItemOrdered(musicManager, trackURL, new AudioLoadResultHandler() {
             @Override
@@ -73,6 +96,11 @@ public class PlayerManager {
         });
     }
 
+    /**
+     * Gets the player manager instance.
+     *
+     * @return The player manager instance.
+     */
     public static PlayerManager getInstance() {
         if (INSTANCE == null) {
             INSTANCE = new PlayerManager();
