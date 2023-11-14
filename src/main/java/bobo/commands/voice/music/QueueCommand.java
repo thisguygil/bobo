@@ -55,7 +55,7 @@ public class QueueCommand extends AbstractMusic {
     private void show() {
         final List<TrackScheduler.TrackChannelPair> trackList = new ArrayList<>(queue);
         final List<Page> pages = new ArrayList<>();
-        trackList.add(0, new TrackScheduler.TrackChannelPair(currentTrack, event.getMessageChannel()));
+        trackList.add(0, new TrackScheduler.TrackChannelPair(currentTrack, event.getMessageChannel(), false));
 
         AudioTrack track;
         AudioTrackInfo info;
