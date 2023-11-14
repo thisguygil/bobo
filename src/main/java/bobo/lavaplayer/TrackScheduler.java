@@ -7,6 +7,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -66,7 +67,7 @@ public class TrackScheduler extends AudioEventAdapter {
      * @param endReason The reason why the track stopped playing
      */
     @Override
-    public void onTrackEnd(AudioPlayer player, AudioTrack track, AudioTrackEndReason endReason) {
+    public void onTrackEnd(AudioPlayer player, AudioTrack track, @Nonnull AudioTrackEndReason endReason) {
         // Only start the next track if the end reason is suitable for it (FINISHED or LOAD_FAILED)
         if (endReason.mayStartNext) {
             if (this.looping) {
@@ -85,7 +86,7 @@ public class TrackScheduler extends AudioEventAdapter {
      * @param exception The exception thrown
      */
     @Override
-    public void onTrackException(AudioPlayer player, AudioTrack track, FriendlyException exception) {
+    public void onTrackException(AudioPlayer player, AudioTrack track, @Nonnull FriendlyException exception) {
         currentTrack.channel().sendMessage("Failed to start track: **" + exception.getMessage() + "**").queue();
     }
 }

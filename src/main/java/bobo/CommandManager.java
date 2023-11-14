@@ -17,6 +17,9 @@ import java.util.List;
 public class CommandManager {
     private final List<AbstractCommand> commands = new ArrayList<>();
 
+    /**
+     * Adds all commands to the list.
+     */
     public CommandManager() {
         // Bot Owner commands
         commands.add(new SetActivityCommand());
@@ -60,6 +63,11 @@ public class CommandManager {
         return null;
     }
 
+    /**
+     * Handles a slash command.
+     *
+     * @param event The event that triggered this action.
+     */
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         AbstractCommand command = getCommand(event.getName());
         if (command != null) {

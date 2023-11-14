@@ -56,7 +56,7 @@ public class PlayerManager {
      * @param event The event that triggered this action.
      * @param trackURL The URL of the track to play.
      */
-    public void loadAndPlay(@Nonnull SlashCommandInteractionEvent event, String trackURL) {
+    public void loadAndPlay(@Nonnull SlashCommandInteractionEvent event, String trackURL, boolean tts) {
         InteractionHook hook = event.getHook();
         MessageChannel channel = event.getMessageChannel();
         Guild guild = event.getGuildChannel().getGuild();

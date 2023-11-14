@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
+import javax.annotation.Nonnull;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -79,7 +80,7 @@ public class GetQuoteCommand extends AbstractGeneral {
      *
      * @param guild the guild to load quotes from
      */
-    private static void loadGuild(Guild guild) throws SQLException {
+    private static void loadGuild(@Nonnull Guild guild) throws SQLException {
         TextChannel channel;
         try (Connection connection = SQLConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(selectSQL)) {
@@ -141,6 +142,7 @@ public class GetQuoteCommand extends AbstractGeneral {
      * @param quote the quote to be spoilered
      * @return the spoilered quote
      */
+    @Nonnull
     private static String spoileredQuote(String quote) {
         String regex = "(\".*\")\\s*-\\s*(.*)";
         Pattern pattern = Pattern.compile(regex);

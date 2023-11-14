@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.utils.FileUpload;
 
+import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.io.ByteArrayOutputStream;
@@ -31,7 +32,7 @@ public class GuildMusicManager {
      *
      * @param manager Audio player manager to use for creating the player.
      */
-    public GuildMusicManager(AudioPlayerManager manager) {
+    public GuildMusicManager(@Nonnull AudioPlayerManager manager) {
         this.player = manager.createPlayer();
         this.scheduler = new TrackScheduler(this.player);
         this.player.addListener(this.scheduler);

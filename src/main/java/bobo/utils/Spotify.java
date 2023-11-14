@@ -6,6 +6,7 @@ import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import se.michaelthelin.spotify.model_objects.credentials.ClientCredentials;
 
+import javax.annotation.Nonnull;
 import java.io.IOException;
 
 public final class Spotify {
@@ -22,6 +23,7 @@ public final class Spotify {
      * @throws ParseException If an error occurs while parsing the response from the Spotify API.
      * @throws SpotifyWebApiException If an error occurs while communicating with the Spotify API.
      */
+    @Nonnull
     public static SpotifyApi getSpotifyApi() throws IOException, ParseException, SpotifyWebApiException {
         SpotifyApi spotifyApi = new SpotifyApi.Builder()
                 .setClientId(CLIENT_ID)

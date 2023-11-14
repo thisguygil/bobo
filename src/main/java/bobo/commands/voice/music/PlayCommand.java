@@ -13,6 +13,7 @@ import org.apache.commons.validator.routines.UrlValidator;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.model_objects.specification.*;
 
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.Objects;
@@ -145,7 +146,7 @@ public class PlayCommand extends AbstractMusic {
      * @param fileName the file name
      * @return true if the given file is a valid audio file name, false otherwise
      */
-    private boolean isAudioFile(String fileName) {
+    private boolean isAudioFile(@Nonnull String fileName) {
         String[] audioExtensions = {".mp3", ".mp4", ".wav", ".ogg", ".flac", ".m4a", ".aac"};
         String fileExtension = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
         for (String audioExtension : audioExtensions) {

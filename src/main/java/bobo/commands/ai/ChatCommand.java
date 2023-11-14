@@ -99,7 +99,7 @@ public class ChatCommand extends AbstractAI {
      *
      * @param messages the messages list to initialize
      */
-    public static void initializeMessages(List<ChatMessage> messages) {
+    public static void initializeMessages(@Nonnull List<ChatMessage> messages) {
         messages.clear();
         final ChatMessage systemMessage = new ChatMessage(ChatMessageRole.SYSTEM.value(), "You are Bobo, " +
                 "a Discord bot. You use slash commands and provide music, chat, image creation, and other features. " +
