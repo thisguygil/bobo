@@ -323,8 +323,10 @@ public class SearchCommand extends AbstractMusic {
         Emoji reaction = reactionEvent.getReaction().getEmoji();
         int index;
         if (reaction.equals(xEmoji)) {
-            MESSAGE_EVENT_MAP.remove(reactionEvent.getMessageIdLong());
+            long messageId = reactionEvent.getMessageIdLong();
+            MESSAGE_EVENT_MAP.remove(messageId);
             EVENT_LINKS_MAP.remove(commandEvent);
+            reactionEvent.getChannel().deleteMessageById(messageId).queue();
             return;
         } else if (reaction.equals(oneEmoji)) {
             index = 0;
