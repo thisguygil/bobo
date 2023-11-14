@@ -43,6 +43,10 @@ public class GuildMusicManager {
                 TrackScheduler scheduler = this.scheduler;
                 TrackScheduler.TrackChannelPair pair = scheduler.currentTrack;
 
+                if (pair.tts()) {
+                    return;
+                }
+
                 AudioTrack track = startEvent.track;
                 if (pair.track().equals(track)) {
                     MessageChannel channel = pair.channel();

@@ -55,6 +55,7 @@ public class PlayerManager {
      *
      * @param event The event that triggered this action.
      * @param trackURL The URL of the track to play.
+     * @param tts Whether the track is a tts message
      */
     public void loadAndPlay(@Nonnull SlashCommandInteractionEvent event, String trackURL, boolean tts) {
         InteractionHook hook = event.getHook();
@@ -70,9 +71,11 @@ public class PlayerManager {
         this.audioPlayerManager.loadItemOrdered(musicManager, trackURL, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
-                AudioTrackInfo info = track.getInfo();
-                hook.editOriginal("Adding to queue [" + info.title + "](<" + info.uri + ">) by **" + info.author + "**").queue();
-                scheduler.queue(track, channel);
+                if (!tts) {
+                    AudioTrackInfo info = track.getInfo();
+                    hook.editOriginal("Adding to queue [" + info.title + "](<" + info.uri + ">) by **" + info.author + "**").queue();
+                }
+                scheduler.queue(track, channel, tts);
             }
 
             @Override
@@ -80,7 +83,7 @@ public class PlayerManager {
                 final List<AudioTrack> tracks = playlist.getTracks();
                 hook.editOriginal("Adding to queue **" + tracks.size() + "** tracks from playlist [" + playlist.getName() + "](<" + trackURL + ">)").queue();
                 for (final AudioTrack track : tracks) {
-                    scheduler.queue(track, channel);
+                    scheduler.queue(track, channel, false);
                 }
             }
 

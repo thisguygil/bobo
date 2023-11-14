@@ -18,7 +18,7 @@ public class TrackScheduler extends AudioEventAdapter {
     /**
      * A pair of an audio track and the channel it was queued in
      */
-    public record TrackChannelPair(AudioTrack track, MessageChannel channel) {}
+    public record TrackChannelPair(AudioTrack track, MessageChannel channel, boolean tts) {}
 
     public final AudioPlayer player;
     public BlockingQueue<TrackChannelPair> queue;
@@ -39,13 +39,22 @@ public class TrackScheduler extends AudioEventAdapter {
      *
      * @param track The track to play or add to queue.
      * @param channel The channel to send messages to
+     * @param tts Whether the track is a tts message
      */
-    public void queue(AudioTrack track, MessageChannel channel) {
+    public void queue(AudioTrack track, MessageChannel channel, boolean tts) {
         TrackChannelPair oldTrack = this.currentTrack;
-        this.currentTrack = new TrackChannelPair(track, channel);
-        if (!this.player.startTrack(track, true)) {
-            this.queue.add(new TrackChannelPair(track, channel));
-            this.currentTrack = oldTrack;
+        if (tts) {
+            this.currentTrack = new TrackChannelPair(track, channel, true);
+            if (!this.player.startTrack(track, false)) {
+                this.queue.add(new TrackChannelPair(track, channel, true));
+                this.currentTrack = oldTrack;
+            }
+        } else {
+            this.currentTrack = new TrackChannelPair(track, channel, false);
+            if (!this.player.startTrack(track, true)) {
+                this.queue.add(new TrackChannelPair(track, channel, false));
+                this.currentTrack = oldTrack;
+            }
         }
     }
 

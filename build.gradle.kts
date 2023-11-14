@@ -23,7 +23,7 @@ dependencies {
     implementation("org.apache.commons:commons-text:1.11.0")
     implementation("net.dv8tion:JDA:5.0.0-beta.17")
     implementation("com.github.ygimenez:Pagination-Utils:4.0.6")
-    implementation("com.theokanning.openai-gpt3-java:service:0.16.1")
+    implementation("com.theokanning.openai-gpt3-java:service:0.17.0")
     implementation("dev.arbjerg:lavaplayer:2.0.3")
     implementation("com.google.api-client:google-api-client:2.2.0")
     implementation("com.google.oauth-client:google-oauth-client-jetty:1.34.1")

@@ -64,7 +64,7 @@ public class PlayCommand extends AbstractMusic {
         };
 
         if (trackURL != null) {
-            playerManager.loadAndPlay(event, trackURL);
+            playerManager.loadAndPlay(event, trackURL, false);
         }
     }
 

@@ -363,7 +363,7 @@ public class SearchCommand extends AbstractMusic {
             }
         }
 
-        PlayerManager.getInstance().loadAndPlay(commandEvent, links[index]);
+        PlayerManager.getInstance().loadAndPlay(commandEvent, links[index], false);
         MESSAGE_EVENT_MAP.remove(reactionEvent.getMessageIdLong());
         EVENT_LINKS_MAP.remove(commandEvent);
 

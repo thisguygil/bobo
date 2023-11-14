@@ -36,6 +36,7 @@ public class CommandManager {
         // AI commands
         commands.add(new ChatCommand());
         commands.add(new ImageCommand());
+        commands.add(new TTSCommand());
 
         // Voice commands
         commands.add(new JoinCommand());
