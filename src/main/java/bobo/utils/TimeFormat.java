@@ -1,5 +1,6 @@
 package bobo.utils;
 
+import javax.annotation.Nonnull;
 import java.util.concurrent.TimeUnit;
 
 public final class TimeFormat {
@@ -19,5 +20,31 @@ public final class TimeFormat {
         final long seconds = timeInMillis / TimeUnit.SECONDS.toMillis(1);
 
         return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+    }
+
+    /**
+     * Parses the given time string in the format HH:MM:SS to milliseconds.
+     *
+     * @param time The time string.
+     * @return The time in milliseconds.
+     */
+    public static long parseTime(@Nonnull String time) {
+        String[] split = time.split(":");
+        if (split.length != 3) {
+            return -1;
+        }
+
+        long hours;
+        long minutes;
+        long seconds;
+        try {
+            hours = Long.parseLong(split[0]);
+            minutes = Long.parseLong(split[1]);
+            seconds = Long.parseLong(split[2]);
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+
+        return TimeUnit.HOURS.toMillis(hours) + TimeUnit.MINUTES.toMillis(minutes) + TimeUnit.SECONDS.toMillis(seconds);
     }
 }
