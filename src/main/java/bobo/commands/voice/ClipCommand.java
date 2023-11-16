@@ -60,7 +60,7 @@ public class ClipCommand extends AbstractVoice {
             TextChannel channel;
             try (Connection connection = SQLConnection.getConnection();
                  PreparedStatement statement = connection.prepareStatement(selectSQL)) {
-                statement.setString(1, event.getGuildChannel().getGuild().getId());
+                statement.setString(1, guild.getId());
                 ResultSet resultSet = statement.executeQuery();
                 if (resultSet.next()) {
                     channel = Bobo.getJDA().getTextChannelById(resultSet.getString("channel_id"));
