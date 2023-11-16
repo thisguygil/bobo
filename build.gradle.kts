@@ -29,6 +29,8 @@ dependencies {
     implementation("com.google.oauth-client:google-oauth-client-jetty:1.34.1")
     implementation("com.google.apis:google-api-services-youtube:v3-rev20230904-2.0.0")
     implementation("se.michaelthelin.spotify:spotify-web-api-java:8.3.4")
+    implementation("org.apache.httpcomponents:httpclient:4.5.14")
+    implementation("org.json:json:20231013")
     implementation("mysql:mysql-connector-java:8.0.33")
     implementation("commons-validator:commons-validator:1.7")
     implementation("ch.qos.logback:logback-classic:1.4.11")

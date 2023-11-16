@@ -1,6 +1,7 @@
 package bobo;
 
 import bobo.commands.owner.SetActivityCommand;
+import bobo.utils.DailyFortniteShop;
 import com.github.ygimenez.model.PaginatorBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
@@ -17,6 +18,9 @@ public class Bobo {
         jda.addEventListener(new Listener());
 
         SetActivityCommand.setActivity();
+
+        DailyFortniteShop dailyFortniteShop = new DailyFortniteShop();
+        dailyFortniteShop.startDailyTask(dailyFortniteShop::sendShopImageToDiscord);
 
         try {
             PaginatorBuilder.createPaginator(jda)

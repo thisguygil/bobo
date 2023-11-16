@@ -32,6 +32,7 @@ public class CommandManager {
         commands.add(new HelpCommand());
         commands.add(new GoogleCommand());
         commands.add(new GetQuoteCommand());
+        commands.add(new FortniteCommand());
 
         // AI commands
         commands.add(new ChatCommand());
