@@ -20,7 +20,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,8 +27,25 @@ import java.util.List;
 public final class FortniteAPI {
     private static final String API_KEY = Config.get("FORTNITE_API_KEY");
     private static final String baseURL = "https://fortnite-api.com";
+    private static final String backgroundImagePath = "resources/images/shop_background.jpg";
 
     private FortniteAPI() {} // Prevent instantiation
+
+    private static final BufferedImage background;
+
+    static {
+        try {
+            background = ImageIO.read((Paths.get(backgroundImagePath).toAbsolutePath()).toUri().toURL());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private static final int margin = 20;
+    private static final double paddingPercentage = 0.04;
+    private static final double textPaddingPercentage = 0.02;
+    private static final double fontSizePercentage = 0.07;
+    private static final double availableWidthPerImagePercentage = 0.78;
 
     /**
      * Gets the current Fortnite shop image.
@@ -41,27 +57,29 @@ public final class FortniteAPI {
         String jsonResponse = sendGetRequest("/v2/shop/br");
         List<ShopItem> shopItems = parseShopItems(jsonResponse);
         String vbuckIconUrl = parseVbuckIconUrl(jsonResponse);
-        String backgroundImagePath = "resources/images/shop_background.jpg";
-
-        int margin = 20;
-        int padding = 10;
-        int fontSize = 20;
-        int textPadding = 5;
-        int imagesPerRow = 5;
+        int backgroundWidth = background.getWidth();
+        int backgroundHeight = background.getHeight();
+        int contentWidth = backgroundWidth - (2 * margin);
+        int availableWidthPerSquare = contentWidth;
 
         try {
-            Path backgroundPath = Paths.get(backgroundImagePath).toAbsolutePath();
-            BufferedImage background = ImageIO.read(backgroundPath.toUri().toURL());
-            int backgroundWidth = background.getWidth();
             Graphics2D g2d = background.createGraphics();
 
-            Font fortniteFont = Font.createFont(Font.TRUETYPE_FONT, new File("resources/fonts/FortniteFont.otf")).deriveFont(24f);
+            int imagesPerRow = 1;
+            while ((shopItems.size() / imagesPerRow) * availableWidthPerSquare > backgroundHeight) {
+                imagesPerRow++;
+                availableWidthPerSquare = contentWidth / imagesPerRow;
+            }
+
+            int padding = (int) (availableWidthPerSquare * paddingPercentage);
+            int availableWidthPerImage = (int) (availableWidthPerSquare * availableWidthPerImagePercentage);
+            int fontSize = (int) (availableWidthPerSquare * fontSizePercentage);
+            int textPadding = (int) (availableWidthPerSquare * textPaddingPercentage);
+
+            Font fortniteFont = Font.createFont(Font.TRUETYPE_FONT, new File("resources/fonts/FortniteFont.otf")).deriveFont((float) fontSize);
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
             ge.registerFont(fortniteFont);
             g2d.setFont(fortniteFont);
-
-            int contentWidth = backgroundWidth - (2 * margin);
-            int availableWidthPerImage = (contentWidth - ((imagesPerRow - 1) * padding)) / imagesPerRow;
 
             int x = margin;
             int y = margin;
@@ -94,7 +112,7 @@ public final class FortniteAPI {
                 g2d.drawString(String.valueOf(item.price()), itemPriceX, itemPriceY);
 
                 int vBuckIconX = itemPriceX - vbuckIcon.getWidth() - textPadding;
-                int vbuckIconY = itemPriceY - vbuckIcon.getHeight();
+                int vbuckIconY = itemPriceY - vbuckIcon.getHeight() + textPadding;
                 g2d.drawImage(vbuckIcon, vBuckIconX, vbuckIconY, null);
 
                 x += itemImage.getWidth() + padding;
