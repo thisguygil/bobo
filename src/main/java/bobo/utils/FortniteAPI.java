@@ -31,16 +31,6 @@ public final class FortniteAPI {
 
     private FortniteAPI() {} // Prevent instantiation
 
-    private static final BufferedImage background;
-
-    static {
-        try {
-            background = ImageIO.read((Paths.get(backgroundImagePath).toAbsolutePath()).toUri().toURL());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
     private static final int margin = 20;
     private static final double paddingPercentage = 0.04;
     private static final double textPaddingPercentage = 0.02;
@@ -57,12 +47,13 @@ public final class FortniteAPI {
         String jsonResponse = sendGetRequest("/v2/shop/br");
         List<ShopItem> shopItems = parseShopItems(jsonResponse);
         String vbuckIconUrl = parseVbuckIconUrl(jsonResponse);
-        int backgroundWidth = background.getWidth();
-        int backgroundHeight = background.getHeight();
-        int contentWidth = backgroundWidth - (2 * margin);
-        int availableWidthPerSquare = contentWidth;
 
         try {
+            BufferedImage background = ImageIO.read((Paths.get(backgroundImagePath).toAbsolutePath()).toUri().toURL());
+            int backgroundWidth = background.getWidth();
+            int backgroundHeight = background.getHeight();
+            int contentWidth = backgroundWidth - (2 * margin);
+            int availableWidthPerSquare = contentWidth;
             Graphics2D g2d = background.createGraphics();
 
             int imagesPerRow = 1;
