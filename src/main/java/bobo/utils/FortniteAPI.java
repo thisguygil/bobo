@@ -57,7 +57,7 @@ public final class FortniteAPI {
             Graphics2D g2d = background.createGraphics();
 
             int imagesPerRow = 1;
-            while ((shopItems.size() / imagesPerRow) * availableWidthPerSquare > backgroundHeight) {
+            while (((double) shopItems.size() / imagesPerRow) * availableWidthPerSquare > backgroundHeight) {
                 imagesPerRow++;
                 availableWidthPerSquare = contentWidth / imagesPerRow;
             }
