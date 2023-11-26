@@ -190,8 +190,18 @@ public final class FortniteAPI {
                     imageUrl = bundle.getString("image");
                     itemName = bundle.getString("name");
                 } else {
-                    imageUrl = item.getJSONObject("newDisplayAsset").getJSONArray("materialInstances").getJSONObject(0).getJSONObject("images").getString("OfferImage");
-                    itemName = item.getJSONArray("items").getJSONObject(0).getString("name");
+                    JSONObject newDisplayAsset;
+                    try {
+                        newDisplayAsset = item.getJSONObject("newDisplayAsset");
+                    } catch (JSONException e) {
+                        newDisplayAsset = null;
+                    }
+                    if (newDisplayAsset != null) {
+                        imageUrl = newDisplayAsset.getJSONArray("materialInstances").getJSONObject(0).getJSONObject("images").getString("OfferImage");
+                        itemName = item.getJSONArray("items").getJSONObject(0).getString("name");
+                    } else {
+                        continue;
+                    }
                 }
                 int itemPrice = item.getInt("finalPrice");
                 shopItems.add(new ShopItem(itemName, itemPrice, imageUrl));
