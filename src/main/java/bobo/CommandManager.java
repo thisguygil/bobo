@@ -22,6 +22,7 @@ public class CommandManager {
      */
     public CommandManager() {
         // Bot Owner commands
+        commands.add(new RestartCommand());
         commands.add(new SetActivityCommand());
 
         // Server Admin commands
