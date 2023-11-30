@@ -15,8 +15,8 @@ public abstract class AbstractMusic extends AbstractVoice {
     protected GuildMusicManager musicManager;
     protected AudioPlayer player;
     protected TrackScheduler scheduler;
-    protected BlockingQueue<TrackScheduler.TrackChannelPair> queue;
-    protected AudioTrack currentTrack;
+    protected BlockingQueue<TrackScheduler.TrackChannelTypeRecord> queue;
+    protected TrackScheduler.TrackChannelTypeRecord currentTrack;
 
     /**
      * Creates a new music command.
@@ -34,7 +34,7 @@ public abstract class AbstractMusic extends AbstractVoice {
         this.player = musicManager.player;
         this.scheduler = musicManager.scheduler;
         this.queue = scheduler.queue;
-        this.currentTrack = player.getPlayingTrack();
+        this.currentTrack = scheduler.currentTrack;
 
         handleMusicCommand();
     }

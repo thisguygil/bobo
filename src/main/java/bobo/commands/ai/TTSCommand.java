@@ -1,6 +1,7 @@
 package bobo.commands.ai;
 
 import bobo.commands.voice.JoinCommand;
+import bobo.utils.TrackType;
 import bobo.lavaplayer.PlayerManager;
 import bobo.utils.SQLConnection;
 import com.theokanning.openai.audio.CreateSpeechRequest;
@@ -11,18 +12,23 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.managers.AudioManager;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 /* NOTE: This also classifies as a music command (as it must use lavaplayer to play tts),
    but Java doesn't allow multiple inheritance. However, I decided to make this an AI command
    since the AI is the bulk of the command's logic.
  */
 public class TTSCommand extends AbstractAI {
+    private static final Map<String, String> fileMessageMap = new HashMap<>(); // For retrieving the message associated with a TTS file.
     private static final String selectSQL = "SELECT voice FROM tts_voice WHERE guild_id = ?";
 
     /**
@@ -65,12 +71,6 @@ public class TTSCommand extends AbstractAI {
             return;
         }
 
-        PlayerManager playerManager = PlayerManager.getInstance();
-        if (playerManager.getMusicManager(guild).player.getPlayingTrack() != null) {
-            event.getHook().editOriginal("Can't use TTS while a track is playing.").queue();
-            return;
-        }
-
         String voice = "onyx";
         try (Connection connection = SQLConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(selectSQL)) {
@@ -90,22 +90,31 @@ public class TTSCommand extends AbstractAI {
                 .voice(voice)
                 .build();
 
+        String fileName;
         File file;
         try {
             byte[] bytes = service.createSpeech(createSpeechRequest).bytes();
 
-            file = new File("tts.mp3");
+            fileName = "tts-" + UUID.randomUUID() + ".mp3";
+            file = new File(fileName);
             Files.write(file.toPath(), bytes);
-        } catch (Exception e) {
+        } catch (IOException e) {
             hook.editOriginal(e.getMessage()).queue();
+            e.printStackTrace();
             return;
         }
 
-        playerManager.loadAndPlay(event, "tts.mp3", true);
-        hook.editOriginal("**Playing TTS:** " + message).queue(success -> {
-            if (!file.delete()) {
-                System.err.println("Failed to delete file: " + file.getName());
-            }
-        });
+        PlayerManager.getInstance().loadAndPlay(event, fileName, TrackType.TTS);
+        fileMessageMap.put(fileName, message);
+        hook.editOriginal("Adding TTS message to queue.").queue();
+    }
+
+    /**
+     * Gets the message associated with the given file name.
+     *
+     * @param fileName The file name.
+     */
+    public static String getTTSMessage(String fileName) {
+        return fileMessageMap.remove(fileName);
     }
 }

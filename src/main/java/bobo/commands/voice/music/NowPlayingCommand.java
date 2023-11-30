@@ -2,6 +2,7 @@ package bobo.commands.voice.music;
 
 import bobo.utils.TimeFormat;
 import bobo.utils.YouTubeUtil;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
@@ -24,18 +25,20 @@ public class NowPlayingCommand extends AbstractMusic {
     protected void handleMusicCommand() {
         event.deferReply().queue();
 
-        if (currentTrack == null) {
+        AudioTrack currentAudioTrack = currentTrack.track();
+
+        if (currentAudioTrack == null) {
             hook.editOriginal("There is nothing currently playing.").queue();
             return;
         }
 
-        final AudioTrackInfo info = currentTrack.getInfo();
+        final AudioTrackInfo info = currentAudioTrack.getInfo();
         EmbedBuilder embed = new EmbedBuilder()
                 .setAuthor(musicManager.scheduler.looping ? "Now Looping" : "Now Playing")
                 .setTitle(info.title, info.uri)
                 .setImage("attachment://thumbnail.jpg")
                 .setColor(Color.red)
-                .setFooter(TimeFormat.formatTime(currentTrack.getDuration() - currentTrack.getPosition()) + " left");
+                .setFooter(TimeFormat.formatTime(currentAudioTrack.getDuration() - currentAudioTrack.getPosition()) + " left");
 
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {

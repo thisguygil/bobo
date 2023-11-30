@@ -3,6 +3,7 @@ package bobo.commands.voice.music;
 import bobo.commands.voice.JoinCommand;
 import bobo.lavaplayer.PlayerManager;
 import bobo.utils.Spotify;
+import bobo.utils.TrackType;
 import bobo.utils.YouTubeUtil;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
@@ -365,7 +366,7 @@ public class SearchCommand extends AbstractMusic {
             }
         }
 
-        PlayerManager.getInstance().loadAndPlay(commandEvent, links[index], false);
+        PlayerManager.getInstance().loadAndPlay(commandEvent, links[index], TrackType.TRACK);
         MESSAGE_EVENT_MAP.remove(reactionEvent.getMessageIdLong());
         EVENT_LINKS_MAP.remove(commandEvent);
 

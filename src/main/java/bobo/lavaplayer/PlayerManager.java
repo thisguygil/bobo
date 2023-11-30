@@ -1,5 +1,6 @@
 package bobo.lavaplayer;
 
+import bobo.utils.TrackType;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
@@ -16,10 +17,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.interactions.InteractionHook;
 
 import javax.annotation.Nonnull;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class PlayerManager {
     private static PlayerManager INSTANCE;
@@ -55,9 +53,9 @@ public class PlayerManager {
      *
      * @param event The event that triggered this action.
      * @param trackURL The URL of the track to play.
-     * @param tts Whether the track is a tts message
+     * @param trackType The type of track to play.
      */
-    public void loadAndPlay(@Nonnull SlashCommandInteractionEvent event, String trackURL, boolean tts) {
+    public void loadAndPlay(@Nonnull SlashCommandInteractionEvent event, String trackURL, TrackType trackType) {
         InteractionHook hook = event.getHook();
         MessageChannel channel = event.getMessageChannel();
         Guild guild = event.getGuildChannel().getGuild();
@@ -71,11 +69,11 @@ public class PlayerManager {
         this.audioPlayerManager.loadItemOrdered(musicManager, trackURL, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
-                if (!tts) {
+                if (trackType != TrackType.TTS) {
                     AudioTrackInfo info = track.getInfo();
                     hook.editOriginal("Adding to queue [" + info.title + "](<" + info.uri + ">) by **" + info.author + "**").queue();
                 }
-                scheduler.queue(track, channel, tts);
+                scheduler.queue(track, channel, trackType);
             }
 
             @Override
@@ -83,7 +81,7 @@ public class PlayerManager {
                 final List<AudioTrack> tracks = playlist.getTracks();
                 hook.editOriginal("Adding to queue **" + tracks.size() + "** tracks from playlist [" + playlist.getName() + "](<" + trackURL + ">)").queue();
                 for (final AudioTrack track : tracks) {
-                    scheduler.queue(track, channel, false);
+                    scheduler.queue(track, channel, TrackType.TRACK);
                 }
             }
 

@@ -1,6 +1,9 @@
 package bobo.commands.voice.music;
 
+import bobo.utils.TrackType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+
+import java.io.File;
 
 public class SkipCommand extends AbstractMusic {
     /**
@@ -20,6 +23,12 @@ public class SkipCommand extends AbstractMusic {
             hook.editOriginal("Skipped." + (scheduler.looping ? " Looping has been turned off." : "")).queue();
             scheduler.looping = false;
             scheduler.nextTrack();
+            if (currentTrack.trackType() == TrackType.TTS) {
+                File file = new File(currentTrack.track().getInfo().uri);
+                if (file.exists() && !file.delete()) {
+                    System.err.println("Failed to delete TTS file: " + file.getName());
+                }
+            }
         }
     }
 

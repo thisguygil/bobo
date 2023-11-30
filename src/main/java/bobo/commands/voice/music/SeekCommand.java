@@ -1,6 +1,7 @@
 package bobo.commands.voice.music;
 
 import bobo.utils.TimeFormat;
+import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
@@ -57,7 +58,8 @@ public class SeekCommand extends AbstractMusic {
             return;
         }
 
-        currentTrack.setPosition(currentTrack.getPosition() + seconds * 1000L);
+        AudioTrack currentAudioTrack = currentTrack.track();
+        currentAudioTrack.setPosition(currentAudioTrack.getPosition() + seconds * 1000L);
         hook.editOriginal("Seeked forward by **" + seconds + "** seconds.").queue();
     }
 
@@ -71,7 +73,8 @@ public class SeekCommand extends AbstractMusic {
             return;
         }
 
-        currentTrack.setPosition(currentTrack.getPosition() - seconds * 1000L);
+        AudioTrack currentAudioTrack = currentTrack.track();
+        currentAudioTrack.setPosition(currentAudioTrack.getPosition() - seconds * 1000L);
         hook.editOriginal("Seeked backward by **" + seconds + "** seconds.").queue();
     }
 
@@ -86,7 +89,8 @@ public class SeekCommand extends AbstractMusic {
             return;
         }
 
-        currentTrack.setPosition(time);
+        AudioTrack currentAudioTrack = currentTrack.track();
+        currentAudioTrack.setPosition(time);
         hook.editOriginal("Seeked to **" + position + "**").queue();
     }
 }

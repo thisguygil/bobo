@@ -1,5 +1,6 @@
 package bobo.lavaplayer;
 
+import bobo.commands.ai.TTSCommand;
 import bobo.utils.TimeFormat;
 import bobo.utils.YouTubeUtil;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
@@ -15,7 +16,9 @@ import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Objects;
 
 /**
@@ -41,33 +44,42 @@ public class GuildMusicManager {
         this.player.addListener(event -> {
             if (event instanceof TrackStartEvent startEvent) {
                 TrackScheduler scheduler = this.scheduler;
-                TrackScheduler.TrackChannelPair pair = scheduler.currentTrack;
-
-                if (pair.tts()) {
-                    return;
-                }
+                TrackScheduler.TrackChannelTypeRecord record = scheduler.currentTrack;
 
                 AudioTrack track = startEvent.track;
-                if (pair.track().equals(track)) {
-                    MessageChannel channel = pair.channel();
+                if (record.track().equals(track)) {
+                    MessageChannel channel = record.channel();
                     AudioTrackInfo trackInfo = track.getInfo();
-
-                    // Creates embedded message with track info
+                    String title = trackInfo.title;
+                    String uri = trackInfo.uri;
                     EmbedBuilder embed = new EmbedBuilder()
                             .setAuthor(scheduler.looping ? "Now Looping" : "Now Playing")
-                            .setTitle(trackInfo.title, trackInfo.uri)
-                            .setImage("attachment://thumbnail.jpg")
                             .setColor(Color.red)
                             .setFooter(TimeFormat.formatTime((track.getDuration())));
 
-                    // Sets image in embed to proper aspect ratio
-                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                    try {
-                        ImageIO.write(Objects.requireNonNull(YouTubeUtil.getThumbnailImage(trackInfo.uri)), "jpg", outputStream);
-                        channel.sendFiles(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg")).setEmbeds(embed.build()).queue();
-                    } catch (IOException e) {
-                        channel.sendMessageEmbeds(embed.build()).queue();
-                        e.printStackTrace();
+                    switch (record.trackType()) {
+                        case TRACK -> {
+                            embed.setTitle(title, uri)
+                                    .setImage("attachment://thumbnail.jpg");
+
+                            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                            try {
+                                ImageIO.write(Objects.requireNonNull(YouTubeUtil.getThumbnailImage(uri)), "jpg", outputStream);
+                                channel.sendFiles(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg")).setEmbeds(embed.build()).queue();
+                            } catch (IOException e) {
+                                channel.sendMessageEmbeds(embed.build()).queue();
+                                e.printStackTrace();
+                            }
+                        }
+                        case FILE -> {
+                            embed.setTitle(title, uri);
+                            channel.sendMessageEmbeds(embed.build()).queue();
+                        }
+                        case TTS -> {
+                            embed.setTitle("TTS Message")
+                                    .setDescription(TTSCommand.getTTSMessage(Paths.get(uri).getFileName().toString()));
+                            channel.sendMessageEmbeds(embed.build()).queue();
+                        }
                     }
                 }
             }

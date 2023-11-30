@@ -2,6 +2,7 @@ package bobo.commands.voice.music;
 
 import bobo.commands.voice.JoinCommand;
 import bobo.utils.Spotify;
+import bobo.utils.TrackType;
 import bobo.utils.YouTubeUtil;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
@@ -14,7 +15,6 @@ import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.model_objects.specification.*;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import java.net.URI;
 import java.util.Objects;
 
@@ -37,8 +37,8 @@ public class PlayCommand extends AbstractMusic {
     protected void handleMusicCommand() {
         event.deferReply().queue();
 
-        AudioManager manager = event.getGuildChannel().getGuild().getAudioManager();
-        if (!manager.isConnected()) {
+        AudioManager audioManager = event.getGuildChannel().getGuild().getAudioManager();
+        if (!audioManager.isConnected()) {
             if (!JoinCommand.join(event)) {
                 return;
             }
@@ -47,7 +47,7 @@ public class PlayCommand extends AbstractMusic {
             if (memberChannel == null) {
                 event.getHook().editOriginal("You must be connected to a voice channel to use this command.").queue();
                 return;
-            } else if (memberChannel != manager.getConnectedChannel()) {
+            } else if (memberChannel != audioManager.getConnectedChannel()) {
                 if (!JoinCommand.join(event)) {
                     return;
                 }
@@ -56,23 +56,17 @@ public class PlayCommand extends AbstractMusic {
 
         String subcommandName = event.getSubcommandName();
         assert subcommandName != null;
-
-        String trackURL = switch (subcommandName) {
+        switch (subcommandName) {
                 case "track" -> playTrack();
                 case "file" -> playFile();
                 default -> throw new IllegalStateException("Unexpected value: " + subcommandName);
-        };
-
-        if (trackURL != null) {
-            playerManager.loadAndPlay(event, trackURL, false);
         }
     }
 
     /**
      * Plays a track.
      */
-    @Nullable
-    private String playTrack() {
+    private void playTrack() {
         String track = Objects.requireNonNull(event.getOption("track")).getAsString();
         if ((new UrlValidator()).isValid(track)) {
             String spotifyRegex = "^(https?://)?open.spotify.com/.*";
@@ -98,30 +92,29 @@ public class PlayCommand extends AbstractMusic {
                     String[] videoLinks = YouTubeUtil.searchForVideos(query.toString());
                     if (videoLinks == null) {
                         hook.editOriginal("Nothing found by **" + track + "**.").queue();
-                        return null;
+                        return;
                     }
-                    return videoLinks[0];
+                    playerManager.loadAndPlay(event, videoLinks[0], TrackType.TRACK);
                 } catch (Exception e) {
                     hook.editOriginal("Error: " + e.getMessage()).queue();
                     e.printStackTrace();
-                    return null;
                 }
             } else {
-                return track;
+                playerManager.loadAndPlay(event, track, TrackType.TRACK);
             }
         } else {
             try {
                 String[] videoLinks = YouTubeUtil.searchForVideos(track);
                 if (videoLinks == null) {
                     hook.editOriginal("Nothing found by **" + track + "**.").queue();
-                    return null;
+                    return;
                 }
 
-                return videoLinks[0];
+                playerManager.loadAndPlay(event, videoLinks[0], TrackType.TRACK);
             } catch (Exception e) {
                 hook.editOriginal("Nothing found by **" + track + "**.").queue();
                 e.printStackTrace();
-                return null;
+                return;
             }
         }
     }
@@ -129,15 +122,14 @@ public class PlayCommand extends AbstractMusic {
     /**
      * Plays an audio/video file.
      */
-    @Nullable
-    private String playFile() {
+    private void playFile() {
         Message.Attachment attachment = Objects.requireNonNull(event.getOption("file")).getAsAttachment();
         if (!isAudioFile(attachment.getFileName())) {
             hook.editOriginal("Please attach a valid audio file.").queue();
-            return null;
+            return;
         }
 
-        return attachment.getUrl();
+        playerManager.loadAndPlay(event, attachment.getUrl(), TrackType.FILE);
     }
 
     /**
