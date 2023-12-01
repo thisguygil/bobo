@@ -54,13 +54,13 @@ public class GuildMusicManager {
                     String uri = trackInfo.uri;
                     EmbedBuilder embed = new EmbedBuilder()
                             .setAuthor(scheduler.looping ? "Now Looping" : "Now Playing")
-                            .setColor(Color.red)
-                            .setFooter(TimeFormat.formatTime((track.getDuration())));
+                            .setColor(Color.red);
 
                     switch (record.trackType()) {
                         case TRACK -> {
                             embed.setTitle(title, uri)
-                                    .setImage("attachment://thumbnail.jpg");
+                                    .setImage("attachment://thumbnail.jpg")
+                                    .setFooter(TimeFormat.formatTime((track.getDuration())));
 
                             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                             try {
@@ -72,7 +72,8 @@ public class GuildMusicManager {
                             }
                         }
                         case FILE -> {
-                            embed.setTitle(title, uri);
+                            embed.setTitle(title, uri)
+                                    .setFooter(TimeFormat.formatTime((track.getDuration())));
                             channel.sendMessageEmbeds(embed.build()).queue();
                         }
                         case TTS -> {

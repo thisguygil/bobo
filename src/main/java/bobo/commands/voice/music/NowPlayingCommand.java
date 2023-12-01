@@ -38,13 +38,13 @@ public class NowPlayingCommand extends AbstractMusic {
         String uri = info.uri;
         EmbedBuilder embed = new EmbedBuilder()
                 .setAuthor(musicManager.scheduler.looping ? "Now Looping" : "Now Playing")
-                .setColor(Color.red)
-                .setFooter(TimeFormat.formatTime(currentAudioTrack.getDuration() - currentAudioTrack.getPosition()) + " left");
+                .setColor(Color.red);
 
         switch (currentTrack.trackType()) {
             case TRACK -> {
                 embed.setTitle(title, uri)
-                        .setImage("attachment://thumbnail.jpg");
+                        .setImage("attachment://thumbnail.jpg")
+                        .setFooter(TimeFormat.formatTime(currentAudioTrack.getDuration() - currentAudioTrack.getPosition()) + " left");
 
                 ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                 try {
@@ -58,7 +58,8 @@ public class NowPlayingCommand extends AbstractMusic {
                 hook.editOriginalAttachments(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg")).setEmbeds(embed.build()).queue();
             }
             case FILE -> {
-                embed.setTitle(title, uri);
+                embed.setTitle(title, uri)
+                        .setFooter(TimeFormat.formatTime(currentAudioTrack.getDuration() - currentAudioTrack.getPosition()) + " left");
                 hook.editOriginalEmbeds(embed.build()).queue();
             }
             case TTS -> {
