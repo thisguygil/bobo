@@ -34,6 +34,7 @@ Bobo supports the following web sources and file formats:
 
 ## Commands
 ### Bot Owner commands
+* `/restart` - Restarts Bobo
 * `/set-activity` - Sets Bobo's activity/status
     * Subcommands:
     * `custom <status>` - Sets Bobo's status to `<status>`
