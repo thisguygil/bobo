@@ -4,6 +4,7 @@ import bobo.commands.voice.JoinCommand;
 import bobo.utils.TrackType;
 import bobo.lavaplayer.PlayerManager;
 import bobo.utils.SQLConnection;
+import com.theokanning.openai.OpenAiHttpException;
 import com.theokanning.openai.audio.CreateSpeechRequest;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
@@ -76,6 +77,7 @@ public class TTSCommand extends AbstractAI {
             }
         } catch (SQLException e) {
             e.printStackTrace();
+            // Use default voice.
         }
 
         String message = Objects.requireNonNull(event.getOption("message")).getAsString();
@@ -93,9 +95,21 @@ public class TTSCommand extends AbstractAI {
             fileName = "tts-" + UUID.randomUUID() + ".mp3";
             file = new File(fileName);
             Files.write(file.toPath(), bytes);
-        } catch (IOException e) {
-            hook.editOriginal(e.getMessage()).queue();
-            e.printStackTrace();
+        } catch (Exception e) {
+            if ((e instanceof OpenAiHttpException exception)) {
+                if (exception.statusCode == 429) {
+                    hook.editOriginal("TTS rate limit reached (maximum of 3 requests per min). Please try again in 20s.").queue();
+                } else {
+                    hook.editOriginal("An error occurred while generating the TTS.").queue();
+                    e.printStackTrace();
+                }
+            } else if (e instanceof IOException) {
+                hook.editOriginal("An error occurred while writing the file.").queue();
+                e.printStackTrace();
+            } else {
+                hook.editOriginal(e.getMessage()).queue();
+                e.printStackTrace();
+            }
             return;
         }
 
