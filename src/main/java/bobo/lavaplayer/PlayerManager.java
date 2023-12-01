@@ -69,9 +69,12 @@ public class PlayerManager {
         this.audioPlayerManager.loadItemOrdered(musicManager, trackURL, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
-                if (trackType != TrackType.TTS) {
-                    AudioTrackInfo info = track.getInfo();
-                    hook.editOriginal("Adding to queue [" + info.title + "](<" + info.uri + ">) by **" + info.author + "**").queue();
+                switch (trackType) {
+                    case TRACK, FILE -> {
+                        AudioTrackInfo info = track.getInfo();
+                        hook.editOriginal("Adding to queue [" + info.title + "](<" + info.uri + ">) by **" + info.author + "**").queue();
+                    }
+                    case TTS -> hook.editOriginal("Adding to queue **TTS**").queue();
                 }
                 scheduler.queue(track, channel, trackType);
             }
