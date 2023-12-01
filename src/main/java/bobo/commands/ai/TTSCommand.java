@@ -115,6 +115,15 @@ public class TTSCommand extends AbstractAI {
      * @param fileName The file name.
      */
     public static String getTTSMessage(String fileName) {
-        return fileMessageMap.remove(fileName);
+        return fileMessageMap.get(fileName);
+    }
+
+    /**
+     * Removes the message associated with the given file name.
+     *
+     * @param fileName The file name.
+     */
+    public static void removeTTSMessage(String fileName) {
+        fileMessageMap.remove(fileName);
     }
 }

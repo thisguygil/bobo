@@ -78,6 +78,7 @@ public class TrackScheduler extends AudioEventAdapter {
                     if (file.exists() && !file.delete()) {
                         System.err.println("Failed to delete TTS file: " + file.getName());
                     }
+                    TTSCommand.removeTTSMessage(file.getName());
                 }
             }
         }

@@ -1,5 +1,6 @@
 package bobo.commands.voice.music;
 
+import bobo.commands.ai.TTSCommand;
 import bobo.utils.TrackType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
@@ -28,6 +29,7 @@ public class SkipCommand extends AbstractMusic {
                 if (file.exists() && !file.delete()) {
                     System.err.println("Failed to delete TTS file: " + file.getName());
                 }
+                TTSCommand.removeTTSMessage(file.getName());
             }
         }
     }

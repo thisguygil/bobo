@@ -78,14 +78,15 @@ public class QueueCommand extends AbstractMusic {
         for (int i = 0; i < numPages; i++) {
             track = trackList.get(i).track();
             info = track.getInfo();
+
+            long duration = track.getDuration();
+            String timeLeft = "[" + (i == 0 ? TimeFormat.formatTime(duration - track.getPosition()) : TimeFormat.formatTime(duration)) + (i == 0 ? " left] (currently " + (scheduler.looping ? "loop" : "play") + "ing)" : "]") + "\n";
+
             switch (trackType) {
-                case TRACK, FILE -> builder.addField((i + 1) + ":", "[" + info.title + "](" + info.uri + ") by **" + info.author + "** [" +
-                        (i == 0 ? TimeFormat.formatTime(track.getDuration() - track.getPosition()) : TimeFormat.formatTime(track.getDuration())) +
-                        (i == 0 ? (scheduler.looping ? " left] (currently looping)\n" : " left] (currently playing)\n") : "]\n"), false);
-                case TTS -> builder.addField((i + 1) + ":", "TTS Message [" +
-                        (i == 0 ? TimeFormat.formatTime(track.getDuration() - track.getPosition()) : TimeFormat.formatTime(track.getDuration())) +
-                        (i == 0 ? (scheduler.looping ? " left] (currently looping)\n" : " left] (currently playing)\n") : "]\n"), false);
+                case TRACK, FILE -> builder.addField((i + 1) + ":", "[" + info.title + "](" + info.uri + ") by **" + info.author + "** " + timeLeft, false);
+                case TTS -> builder.addField((i + 1) + ":", "TTS Message " + timeLeft, false);
             }
+
             count++;
             if (count == 10) {
                 pages.add(InteractPage.of(builder.build()));
@@ -112,7 +113,7 @@ public class QueueCommand extends AbstractMusic {
      * Shuffles the queue.
      */
     private void shuffle() {
-        List<TrackScheduler.TrackChannelTypeRecord> trackList = new ArrayList<>();
+        List<TrackChannelTypeRecord> trackList = new ArrayList<>();
         queue.drainTo(trackList);
         Collections.shuffle(trackList);
         queue.clear();
@@ -124,6 +125,15 @@ public class QueueCommand extends AbstractMusic {
      * Clears the queue.
      */
     private void clear() {
+        for (TrackChannelTypeRecord record : queue) {
+            if (record.trackType() == TrackType.TTS) {
+                File file = new File(record.track().getInfo().uri);
+                if (file.exists() && !file.delete()) {
+                    System.err.println("Failed to delete TTS file: " + file.getName());
+                }
+                TTSCommand.removeTTSMessage(file.getName());
+            }
+        }
         queue.clear();
         scheduler.looping = false;
         player.stopTrack();
@@ -147,6 +157,7 @@ public class QueueCommand extends AbstractMusic {
                 if (file.exists() && !file.delete()) {
                     System.err.println("Failed to delete TTS file: " + file.getName());
                 }
+                TTSCommand.removeTTSMessage(file.getName());
             }
             scheduler.looping = false;
             scheduler.nextTrack();
@@ -161,6 +172,7 @@ public class QueueCommand extends AbstractMusic {
                         if (file.exists() && !file.delete()) {
                             System.err.println("Failed to delete TTS file: " + file.getName());
                         }
+                        TTSCommand.removeTTSMessage(file.getName());
                     }
                     iterator.remove();
                 }
@@ -173,6 +185,7 @@ public class QueueCommand extends AbstractMusic {
                     if (file.exists() && !file.delete()) {
                         System.err.println("Failed to delete TTS file: " + file.getName());
                     }
+                    TTSCommand.removeTTSMessage(file.getName());
                 }
                 iterator.remove();
             }

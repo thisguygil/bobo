@@ -1,11 +1,14 @@
 package bobo;
 
 import bobo.commands.ai.ChatCommand;
+import bobo.commands.ai.TTSCommand;
 import bobo.commands.general.GetQuoteCommand;
 import bobo.commands.voice.music.SearchCommand;
 import bobo.lavaplayer.GuildMusicManager;
 import bobo.lavaplayer.PlayerManager;
+import bobo.utils.TrackChannelTypeRecord;
 import bobo.lavaplayer.TrackScheduler;
+import bobo.utils.TrackType;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
@@ -22,6 +25,8 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 import javax.annotation.Nonnull;
+import java.io.File;
+import java.util.concurrent.BlockingQueue;
 
 public class Listener extends ListenerAdapter {
     private final CommandManager manager = new CommandManager();
@@ -81,12 +86,24 @@ public class Listener extends ListenerAdapter {
             if (event.getChannelJoined() != null) {
                 return;
             }
+
             final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(guild);
             final AudioPlayer player = musicManager.player;
             final TrackScheduler scheduler = musicManager.scheduler;
             final AudioManager audioManager = guild.getAudioManager();
+            final BlockingQueue<TrackChannelTypeRecord> queue = scheduler.queue;
+
+            for (TrackChannelTypeRecord record : queue) {
+                if (record.trackType() == TrackType.TTS) {
+                    File file = new File(record.track().getInfo().uri);
+                    if (file.exists() && !file.delete()) {
+                        System.err.println("Failed to delete TTS file: " + file.getName());
+                    }
+                    TTSCommand.removeTTSMessage(file.getName());
+                }
+            }
             audioManager.setReceivingHandler(null);
-            scheduler.queue.clear();
+            queue.clear();
             scheduler.looping = false;
             player.stopTrack();
             player.setPaused(false);
