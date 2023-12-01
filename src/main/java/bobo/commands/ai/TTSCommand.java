@@ -66,11 +66,6 @@ public class TTSCommand extends AbstractAI {
             }
         }
 
-        if (Objects.requireNonNull(guild.getSelfMember().getVoiceState()).isMuted()) {
-            hook.editOriginal("I can't be muted when using this command.").queue();
-            return;
-        }
-
         String voice = "onyx";
         try (Connection connection = SQLConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(selectSQL)) {
