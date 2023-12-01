@@ -1,6 +1,7 @@
 package bobo.commands.voice.music;
 
-import bobo.lavaplayer.TrackScheduler;
+import bobo.commands.ai.TTSCommand;
+import bobo.utils.TrackChannelTypeRecord;
 import bobo.utils.TimeFormat;
 import bobo.utils.TrackType;
 import com.github.ygimenez.method.Pages;
@@ -57,10 +58,10 @@ public class QueueCommand extends AbstractMusic {
      * Shows the current queue.
      */
     private void show() {
-        final List<TrackScheduler.TrackChannelTypeRecord> trackList = new ArrayList<>(queue);
+        final List<TrackChannelTypeRecord> trackList = new ArrayList<>(queue);
         final List<Page> pages = new ArrayList<>();
         TrackType trackType = currentTrack.trackType();
-        trackList.add(0, new TrackScheduler.TrackChannelTypeRecord(currentTrack.track(), event.getMessageChannel(), trackType));
+        trackList.add(0, new TrackChannelTypeRecord(currentTrack.track(), event.getMessageChannel(), trackType));
 
         AudioTrack track;
         AudioTrackInfo info;
@@ -151,8 +152,8 @@ public class QueueCommand extends AbstractMusic {
             scheduler.nextTrack();
         } else {
             int count = 1;
-            Iterator<TrackScheduler.TrackChannelTypeRecord> iterator = queue.iterator();
-            TrackScheduler.TrackChannelTypeRecord currentTrack = null;
+            Iterator<TrackChannelTypeRecord> iterator = queue.iterator();
+            TrackChannelTypeRecord currentTrack = null;
             while (iterator.hasNext()) {
                 if (count == position) {
                     if (currentTrack.trackType() == TrackType.TTS) {

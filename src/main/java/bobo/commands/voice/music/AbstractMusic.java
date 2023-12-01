@@ -3,9 +3,9 @@ package bobo.commands.voice.music;
 import bobo.commands.voice.AbstractVoice;
 import bobo.lavaplayer.GuildMusicManager;
 import bobo.lavaplayer.PlayerManager;
+import bobo.utils.TrackChannelTypeRecord;
 import bobo.lavaplayer.TrackScheduler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
-import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
 import java.util.concurrent.BlockingQueue;
@@ -15,8 +15,8 @@ public abstract class AbstractMusic extends AbstractVoice {
     protected GuildMusicManager musicManager;
     protected AudioPlayer player;
     protected TrackScheduler scheduler;
-    protected BlockingQueue<TrackScheduler.TrackChannelTypeRecord> queue;
-    protected TrackScheduler.TrackChannelTypeRecord currentTrack;
+    protected BlockingQueue<TrackChannelTypeRecord> queue;
+    protected TrackChannelTypeRecord currentTrack;
 
     /**
      * Creates a new music command.

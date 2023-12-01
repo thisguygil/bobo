@@ -2,6 +2,7 @@ package bobo.lavaplayer;
 
 import bobo.commands.ai.TTSCommand;
 import bobo.utils.TimeFormat;
+import bobo.utils.TrackChannelTypeRecord;
 import bobo.utils.YouTubeUtil;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
@@ -44,7 +45,7 @@ public class GuildMusicManager {
         this.player.addListener(event -> {
             if (event instanceof TrackStartEvent startEvent) {
                 TrackScheduler scheduler = this.scheduler;
-                TrackScheduler.TrackChannelTypeRecord record = scheduler.currentTrack;
+                TrackChannelTypeRecord record = scheduler.currentTrack;
 
                 AudioTrack track = startEvent.track;
                 if (record.track().equals(track)) {

@@ -1,5 +1,7 @@
 package bobo.lavaplayer;
 
+import bobo.commands.ai.TTSCommand;
+import bobo.utils.TrackChannelTypeRecord;
 import bobo.utils.TrackType;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
@@ -17,10 +19,6 @@ import java.util.concurrent.LinkedBlockingQueue;
  * This class schedules tracks for the audio player. It contains the queue of tracks.
  */
 public class TrackScheduler extends AudioEventAdapter {
-    /**
-     * A pair of an audio track and the channel it was queued in
-     */
-    public record TrackChannelTypeRecord(AudioTrack track, MessageChannel channel, TrackType trackType) {}
 
     public final AudioPlayer player;
     public BlockingQueue<TrackChannelTypeRecord> queue;
