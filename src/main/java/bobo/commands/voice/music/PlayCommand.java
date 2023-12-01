@@ -114,7 +114,6 @@ public class PlayCommand extends AbstractMusic {
             } catch (Exception e) {
                 hook.editOriginal("Nothing found by **" + track + "**.").queue();
                 e.printStackTrace();
-                return;
             }
         }
     }
