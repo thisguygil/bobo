@@ -101,7 +101,7 @@ public class TTSCommand extends AbstractAI {
 
         PlayerManager.getInstance().loadAndPlay(event, fileName, TrackType.TTS);
         fileMessageMap.put(fileName, message);
-        hook.editOriginal("Adding TTS message to queue.").queue();
+        hook.editOriginal("Added TTS message to queue.").queue();
     }
 
     /**
