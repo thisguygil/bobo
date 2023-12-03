@@ -26,6 +26,7 @@ public class ConfigCommand extends AbstractAdmin {
     private static final String insertOrUpdateTTSVoiceSQL = "INSERT INTO tts_voice (guild_id, voice) VALUES (?, ?) ON DUPLICATE KEY UPDATE voice = ?";
     private static final String resetClipsSQL = "DELETE FROM clips_channels WHERE guild_id = ?";
     private static final String resetQuotesSQL = "DELETE FROM quotes_channels WHERE guild_id = ?";
+    private static final String resetFortniteShopSQL = "DELETE FROM fortnite_shop_channels WHERE guild_id = ?";
 
     /**
      * Creates a new config command.
@@ -53,7 +54,8 @@ public class ConfigCommand extends AbstractAdmin {
                         new SubcommandGroupData("reset", "Resets the configured channel in the server.")
                                 .addSubcommands(
                                         new SubcommandData("clips", "Resets the clips channel."),
-                                        new SubcommandData("quotes", "Resets the quotes channel.")
+                                        new SubcommandData("quotes", "Resets the quotes channel."),
+                                        new SubcommandData("fortnite-shop", "Resets the Fortnite Shop channel.")
                                 )
 
                 )
@@ -82,6 +84,7 @@ public class ConfigCommand extends AbstractAdmin {
                     switch (subcommandName) {
                         case "clips" -> resetClips(guildId);
                         case "quotes" -> resetQuotes(guildId);
+                        case "fortnite-shop" -> resetFortniteShop(guildId);
                     }
                 }
             }
@@ -223,5 +226,21 @@ public class ConfigCommand extends AbstractAdmin {
         }
         GetQuoteCommand.guildListMap.remove(Bobo.getJDA().getGuildById(guildId));
         event.getHook().editOriginal("Quotes channel reset.").queue();
+    }
+
+    /**
+     * Resets the Fortnite Shop channel for the given guild.
+     *
+     * @param guildId the ID of the guild
+     */
+    private void resetFortniteShop(String guildId) {
+        try (Connection connection = SQLConnection.getConnection();
+        PreparedStatement statement = connection.prepareStatement(resetFortniteShopSQL)) {
+            statement.setString(1, guildId);
+            statement.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        event.getHook().editOriginal("Fortnite Shop channel reset.").queue();
     }
 }

@@ -55,7 +55,7 @@ Bobo supports the following web sources and file formats:
     * `tts-voice`
       * Subcommands: `alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer` (different voices - defaults to onyx)
     * `reset`
-      * Subcommands: `clips`, `quotes` (resets the channel to none)
+      * Subcommands: `clips`, `quotes`, `fortnite-shop` (resets the channel to none)
 
 ### General commands
 * `/help` - Shows the list of commands or gets info on a specific command
