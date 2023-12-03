@@ -31,6 +31,11 @@ public class Bobo {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            System.out.println("Shutting down...");
+            jda.shutdownNow();
+        }));
     }
 
     /**
