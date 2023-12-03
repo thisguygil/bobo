@@ -3,9 +3,11 @@ package bobo;
 import bobo.commands.ai.ChatCommand;
 import bobo.commands.ai.TTSCommand;
 import bobo.commands.general.GetQuoteCommand;
+import bobo.commands.voice.JoinCommand;
 import bobo.commands.voice.music.SearchCommand;
 import bobo.lavaplayer.GuildMusicManager;
 import bobo.lavaplayer.PlayerManager;
+import bobo.utils.SQLConnection;
 import bobo.utils.TrackChannelTypeRecord;
 import bobo.lavaplayer.TrackScheduler;
 import bobo.utils.TrackType;
@@ -13,6 +15,7 @@ import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -26,6 +29,7 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 import javax.annotation.Nonnull;
 import java.io.File;
+import java.sql.*;
 import java.util.concurrent.BlockingQueue;
 
 public class Listener extends ListenerAdapter {
@@ -128,6 +132,31 @@ public class Listener extends ListenerAdapter {
     @Override
     public void onReady(@Nonnull ReadyEvent event) {
         GetQuoteCommand.loadMap();
+
+        // Join voice channels that the bot was in before shutdown
+        String createTableSQL = "CREATE TABLE IF NOT EXISTS voice_channels_shutdown (channel_id VARCHAR(255) NOT NULL)";
+        String selectSQL = "SELECT channel_id FROM voice_channels_shutdown";
+        try (Connection connection = SQLConnection.getConnection()) {
+            try (Statement createStatement = connection.createStatement()) {
+                createStatement.execute(createTableSQL);
+            }
+
+            try (PreparedStatement selectStatement = connection.prepareStatement(selectSQL);
+                 ResultSet resultSet = selectStatement.executeQuery()) {
+
+                while (resultSet.next()) {
+                    String channelId = resultSet.getString("channel_id");
+                    VoiceChannel channel = Bobo.getJDA().getVoiceChannelById(channelId);
+
+                    if (channel != null) {
+                        JoinCommand.join(channel);
+                    }
+                }
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
         System.out.println("Bobo is ready!");
     }
 }
