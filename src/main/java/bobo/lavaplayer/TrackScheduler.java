@@ -71,14 +71,16 @@ public class TrackScheduler extends AudioEventAdapter {
             if (this.looping) {
                 this.player.startTrack(track.makeClone(), false);
             } else {
-                nextTrack();
-                String uri = track.getInfo().uri;
-                if (uri.startsWith("tts-")) {
-                    File file = new File(uri);
-                    if (file.exists() && !file.delete()) {
-                        System.err.println("Failed to delete TTS file: " + file.getName());
+                switch (currentTrack.trackType()) {
+                    case TRACK, FILE -> nextTrack();
+                    case TTS -> {
+                        nextTrack();
+                        File file = new File(track.getInfo().uri);
+                        if (file.exists() && !file.delete()) {
+                            System.err.println("Failed to delete TTS file: " + file.getName());
+                        }
+                        TTSCommand.removeTTSMessage(file.getName());
                     }
-                    TTSCommand.removeTTSMessage(file.getName());
                 }
             }
         }
