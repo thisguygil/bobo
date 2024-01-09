@@ -1,5 +1,6 @@
 package bobo.commands.owner;
 
+import bobo.Bobo;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 public class RestartCommand extends AbstractOwner {
@@ -17,7 +18,7 @@ public class RestartCommand extends AbstractOwner {
 
     @Override
     protected void handleOwnerCommand() {
-        event.reply("Restarting...").queue(success -> System.exit(1), failure -> System.exit(1));
-        // Start script should handle the actual restarting.
+        // Uses callback to ensure that the message is sent before the bot shuts down.
+        event.reply("Restarting...").queue(success -> Bobo.restart(), failure -> Bobo.restart());
     }
 }
