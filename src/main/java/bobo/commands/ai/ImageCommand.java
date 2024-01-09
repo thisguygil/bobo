@@ -16,7 +16,7 @@ public class ImageCommand extends AbstractAI {
      * Creates a new image command.
      */
     public ImageCommand() {
-        super(Commands.slash("image", "Uses OpenAI (DALL-E) to generate an image of the given prompt.")
+        super(Commands.slash("image", "Uses OpenAI (DALL-E 3) to generate an image of the given prompt.")
                 .addOption(OptionType.STRING, "prompt", "Image to generate", true));
     }
 
@@ -26,6 +26,7 @@ public class ImageCommand extends AbstractAI {
         String prompt = Objects.requireNonNull(event.getOption("prompt")).getAsString();
 
         CreateImageRequest createImageRequest = CreateImageRequest.builder()
+                .model("dall-e-3")
                 .prompt(prompt)
                 .build();
 
