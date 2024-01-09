@@ -98,13 +98,13 @@ public class TTSCommand extends AbstractAI {
         } catch (Exception e) {
             if ((e instanceof OpenAiHttpException exception)) {
                 if (exception.statusCode == 429) {
-                    hook.editOriginal("TTS rate limit reached (maximum of 3 requests per min). Please try again in 20s.").queue();
+                    hook.editOriginal("TTS rate limit reached. Please try again in a few seconds.").queue();
                 } else {
-                    hook.editOriginal("An error occurred while generating the TTS.").queue();
+                    hook.editOriginal(e.getMessage()).queue();
                     e.printStackTrace();
                 }
             } else if (e instanceof IOException) {
-                hook.editOriginal("An error occurred while writing the file.").queue();
+                hook.editOriginal(e.getMessage()).queue();
                 e.printStackTrace();
             } else {
                 hook.editOriginal(e.getMessage()).queue();
