@@ -28,6 +28,7 @@ public final class FortniteAPI {
     private static final String API_KEY = Config.get("FORTNITE_API_KEY");
     private static final String baseURL = "https://fortnite-api.com";
     private static final String backgroundImagePath = "resources/images/shop_background.jpg";
+    private  static final String fontPath = "resources/fonts/FortniteFont.otf";
 
     private FortniteAPI() {} // Prevent instantiation
 
@@ -67,7 +68,7 @@ public final class FortniteAPI {
             int fontSize = (int) (availableWidthPerSquare * fontSizePercentage);
             int textPadding = (int) (availableWidthPerSquare * textPaddingPercentage);
 
-            Font fortniteFont = Font.createFont(Font.TRUETYPE_FONT, new File("resources/fonts/FortniteFont.otf")).deriveFont((float) fontSize);
+            Font fortniteFont = Font.createFont(Font.TRUETYPE_FONT, new File(fontPath)).deriveFont((float) fontSize);
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
             ge.registerFont(fortniteFont);
             g2d.setFont(fortniteFont);
