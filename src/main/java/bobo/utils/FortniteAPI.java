@@ -130,7 +130,8 @@ public final class FortniteAPI {
      * @param targetWidth The new width.
      * @return The resized image.
      */
-    public static BufferedImage resizeImage(BufferedImage originalImage, int targetWidth) {
+    @Nonnull
+    public static BufferedImage resizeImage(@Nonnull BufferedImage originalImage, int targetWidth) {
         int newHeight = (int) (originalImage.getHeight() * ((double) targetWidth / originalImage.getWidth()));
         Image resultingImage = originalImage.getScaledInstance(targetWidth, newHeight, Image.SCALE_SMOOTH);
         BufferedImage outputImage = new BufferedImage(targetWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
