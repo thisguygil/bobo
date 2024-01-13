@@ -14,6 +14,8 @@ import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
+import javax.imageio.ImageReader;
+import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -80,7 +82,20 @@ public final class FortniteAPI {
             BufferedImage vbuckIcon = resizeImage(ImageIO.read((new URI(vbuckIconUrl)).toURL()), fontSize);
 
             for (ShopItem item : shopItems) {
-                BufferedImage itemImage = resizeImage(ImageIO.read((new URI(item.imageUrl())).toURL()), availableWidthPerImage);
+                String itemUrl = item.imageUrl();
+
+                // Deals with webp images, which is the type that the API returns for items with backgrounds
+                BufferedImage unsizedImage;
+                if (itemUrl.endsWith(".webp")) {
+                    ImageReader reader = ImageIO.getImageReadersByMIMEType("image/webp").next();
+                    ImageInputStream stream = ImageIO.createImageInputStream((new URI(itemUrl)).toURL().openStream());
+                    reader.setInput(stream);
+                    unsizedImage = reader.read(0);
+                } else {
+                    unsizedImage = ImageIO.read((new URI(itemUrl)).toURL());
+                }
+
+                BufferedImage itemImage = resizeImage(unsizedImage, availableWidthPerImage);
 
                 if (x + itemImage.getWidth() > backgroundWidth - margin) {
                     x = margin;
@@ -219,8 +234,13 @@ public final class FortniteAPI {
                         itemName = item.getJSONArray("cars").getJSONObject(0).getString("name");
                     } catch (JSONException ignored) {}
 
-                    // Gets the item image URL
-                    imageUrl = displayAsset.getJSONArray("materialInstances").getJSONObject(0).getJSONObject("images").getString("OfferImage");
+                    // Gets the item image URL, prioritizing the background image over the offer image if it has one
+                    JSONObject images = displayAsset.getJSONArray("materialInstances").getJSONObject(0).getJSONObject("images");
+                    if (images.has("Background")) {
+                        imageUrl = images.getString("Background");
+                    } else {
+                        imageUrl = images.getString("OfferImage");
+                    }
                 }
 
                 // Get the item price and add the finl item to the list
