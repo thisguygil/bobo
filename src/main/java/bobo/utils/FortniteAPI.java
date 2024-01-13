@@ -36,7 +36,7 @@ public final class FortniteAPI {
     private static final double paddingPercentage = 0.04;
     private static final double textPaddingPercentage = 0.02;
     private static final double fontSizePercentage = 0.07;
-    private static final double availableWidthPerImagePercentage = 0.78;
+    private static final double availableWidthPerImagePercentage = 0.89;
 
     /**
      * Gets the current Fortnite shop image.
@@ -93,14 +93,16 @@ public final class FortniteAPI {
                 g2d.setColor(Color.WHITE);
 
                 FontMetrics metrics = g2d.getFontMetrics();
+                int stringHeight = metrics.getHeight();
+
                 int itemNameWidth = metrics.stringWidth(item.name());
                 int itemNameX = x + (itemImage.getWidth() - itemNameWidth) / 2;
-                int itemNameY = y + itemImage.getHeight() + textPadding + fontSize;
+                int itemNameY = y + itemImage.getHeight() + fontSize - textPadding - 2 * stringHeight;
                 g2d.drawString(item.name(), itemNameX, itemNameY);
 
                 int itemPriceWidth = metrics.stringWidth(String.valueOf(item.price()));
                 int itemPriceX = x + (itemImage.getWidth() - itemPriceWidth) / 2;
-                int itemPriceY = itemNameY + fontSize + textPadding;
+                int itemPriceY = itemNameY + fontSize;
                 g2d.drawString(String.valueOf(item.price()), itemPriceX, itemPriceY);
 
                 int vBuckIconX = itemPriceX - vbuckIcon.getWidth() - textPadding;
@@ -109,7 +111,7 @@ public final class FortniteAPI {
 
                 x += itemImage.getWidth() + padding;
 
-                int totalHeight = itemImage.getHeight() + vbuckIcon.getHeight() + textPadding * 3 + g2d.getFontMetrics().getHeight() * 2;
+                int totalHeight = itemImage.getHeight() + vbuckIcon.getHeight();
                 if (totalHeight > rowHeight) {
                     rowHeight = totalHeight;
                 }
