@@ -45,7 +45,7 @@ public final class FortniteAPI {
      */
     @Nullable
     public static BufferedImage getShopImage() {
-        String jsonResponse = sendGetRequest("/v2/shop/br");
+        String jsonResponse = sendGetRequest("/v2/shop");
         List<ShopItem> shopItems = parseShopItems(jsonResponse);
         String vbuckIconUrl = parseVbuckIconUrl(jsonResponse);
 
@@ -177,34 +177,51 @@ public final class FortniteAPI {
         JSONObject shopData = new JSONObject(jsonResponse);
 
         if (shopData.has("data")) {
-            JSONArray items = shopData.getJSONObject("data").getJSONObject("featured").getJSONArray("entries");
+            JSONArray items = shopData.getJSONObject("data").getJSONArray("entries");
             String imageUrl;
-            String itemName;
+            String itemName = "";
+
             for (int i = 0; i < items.length(); i++) {
                 JSONObject item = items.getJSONObject(i);
+
+                // Check if the item is a bundle, if so then get the bundle image and name
                 JSONObject bundle;
                 try {
                     bundle = item.getJSONObject("bundle");
                 } catch (JSONException e) {
                     bundle = null;
                 }
+
                 if (bundle != null) {
                     imageUrl = bundle.getString("image");
                     itemName = bundle.getString("name");
                 } else {
-                    JSONObject newDisplayAsset;
-                    try {
-                        newDisplayAsset = item.getJSONObject("newDisplayAsset");
-                    } catch (JSONException e) {
-                        newDisplayAsset = null;
-                    }
-                    if (newDisplayAsset != null) {
-                        imageUrl = newDisplayAsset.getJSONArray("materialInstances").getJSONObject(0).getJSONObject("images").getString("OfferImage");
-                        itemName = item.getJSONArray("items").getJSONObject(0).getString("name");
-                    } else {
+                    // Check if the item has an asset, if not then skip it
+                    if (!item.has("newDisplayAsset")) {
                         continue;
                     }
+
+                    JSONObject displayAsset = item.getJSONObject("newDisplayAsset");
+
+                    // Gets the item name. Note that only one of these will be non-null, as we verified that the item is not a bundle
+                    try {
+                        itemName = item.getJSONArray("brItems").getJSONObject(0).getString("name");
+                    } catch (JSONException ignored) {}
+                    try {
+                        itemName = item.getJSONArray("tracks").getJSONObject(0).getString("title");
+                    } catch (JSONException ignored) {}
+                    try {
+                        itemName = item.getJSONArray("instruments").getJSONObject(0).getString("name");
+                    } catch (JSONException ignored) {}
+                    try {
+                        itemName = item.getJSONArray("cars").getJSONObject(0).getString("name");
+                    } catch (JSONException ignored) {}
+
+                    // Gets the item image URL
+                    imageUrl = displayAsset.getJSONArray("materialInstances").getJSONObject(0).getJSONObject("images").getString("OfferImage");
                 }
+
+                // Get the item price and add the finl item to the list
                 int itemPrice = item.getInt("finalPrice");
                 shopItems.add(new ShopItem(itemName, itemPrice, imageUrl));
             }
