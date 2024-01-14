@@ -34,6 +34,17 @@ public final class FortniteAPI {
 
     private FortniteAPI() {} // Prevent instantiation
 
+    /**
+     * Enum representing the different types of items in the Fortnite shop.
+     */
+    private enum ShopItemType {
+        BUNDLE,
+        BR_ITEM,
+        INSTRUMENT,
+        CAR,
+        TRACK
+    }
+
     private static final int margin = 20;
     private static final double paddingPercentage = 0.04;
     private static final double textPaddingPercentage = 0.02;
@@ -193,62 +204,80 @@ public final class FortniteAPI {
 
         JSONObject shopData = new JSONObject(jsonResponse);
 
-        if (shopData.has("data")) {
-            JSONArray items = shopData.getJSONObject("data").getJSONArray("entries");
-            String imageUrl;
-            String itemName = "";
-
-            for (int i = 0; i < items.length(); i++) {
-                JSONObject item = items.getJSONObject(i);
-
-                // Check if the item is a bundle, if so then get the bundle image and name
-                JSONObject bundle;
-                try {
-                    bundle = item.getJSONObject("bundle");
-                } catch (JSONException e) {
-                    bundle = null;
-                }
-
-                if (bundle != null) {
-                    imageUrl = bundle.getString("image");
-                    itemName = bundle.getString("name");
-                } else {
-                    // Check if the item has an asset, if not then skip it
-                    if (!item.has("newDisplayAsset")) {
-                        continue;
-                    }
-
-                    JSONObject displayAsset = item.getJSONObject("newDisplayAsset");
-
-                    // Gets the item name. Note that only one of these will be non-null, as we verified that the item is not a bundle
-                    try {
-                        itemName = item.getJSONArray("brItems").getJSONObject(0).getString("name");
-                    } catch (JSONException ignored) {}
-                    try {
-                        itemName = item.getJSONArray("tracks").getJSONObject(0).getString("title");
-                    } catch (JSONException ignored) {}
-                    try {
-                        itemName = item.getJSONArray("instruments").getJSONObject(0).getString("name");
-                    } catch (JSONException ignored) {}
-                    try {
-                        itemName = item.getJSONArray("cars").getJSONObject(0).getString("name");
-                    } catch (JSONException ignored) {}
-
-                    // Gets the item image URL, prioritizing the background image over the offer image if it has one
-                    JSONObject images = displayAsset.getJSONArray("materialInstances").getJSONObject(0).getJSONObject("images");
-                    if (images.has("Background")) {
-                        imageUrl = images.getString("Background");
-                    } else {
-                        imageUrl = images.getString("OfferImage");
-                    }
-                }
-
-                // Get the item price and add the finl item to the list
-                int itemPrice = item.getInt("finalPrice");
-                shopItems.add(new ShopItem(itemName, itemPrice, imageUrl));
-            }
+        if (!shopData.has("data")) {
+            return shopItems;
         }
 
+        JSONArray items = shopData.getJSONObject("data").getJSONArray("entries");
+        for (int i = 0; i < items.length(); i++) {
+            JSONObject item = items.getJSONObject(i);
+            ShopItemType shopItemType = null;
+            String itemName = "";
+            String imageUrl;
+            String rarity = "";
+            String set = "";
+            String itemType = "";
+
+            // Check if the item has an asset, if not then skip it
+            if (!item.has("newDisplayAsset")) {
+                continue;
+            }
+            // Gets the item image URL
+            JSONObject images = item.getJSONObject("newDisplayAsset").getJSONArray("materialInstances").getJSONObject(0).getJSONObject("images");
+            if (images.has("Background")) {
+                imageUrl = images.getString("Background");
+            } else {
+                imageUrl = images.getString("OfferImage");
+            }
+
+            // Get the shop item type, name, and item type. For all except bundles and tracks, we'll also get the rarity and set if it exists
+            try {
+                itemName = item.getJSONObject("bundle").getString("name");
+                shopItemType = ShopItemType.BUNDLE;
+            } catch (JSONException e) {
+                try {
+                    JSONObject itemObject = item.getJSONArray("brItems").getJSONObject(0);
+                    itemName = itemObject.getString("name");
+                    shopItemType = ShopItemType.BR_ITEM;
+                    rarity = itemObject.getJSONObject("rarity").getString("value");
+                    try {
+                        set = itemObject.getJSONObject("set").getString("value");
+                    } catch (JSONException ignored) {}
+                    itemType = itemObject.getJSONObject("type").getString("value");
+                } catch (JSONException ignored) {}
+                try {
+                    itemName = item.getJSONArray("tracks").getJSONObject(0).getString("title");
+                    shopItemType = ShopItemType.TRACK;
+                } catch (JSONException ignored) {}
+                try {
+                    JSONObject itemObject = item.getJSONArray("instruments").getJSONObject(0);
+                    itemName = itemObject.getString("name");
+                    shopItemType = ShopItemType.INSTRUMENT;
+                    rarity = itemObject.getJSONObject("rarity").getString("value");
+                    try {
+                        set = itemObject.getJSONObject("set").getString("value");
+                    } catch (JSONException ignored) {}
+                    itemType = itemObject.getJSONObject("type").getString("value");
+                } catch (JSONException ignored) {}
+                try {
+                    JSONObject itemObject = item.getJSONArray("cars").getJSONObject(0);
+                    itemName = itemObject.getString("name");
+                    shopItemType = ShopItemType.CAR;
+                    rarity = itemObject.getJSONObject("rarity").getString("value");
+                    try {
+                        set = itemObject.getJSONObject("set").getString("value");
+                    } catch (JSONException ignored) {}
+                    itemType = itemObject.getJSONObject("type").getString("value");
+                } catch (JSONException ignored) {}
+            }
+
+            // Get the item price and add the item to the list
+            int itemPrice = item.getInt("finalPrice");
+            shopItems.add(new ShopItem(shopItemType, itemName, itemPrice, imageUrl, rarity, set, itemType));
+        }
+
+        // Sort and return the items
+        shopItems.sort(ShopItem::compareTo);
         return shopItems;
     }
 
@@ -323,7 +352,60 @@ public final class FortniteAPI {
     }
 
     /**
-     * Record representing a shop item.
+     * Record representing a shop item. Implements {@link Comparable} so that the items can be sorted.
      */
-    private record ShopItem(String name, int price, String imageUrl) {}
+    private record ShopItem(ShopItemType shopItemType, String name, int price, String imageUrl, String rarity, String set, String itemType) implements Comparable<ShopItem> {
+        /**
+         * Compares the items by whether they are bundles, then by shop item type, then by rarity, then by set, then by item type, then by name
+         * @param item2 the other item to be compared.
+         * @return a negative integer, zero, or a positive integer as this item is less than, equal to, or greater than the other item.
+         */
+        @Override
+        public int compareTo(@Nonnull ShopItem item2) {
+            // Bundle comparison
+            if (this.shopItemType == ShopItemType.BUNDLE && item2.shopItemType != ShopItemType.BUNDLE) {
+                return -1;
+            } else if (this.shopItemType != ShopItemType.BUNDLE && item2.shopItemType == ShopItemType.BUNDLE) {
+                return 1;
+            }
+
+            // Type comparison
+            int typeComparison = this.shopItemType.compareTo(item2.shopItemType);
+            if (typeComparison != 0) return typeComparison;
+
+            // Bundles and tracks don't have rarity, set, or item type, so we shouldn't compare them
+            if (this.shopItemType != ShopItemType.BUNDLE && item2.shopItemType != ShopItemType.TRACK) {
+                // Rarity comparison
+                int rarityComparison = this.rarity.compareTo(item2.rarity);
+                if (rarityComparison != 0) return rarityComparison;
+
+                // Set comparison. Must check if the set is empty, as some items don't have a set
+                if (this.set.isEmpty() && !item2.set.isEmpty()) {
+                    return -1;
+                } else if (!this.set.isEmpty() && item2.set.isEmpty()) {
+                    return 1;
+                } else {
+                    int setComparison = this.set.compareTo(item2.set);
+                    if (setComparison != 0) return setComparison;
+                }
+
+                // Item type comparison. (for some reason the car type is "skin")
+                List<String> itemTypeOrder = List.of("outfit", "backpack", "pickaxe", "glider", "contrail", "aura", "emote", "wrap", "music", "loadingscreen", "guitar", "keyboard", "bass", "microphone", "drums", "skin");
+                int thisItemTypeIndex = itemTypeOrder.indexOf(this.itemType);
+                int item2ItemTypeIndex = itemTypeOrder.indexOf(item2.itemType);
+
+                if (thisItemTypeIndex == -1 && item2ItemTypeIndex != -1) {
+                    return 1;
+                } else if (thisItemTypeIndex != -1 && item2ItemTypeIndex == -1) {
+                    return -1;
+                } else if (thisItemTypeIndex != -1) {
+                    int itemTypeComparison = Integer.compare(thisItemTypeIndex, item2ItemTypeIndex);
+                    if (itemTypeComparison != 0) return itemTypeComparison;
+                }
+            }
+
+            // Name comparison. Returns here as it is the last comparison
+            return this.name.compareTo(item2.name);
+        }
+    }
 }
