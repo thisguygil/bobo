@@ -48,7 +48,7 @@ public final class FortniteAPI {
     private static final int margin = 20;
     private static final double paddingPercentage = 0.04;
     private static final double textPaddingPercentage = 0.02;
-    private static final double fontSizePercentage = 0.07;
+    private static final double fontSizePercentage = 0.12;
     private static final double availableWidthPerImagePercentage = 0.89;
 
     /**
@@ -58,11 +58,13 @@ public final class FortniteAPI {
      */
     @Nullable
     public static BufferedImage getShopImage() {
+        // Get the shop items and vbuck icon URL
         String jsonResponse = sendGetRequest("/v2/shop");
         List<ShopItem> shopItems = parseShopItems(jsonResponse);
         String vbuckIconUrl = parseVbuckIconUrl(jsonResponse);
 
         try {
+            // Load the background image and get its dimensions
             BufferedImage background = ImageIO.read((Paths.get(backgroundImagePath).toAbsolutePath()).toUri().toURL());
             int backgroundWidth = background.getWidth();
             int backgroundHeight = background.getHeight();
@@ -70,32 +72,39 @@ public final class FortniteAPI {
             int availableWidthPerSquare = contentWidth;
             Graphics2D g2d = background.createGraphics();
 
+            // Calculate the available width per square
             int imagesPerRow = 1;
             while (((double) shopItems.size() / imagesPerRow) * availableWidthPerSquare > backgroundHeight) {
                 imagesPerRow++;
                 availableWidthPerSquare = contentWidth / imagesPerRow;
             }
 
+            // Calculate the padding, available width per image, font size, and text padding
             int padding = (int) (availableWidthPerSquare * paddingPercentage);
             int availableWidthPerImage = (int) (availableWidthPerSquare * availableWidthPerImagePercentage);
             int fontSize = (int) (availableWidthPerSquare * fontSizePercentage);
             int textPadding = (int) (availableWidthPerSquare * textPaddingPercentage);
 
+            // Load the font
             Font fortniteFont = Font.createFont(Font.TRUETYPE_FONT, new File(fontPath)).deriveFont((float) fontSize);
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
             ge.registerFont(fortniteFont);
             g2d.setFont(fortniteFont);
 
+            // Initialize the x and y coordinates and the row height
             int x = margin;
             int y = margin;
             int rowHeight = 0;
 
+            // Get and resize the vbuck icon
             BufferedImage vbuckIcon = resizeImage(ImageIO.read((new URI(vbuckIconUrl)).toURL()), fontSize);
+            int vbuckIconHeight = vbuckIcon.getHeight();
+            int vbuckIconWidth = vbuckIcon.getWidth();
 
             for (ShopItem item : shopItems) {
                 String itemUrl = item.imageUrl();
 
-                // Deals with webp images, which is the type that the API returns for items with backgrounds
+                // Deals with webp images, which is the shopItemType that the API returns for items with backgrounds
                 BufferedImage unsizedImage;
                 if (itemUrl.endsWith(".webp")) {
                     ImageReader reader = ImageIO.getImageReadersByMIMEType("image/webp").next();
@@ -106,40 +115,61 @@ public final class FortniteAPI {
                     unsizedImage = ImageIO.read((new URI(itemUrl)).toURL());
                 }
 
+                // Resize the image to fit the available width
                 BufferedImage itemImage = resizeImage(unsizedImage, availableWidthPerImage);
+                int itemImageHeight = itemImage.getHeight();
+                int itemImageWidth = itemImage.getWidth();
 
-                if (x + itemImage.getWidth() > backgroundWidth - margin) {
+                // Move to the next row if the image won't fit
+                if (x + itemImageWidth > backgroundWidth - margin) {
                     x = margin;
                     y += rowHeight + padding;
                     rowHeight = 0;
                 }
 
+                // Draw the image
                 g2d.drawImage(itemImage, x, y, null);
 
+                // Prepare to draw the text
                 g2d.setColor(Color.WHITE);
-
                 FontMetrics metrics = g2d.getFontMetrics();
                 int stringHeight = metrics.getHeight();
 
+                // If the item name is too long, resize the font to fit it
                 int itemNameWidth = metrics.stringWidth(item.name());
-                int itemNameX = x + (itemImage.getWidth() - itemNameWidth) / 2;
-                int itemNameY = y + itemImage.getHeight() + fontSize - textPadding - 2 * stringHeight;
+                if (itemNameWidth > itemImageWidth) {
+                    int newFontSize = (int) (fontSize * ((double) itemImageWidth / itemNameWidth));
+                    g2d.setFont(fortniteFont.deriveFont((float) newFontSize));
+                    metrics = g2d.getFontMetrics();
+                    itemNameWidth = metrics.stringWidth(item.name());
+                }
+
+                // Draw the item name
+                int itemNameX = x + (itemImageWidth - itemNameWidth) / 2;
+                int itemNameY = y + itemImageHeight + fontSize - textPadding - 2 * stringHeight;
                 g2d.drawString(item.name(), itemNameX, itemNameY);
 
+                // Reset the font to the original size
+                g2d.setFont(fortniteFont.deriveFont((float) fontSize));
+                metrics = g2d.getFontMetrics();
+
+                // Draw the item price
                 int itemPriceWidth = metrics.stringWidth(String.valueOf(item.price()));
-                int itemPriceX = x + (itemImage.getWidth() - itemPriceWidth) / 2;
+                int itemPriceX = x + (itemImageWidth - itemPriceWidth) / 2;
                 int itemPriceY = itemNameY + fontSize;
                 g2d.drawString(String.valueOf(item.price()), itemPriceX, itemPriceY);
 
-                int vBuckIconX = itemPriceX - vbuckIcon.getWidth() - textPadding;
-                int vbuckIconY = itemPriceY - vbuckIcon.getHeight() + textPadding;
+                // Draw the vbuck icon
+                int vBuckIconX = itemPriceX - vbuckIconWidth - textPadding;
+                int vbuckIconY = itemPriceY - vbuckIconHeight + textPadding;
                 g2d.drawImage(vbuckIcon, vBuckIconX, vbuckIconY, null);
 
-                x += itemImage.getWidth() + padding;
+                // Move to the next image
+                x += itemImageWidth + padding;
 
-                int totalHeight = itemImage.getHeight() + vbuckIcon.getHeight();
-                if (totalHeight > rowHeight) {
-                    rowHeight = totalHeight;
+                // Update the row height if we moved to a new row
+                if (itemImageHeight > rowHeight) {
+                    rowHeight = itemImageHeight;
                 }
             }
 
