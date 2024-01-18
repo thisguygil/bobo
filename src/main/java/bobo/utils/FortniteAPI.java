@@ -49,7 +49,7 @@ public final class FortniteAPI {
     private static final double paddingPercentage = 0.04;
     private static final double textPaddingPercentage = 0.02;
     private static final double fontSizePercentage = 0.12;
-    private static final double availableWidthPerImagePercentage = 0.89;
+    private static final double availableWidthPerImagePercentage = 0.96;
 
     /**
      * Gets the current Fortnite shop image.
@@ -69,35 +69,39 @@ public final class FortniteAPI {
             int backgroundWidth = background.getWidth();
             int backgroundHeight = background.getHeight();
             int contentWidth = backgroundWidth - (2 * margin);
-            int availableWidthPerSquare = contentWidth;
+            int contentHeight = backgroundHeight - (2 * margin);
             Graphics2D g2d = background.createGraphics();
 
             // Calculate the available width per square
             int imagesPerRow = 1;
-            while (((double) shopItems.size() / imagesPerRow) * availableWidthPerSquare > backgroundHeight) {
+            int availableWidthPerSquare = contentWidth;
+            while (((double) shopItems.size() / imagesPerRow) * availableWidthPerSquare > contentHeight) {
                 imagesPerRow++;
-                availableWidthPerSquare = contentWidth / imagesPerRow;
+                availableWidthPerSquare = contentWidth / (imagesPerRow + 1);
             }
 
-            // Calculate the padding, available width per image, font size, and text padding
+            // Calculate the number of rows, font size, and padding
+            int numRows = (int) Math.ceil((double) shopItems.size() / imagesPerRow);
+            float fontSize = (float) (availableWidthPerSquare * fontSizePercentage);
             int padding = (int) (availableWidthPerSquare * paddingPercentage);
-            int availableWidthPerImage = (int) (availableWidthPerSquare * availableWidthPerImagePercentage);
-            int fontSize = (int) (availableWidthPerSquare * fontSizePercentage);
             int textPadding = (int) (availableWidthPerSquare * textPaddingPercentage);
 
             // Load the font
-            Font fortniteFont = Font.createFont(Font.TRUETYPE_FONT, new File(fontPath)).deriveFont((float) fontSize);
+            Font fortniteFont = Font.createFont(Font.TRUETYPE_FONT, new File(fontPath)).deriveFont(fontSize);
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
             ge.registerFont(fortniteFont);
             g2d.setFont(fortniteFont);
 
-            // Initialize the x and y coordinates and the row height
-            int x = margin;
-            int y = margin;
-            int rowHeight = 0;
+            // Initialize the x and y coordinates
+            int x = (contentWidth - (availableWidthPerSquare * imagesPerRow) + padding) / 2 + margin;
+            int y = (contentHeight - (availableWidthPerSquare * numRows) + padding) / 2 + margin;
+
+            // Save the initial x coordinate so that we can reset it when we move to the next row
+            int initialX = x;
+            int countRows = 1;
 
             // Get and resize the vbuck icon
-            BufferedImage vbuckIcon = resizeImage(ImageIO.read((new URI(vbuckIconUrl)).toURL()), fontSize);
+            BufferedImage vbuckIcon = resizeImage(ImageIO.read((new URI(vbuckIconUrl)).toURL()), (int) fontSize);
             int vbuckIconHeight = vbuckIcon.getHeight();
             int vbuckIconWidth = vbuckIcon.getWidth();
 
@@ -116,47 +120,66 @@ public final class FortniteAPI {
                 }
 
                 // Resize the image to fit the available width
-                BufferedImage itemImage = resizeImage(unsizedImage, availableWidthPerImage);
+                BufferedImage itemImage = resizeImage(unsizedImage, (int) (availableWidthPerSquare * availableWidthPerImagePercentage));
                 int itemImageHeight = itemImage.getHeight();
                 int itemImageWidth = itemImage.getWidth();
 
                 // Move to the next row if the image won't fit
                 if (x + itemImageWidth > backgroundWidth - margin) {
-                    x = margin;
-                    y += rowHeight + padding;
-                    rowHeight = 0;
+                    countRows++;
+
+                    // If this is the last row, center the images
+                    if (countRows == numRows) {
+                        int imagesInLastRow = shopItems.size() - ((countRows - 1) * imagesPerRow);
+                        x = (contentWidth - (availableWidthPerSquare * imagesInLastRow) + padding) / 2 + margin;
+                    } else {
+                        x = initialX;
+                    }
+
+                    // Move to the next row
+                    y += itemImageWidth + padding;
                 }
 
                 // Draw the image
                 g2d.drawImage(itemImage, x, y, null);
 
-                // Prepare to draw the text
-                g2d.setColor(Color.WHITE);
                 FontMetrics metrics = g2d.getFontMetrics();
                 int stringHeight = metrics.getHeight();
+
+                // Draw an opaque gray rectangle behind the text
+                Color opaqueBackground = new Color(128, 128, 128, 128); // RGBA: Gray with 50% opacity
+                g2d.setColor(opaqueBackground);
+
+                int rectangleX = x;
+                int rectangleHeight = (stringHeight + textPadding) * 2;
+                int rectangleY = y + itemImageHeight - rectangleHeight;
+                g2d.fillRect(rectangleX, rectangleY, itemImageWidth, rectangleHeight);
+
+                // Change the color to white for the text
+                g2d.setColor(Color.WHITE);
 
                 // If the item name is too long, resize the font to fit it
                 int itemNameWidth = metrics.stringWidth(item.name());
                 if (itemNameWidth > itemImageWidth) {
-                    int newFontSize = (int) (fontSize * ((double) itemImageWidth / itemNameWidth));
-                    g2d.setFont(fortniteFont.deriveFont((float) newFontSize));
+                    float newFontSize = fontSize * ((float) itemImageWidth / itemNameWidth);
+                    g2d.setFont(fortniteFont.deriveFont(newFontSize));
                     metrics = g2d.getFontMetrics();
                     itemNameWidth = metrics.stringWidth(item.name());
                 }
 
                 // Draw the item name
                 int itemNameX = x + (itemImageWidth - itemNameWidth) / 2;
-                int itemNameY = y + itemImageHeight + fontSize - textPadding - 2 * stringHeight;
+                int itemNameY =  y + itemImageHeight + (int) fontSize - rectangleHeight;
                 g2d.drawString(item.name(), itemNameX, itemNameY);
 
                 // Reset the font to the original size
-                g2d.setFont(fortniteFont.deriveFont((float) fontSize));
+                g2d.setFont(fortniteFont.deriveFont(fontSize));
                 metrics = g2d.getFontMetrics();
 
                 // Draw the item price
                 int itemPriceWidth = metrics.stringWidth(String.valueOf(item.price()));
                 int itemPriceX = x + (itemImageWidth - itemPriceWidth) / 2;
-                int itemPriceY = itemNameY + fontSize;
+                int itemPriceY = itemNameY + (int) fontSize;
                 g2d.drawString(String.valueOf(item.price()), itemPriceX, itemPriceY);
 
                 // Draw the vbuck icon
@@ -166,11 +189,6 @@ public final class FortniteAPI {
 
                 // Move to the next image
                 x += itemImageWidth + padding;
-
-                // Update the row height if we moved to a new row
-                if (itemImageHeight > rowHeight) {
-                    rowHeight = itemImageHeight;
-                }
             }
 
             g2d.dispose();
@@ -404,19 +422,22 @@ public final class FortniteAPI {
             if (typeComparison != 0) return typeComparison;
 
             // Bundles and tracks don't have rarity, set, or item type, so we shouldn't compare them
+            // Instruments don't have sets, so we shouldn't compare them
             if (this.shopItemType != ShopItemType.BUNDLE && item2.shopItemType != ShopItemType.TRACK) {
                 // Rarity comparison
                 int rarityComparison = this.rarity.compareTo(item2.rarity);
                 if (rarityComparison != 0) return rarityComparison;
 
                 // Set comparison. Must check if the set is empty, as some items don't have a set
-                if (this.set.isEmpty() && !item2.set.isEmpty()) {
-                    return -1;
-                } else if (!this.set.isEmpty() && item2.set.isEmpty()) {
-                    return 1;
-                } else {
-                    int setComparison = this.set.compareTo(item2.set);
-                    if (setComparison != 0) return setComparison;
+                if (this.shopItemType != ShopItemType.INSTRUMENT) {
+                    if (this.set.isEmpty() && !item2.set.isEmpty()) {
+                        return -1;
+                    } else if (!this.set.isEmpty() && item2.set.isEmpty()) {
+                        return 1;
+                    } else {
+                        int setComparison = this.set.compareTo(item2.set);
+                        if (setComparison != 0) return setComparison;
+                    }
                 }
 
                 // Item type comparison. (for some reason the car type is "skin")
