@@ -77,8 +77,10 @@ public final class FortniteAPI {
             int availableWidthPerSquare = contentWidth;
             while (((double) shopItems.size() / imagesPerRow) * availableWidthPerSquare > contentHeight) {
                 imagesPerRow++;
-                availableWidthPerSquare = contentWidth / (imagesPerRow + 1);
+                availableWidthPerSquare = contentWidth / imagesPerRow;
             }
+            imagesPerRow++;
+            availableWidthPerSquare = contentWidth / imagesPerRow;
 
             // Calculate the number of rows, font size, and padding
             int numRows = (int) Math.ceil((double) shopItems.size() / imagesPerRow);
