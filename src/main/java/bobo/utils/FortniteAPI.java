@@ -445,7 +445,7 @@ public final class FortniteAPI {
          * @return a negative integer, zero, or a positive integer as this item is less than, equal to, or greater than the other item.
          */
         @Override
-        public int compareTo(@Nonnull ShopItem item2) {
+        public int compareTo(ShopItem item2) {
             // Bundle comparison
             if (this.shopItemType == ShopItemType.BUNDLE && item2.shopItemType != ShopItemType.BUNDLE) {
                 return -1;
@@ -453,26 +453,33 @@ public final class FortniteAPI {
                 return 1;
             }
 
-            // Type comparison
+            // ShopItemType comparison
             int typeComparison = this.shopItemType.compareTo(item2.shopItemType);
             if (typeComparison != 0) return typeComparison;
 
             // Bundles and tracks don't have rarity, set, or item type, so we shouldn't compare them
             // Instruments don't have sets, so we shouldn't compare them
             if (this.shopItemType != ShopItemType.BUNDLE && item2.shopItemType != ShopItemType.TRACK) {
-                // Rarity comparison
-                int rarityComparison = this.rarity.compareTo(item2.rarity);
-                if (rarityComparison != 0) return rarityComparison;
+                // Check if items are in the same set. If so, then we don't need to compare rarity or set
+                if (this.shopItemType != ShopItemType.INSTRUMENT && !this.set.equals(item2.set)) {
+                    // Rarity comparison
+                    int rarityComparison = this.rarity.compareTo(item2.rarity);
+                    if (rarityComparison != 0) return rarityComparison;
 
-                // Set comparison. Must check if the set is empty, as some items don't have a set
-                if (this.shopItemType != ShopItemType.INSTRUMENT) {
+                    // Set comparison
                     if (this.set.isEmpty() && !item2.set.isEmpty()) {
                         return -1;
                     } else if (!this.set.isEmpty() && item2.set.isEmpty()) {
                         return 1;
-                    } else {
+                    } else if (!this.set.isEmpty()) {
                         int setComparison = this.set.compareTo(item2.set);
                         if (setComparison != 0) return setComparison;
+                    }
+                } else {
+                    if (this.shopItemType != ShopItemType.INSTRUMENT) {
+                        // Rarity comparison
+                        int rarityComparison = this.rarity.compareTo(item2.rarity);
+                        if (rarityComparison != 0) return rarityComparison;
                     }
                 }
 
@@ -485,7 +492,7 @@ public final class FortniteAPI {
                     return 1;
                 } else if (thisItemTypeIndex != -1 && item2ItemTypeIndex == -1) {
                     return -1;
-                } else if (thisItemTypeIndex != -1) {
+                } else {
                     int itemTypeComparison = Integer.compare(thisItemTypeIndex, item2ItemTypeIndex);
                     if (itemTypeComparison != 0) return itemTypeComparison;
                 }
