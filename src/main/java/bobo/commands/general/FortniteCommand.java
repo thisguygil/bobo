@@ -11,6 +11,9 @@ import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -49,8 +52,14 @@ public class FortniteCommand extends AbstractGeneral {
      * @param currentHook The current interaction hook.
      */
     private void processShopCommand(InteractionHook currentHook) {
+        // Attach the current date as a header.
+        ZonedDateTime nowInUTC = ZonedDateTime.now(ZoneId.of("UTC"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy");
+        final String message = "# Fortnite Item Shop" + "\n" + "## " + nowInUTC.format(formatter);
+
+        // Get the shop image and send it.
         CompletableFuture.supplyAsync(() -> convertBufferedImageToFile(FortniteAPI.getShopImage(), "shop"))
-                .thenAccept(file -> handleFileResponse(file, "Failed to get shop image.", currentHook))
+                .thenAccept(file -> handleFileResponse(file, message, "Failed to get shop image.", currentHook))
                 .exceptionally(throwable -> {
                     throwable.printStackTrace();
                     currentHook.editOriginal("Error processing shop command.").queue();
@@ -63,8 +72,11 @@ public class FortniteCommand extends AbstractGeneral {
      * @param currentHook The current interaction hook.
      */
     private void processMapCommand(InteractionHook currentHook) {
+        final String message = "# Fortnite Map";
+
+        // Get the map image and send it.
         CompletableFuture.supplyAsync(() -> convertBufferedImageToFile(FortniteAPI.getMapImage(), "map"))
-                .thenAccept(file -> handleFileResponse(file, "Failed to get map image.", currentHook))
+                .thenAccept(file -> handleFileResponse(file, message, "Failed to get map image.", currentHook))
                 .exceptionally(throwable -> {
                     throwable.printStackTrace();
                     currentHook.editOriginal("Error processing map command.").queue();
@@ -78,9 +90,9 @@ public class FortniteCommand extends AbstractGeneral {
      * @param errorMessage The error message to send if the file is null.
      * @param currentHook The current interaction hook.
      */
-    private void handleFileResponse(File file, String errorMessage, InteractionHook currentHook) {
+    private void handleFileResponse(File file, String message, String errorMessage, InteractionHook currentHook) {
         if (file != null) {
-            currentHook.editOriginalAttachments(FileUpload.fromData(file)).queue(success -> {
+            currentHook.editOriginal(message).setAttachments(FileUpload.fromData(file)).queue(success -> {
                 if (!file.delete()) {
                     System.err.println("Failed to delete file: " + file.getAbsolutePath());
                 }

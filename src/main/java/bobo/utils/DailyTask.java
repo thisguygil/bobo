@@ -8,6 +8,9 @@ import java.io.File;
 import java.sql.*;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -46,6 +49,10 @@ public class DailyTask {
      */
     public void sendFortniteShopImage() {
         TextChannel channel;
+        ZonedDateTime nowInUTC = ZonedDateTime.now(ZoneId.of("UTC"));
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy");
+        final String message = "# Fortnite Item Shop" + "\n" + "## " + nowInUTC.format(formatter);
+
         try (Connection connection = SQLConnection.getConnection();
              Statement statement = connection.createStatement()) {
             ResultSet resultSet = statement.executeQuery(selectFortniteChannelsSQL);
@@ -61,7 +68,7 @@ public class DailyTask {
             while (resultSet.next()) {
                 channel = Bobo.getJDA().getTextChannelById(resultSet.getString("channel_id"));
                 if (channel != null) {
-                    channel.sendFiles(upload).queue(success -> {
+                    channel.sendMessage(message).addFiles(upload).queue(success -> {
                         if (!file.delete()) {
                             System.err.println("Failed to delete file: " + file.getAbsolutePath());
                         }
