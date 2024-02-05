@@ -46,8 +46,8 @@ public final class FortniteAPI {
     }
     private static final String shopBackgroundImagePath = "resources/images/shop_background.jpg";
     private static final int shopMargin = 20; // Number of pixels between the edge of the image and the content. Might be better to make this a percentage of the background image size, but it works either way
-    private static final double shopLengthPerImagePercentage = 0.96; // Percentage of the length per square that each image should take up. Should be 1 - paddingPercentage
-    private static final double shopPaddingPercentage = 0.04; // Percentage of the length per square that should be padding. Should be 1 - availableWidthPerImagePercentage
+    private static final double shopLengthPerImagePercentage = 0.96; // Percentage of the length per square that each image should take up. Should be (1 - paddingPercentage)
+    private static final double shopPaddingPercentage = 0.04; // Percentage of the length per square that should be padding. Should be (1 - availableWidthPerImagePercentage)
     private static final double shopTextPaddingPercentage = 0.02; // Percentage of the length per square that should be padding between the text
     private static final double shopFontSizePercentage = 0.12; // Percentage of the length per square that the font size should be
 
@@ -74,23 +74,42 @@ public final class FortniteAPI {
             Graphics2D g2d = background.createGraphics();
             Color opaqueGray = new Color(128, 128, 128, 128); // RGBA: Gray with 50% opacity for the background behind the text
 
-            // Calculate the number of images per row, number of rows, and length per square, which depend on one other
-            int imagesPerRow = 1;
-            int numRows = 1;
-            int lengthPerSquare = contentWidth;
-            while (lengthPerSquare * imagesPerRow > contentWidth || lengthPerSquare * numRows > contentHeight) {
-                imagesPerRow++;
-                numRows = (int) Math.ceil((double) numItems / imagesPerRow);
-                lengthPerSquare = contentWidth / imagesPerRow;
+            // Initialize the variables to hold the optimal configuration
+            int maxSquareLength = 0;
+            int bestImagesPerRow = 1;
+            int bestNumRows = numItems;
+
+            /*
+            Loop to find the optimal configuration of images per row and number of rows
+            Goes until (numItems / 2) because we can assume that the number of images per row shouldn't exceed half of the total number of items
+             */
+            for (int imagesPerRow = 1; imagesPerRow <= numItems / 2; imagesPerRow++) {
+                int numRows = (int) Math.ceil((double) numItems / imagesPerRow);
+
+                // Calculate the maximum square length based on width
+                int maxSquareLengthWidth = contentWidth / imagesPerRow;
+
+                // Calculate the maximum square length based on height
+                int maxSquareLengthHeight = contentHeight / numRows;
+
+                // Determine the smallest of the two to fit both dimensions
+                int squareLengthForThisConfiguration = Math.min(maxSquareLengthWidth, maxSquareLengthHeight);
+
+                // Update the maximum square length and best configuration
+                if (squareLengthForThisConfiguration > maxSquareLength) {
+                    maxSquareLength = squareLengthForThisConfiguration;
+                    bestImagesPerRow = imagesPerRow;
+                    bestNumRows = numRows;
+                }
             }
 
             // Calculate the number of images in the last row
-            int imagesInLastRow = numItems - ((numRows - 1) * imagesPerRow);
+            int imagesInLastRow = numItems - ((bestNumRows - 1) * bestImagesPerRow);
 
             // Calculate the font size and padding
-            float fontSize = (float) (lengthPerSquare * shopFontSizePercentage);
-            int padding = (int) (lengthPerSquare * shopPaddingPercentage);
-            int textPadding = (int) (lengthPerSquare * shopTextPaddingPercentage);
+            float fontSize = (float) (maxSquareLength * shopFontSizePercentage);
+            int padding = (int) (maxSquareLength * shopPaddingPercentage);
+            int textPadding = (int) (maxSquareLength * shopTextPaddingPercentage);
 
             // Load the font and its metrics
             Font fortniteFont = Font.createFont(Font.TRUETYPE_FONT, new File(fortniteFontPath)).deriveFont(fontSize);
@@ -102,14 +121,14 @@ public final class FortniteAPI {
             int grayRectangleHeight = (stringHeight + textPadding) * 2;
 
             // Initialize the x and y coordinates
-            int x = (contentWidth - (lengthPerSquare * imagesPerRow) + padding) / 2 + shopMargin;
-            int y = (contentHeight - (lengthPerSquare * numRows) + padding) / 2 + shopMargin;
+            int x = (contentWidth - (maxSquareLength * bestImagesPerRow) + padding) / 2 + shopMargin;
+            int y = (contentHeight - (maxSquareLength * bestNumRows) + padding) / 2 + shopMargin;
 
             // Save the initial x coordinate so that we can reset it when we move to the next row
             int initialX = x;
 
             // Calculate the length per image
-            int lengthPerImage = (int) (lengthPerSquare * shopLengthPerImagePercentage);
+            int lengthPerImage = (int) (maxSquareLength * shopLengthPerImagePercentage);
 
             // Get and resize the vbuck icon
             BufferedImage vbuckIcon = resizeImage(ImageIO.read((new URI(vbuckIconUrl)).toURL()), (int) fontSize);
@@ -118,6 +137,7 @@ public final class FortniteAPI {
 
             // Draw the images and text
             int countRows = 1;
+            int countImages = 1;
             for (ShopItem item : shopItems) {
                 String itemUrl = item.imageUrl();
 
@@ -138,12 +158,13 @@ public final class FortniteAPI {
                 int itemImageWidth = itemImage.getWidth();
 
                 // Move to the next row if the image won't fit
-                if (x + itemImageWidth > backgroundWidth - shopMargin) {
+                if (countImages > bestImagesPerRow) {
+                    countImages = 1;
                     countRows++;
 
                     // If this is the last row, center the images
-                    if (countRows == numRows) {
-                        x = (contentWidth - (lengthPerSquare * imagesInLastRow) + padding) / 2 + shopMargin;
+                    if (countRows == bestNumRows) {
+                        x = (contentWidth - (maxSquareLength * imagesInLastRow) + padding) / 2 + shopMargin;
                     } else {
                         x = initialX;
                     }
@@ -197,6 +218,7 @@ public final class FortniteAPI {
 
                 // Move to the next image
                 x += itemImageWidth + padding;
+                countImages++;
             }
 
             g2d.dispose();
@@ -259,7 +281,6 @@ public final class FortniteAPI {
         List<ShopItem> shopItems = new ArrayList<>();
 
         JSONObject shopData = new JSONObject(jsonResponse);
-
         if (!shopData.has("data")) {
             return shopItems;
         }
@@ -278,8 +299,15 @@ public final class FortniteAPI {
             if (!item.has("newDisplayAsset")) {
                 continue;
             }
+            JSONObject newDisplayAsset;
+            try {
+                newDisplayAsset = item.getJSONObject("newDisplayAsset");
+            } catch (JSONException e) {
+                continue;
+            }
+
             // Gets the item image URL
-            JSONObject images = item.getJSONObject("newDisplayAsset").getJSONArray("materialInstances").getJSONObject(0).getJSONObject("images");
+            JSONObject images = newDisplayAsset.getJSONArray("materialInstances").getJSONObject(0).getJSONObject("images");
             if (images.has("Background")) {
                 imageUrl = images.getString("Background");
             } else {
