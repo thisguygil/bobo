@@ -237,7 +237,7 @@ public final class FortniteAPI {
      * @return The resized image.
      */
     @Nonnull
-    public static BufferedImage resizeImage(@Nonnull BufferedImage originalImage, int targetWidth) {
+    private static BufferedImage resizeImage(@Nonnull BufferedImage originalImage, int targetWidth) {
         int newHeight = (int) (originalImage.getHeight() * ((double) targetWidth / originalImage.getWidth()));
         Image resultingImage = originalImage.getScaledInstance(targetWidth, newHeight, Image.SCALE_SMOOTH);
         BufferedImage outputImage = new BufferedImage(targetWidth, newHeight, BufferedImage.TYPE_INT_ARGB);
@@ -268,6 +268,34 @@ public final class FortniteAPI {
         }
 
         return null;
+    }
+
+    /**
+     * Gets the stats image for a Fortnite player.
+     *
+     * @param username The Epic Games username of the Fortnite player.
+     * @return The stats image for the Fortnite player.
+     */
+    public static String getStatsImage(String username) {
+        String jsonResponse = sendGetRequest("/v2/stats/br/v2?name=" + username + "&image=all");
+        if (jsonResponse == null) {
+            return "Error getting stats for " + username;
+        }
+
+        JSONObject statsData = new JSONObject(jsonResponse);
+        return switch (statsData.getInt("status")) {
+            case 200 -> {
+                // Raises JSONException if the image response is null
+                try {
+                    yield statsData.getJSONObject("data").getString("image");
+                } catch (JSONException e) {
+                    yield "Error getting stats for " + username;
+                }
+            }
+            case 403 -> "Account stats are private for " + username;
+            case 404 -> "Account does not exist or has no stats for " + username;
+            default -> "Error getting stats for " + username;
+        };
     }
 
     /**
@@ -413,20 +441,18 @@ public final class FortniteAPI {
     @Nullable
     private static String sendGetRequest(String endpoint) {
         try {
+            // First find and replace any spaces in the endpoint with %20
+            endpoint = endpoint.replace(" ", "%20");
+
             HttpClient httpClient = HttpClients.createDefault();
             HttpGet httpGet = new HttpGet(baseURL + endpoint);
 
             httpGet.setHeader("Authorization", API_KEY);
 
             HttpResponse response = httpClient.execute(httpGet);
-
-            if (response.getStatusLine().getStatusCode() == 200) {
-                HttpEntity entity = response.getEntity();
-                if (entity != null) {
-                    return EntityUtils.toString(entity);
-                }
-            } else {
-                System.out.println("GET request failed. Response Code: " + response.getStatusLine().getStatusCode());
+            HttpEntity entity = response.getEntity();
+            if (entity != null) {
+                return EntityUtils.toString(entity);
             }
         } catch (IOException e) {
             e.printStackTrace();

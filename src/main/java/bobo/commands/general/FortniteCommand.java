@@ -2,6 +2,7 @@ package bobo.commands.general;
 
 import bobo.utils.FortniteAPI;
 import net.dv8tion.jda.api.interactions.InteractionHook;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.utils.FileUpload;
@@ -25,6 +26,8 @@ public class FortniteCommand extends AbstractGeneral {
         super(Commands.slash("fortnite", "Get info about Fortnite.")
                 .addSubcommands(
                         new SubcommandData("shop", "Get an image of the current Fortnite Shop."),
+                        new SubcommandData("stats", "Get stats for a Fortnite player.")
+                                .addOption(OptionType.STRING, "username", "The Epic Games username of the player.", true),
                         new SubcommandData("map", "Get an image of the current Fortnite Map.")
                 )
         );
@@ -43,6 +46,7 @@ public class FortniteCommand extends AbstractGeneral {
 
         switch (subcommandName) {
             case "shop" -> processShopCommand(currentHook);
+            case "stats" -> processStatsCommand(currentHook);
             case "map" -> processMapCommand(currentHook);
         }
     }
@@ -82,6 +86,19 @@ public class FortniteCommand extends AbstractGeneral {
                     currentHook.editOriginal("Error processing map command.").queue();
                     return null;
                 });
+    }
+
+    /**
+     * Processes the stats command.
+     * @param currentHook The current interaction hook.
+     */
+    private void processStatsCommand(InteractionHook currentHook) {
+        String username = Objects.requireNonNull(event.getOption("username")).getAsString();
+
+        // Get the stats image and send it.
+        // Note the output is always a non-null string, so even if the command fails, the user will get a response.
+        String imageUrl = FortniteAPI.getStatsImage(username);
+        currentHook.editOriginal(imageUrl).queue();
     }
 
     /**
