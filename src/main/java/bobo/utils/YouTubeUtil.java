@@ -98,13 +98,14 @@ public final class YouTubeUtil {
      * @param youTubeURL the YouTube link
      * @return the id of the given YouTube link
      */
+    @Nullable
     public static String getYouTubeID(String youTubeURL) {
         String pattern = "(?<=youtu.be/|watch\\?v=|/videos/|embed/)[^#&?]*";
         Matcher matcher = Pattern.compile(pattern).matcher(youTubeURL);
         if (matcher.find()) {
             return matcher.group();
         } else {
-            return "error";
+            return null;
         }
     }
 
@@ -114,6 +115,12 @@ public final class YouTubeUtil {
      */
     @Nullable
     public static BufferedImage getThumbnailImage(String youTubeURL) {
+        // Return null if the link is not a YouTube link
+        String id = getYouTubeID(youTubeURL);
+        if (id == null) {
+            return null;
+        }
+
         // Define the desired aspect ratio
         double aspectRatio = 16.0 / 9.0;
         try {

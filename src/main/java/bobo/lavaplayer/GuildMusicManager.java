@@ -16,10 +16,10 @@ import net.dv8tion.jda.api.utils.FileUpload;
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.file.Paths;
-import java.util.Objects;
 
 /**
  * This class contains instances of AudioPlayer, TrackScheduler and AudioPlayerSendHandler, to manage them all in one place
@@ -62,9 +62,14 @@ public class GuildMusicManager {
                                     .setImage("attachment://thumbnail.jpg")
                                     .setFooter(TimeFormat.formatTime((track.getDuration())));
 
-                            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                             try {
-                                ImageIO.write(Objects.requireNonNull(YouTubeUtil.getThumbnailImage(uri)), "jpg", outputStream);
+                                BufferedImage image = YouTubeUtil.getThumbnailImage(uri);
+                                if (image == null) {
+                                    channel.sendMessageEmbeds(embed.build()).queue();
+                                    return;
+                                }
+                                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                                ImageIO.write(image, "jpg", outputStream);
                                 channel.sendFiles(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg")).setEmbeds(embed.build()).queue();
                             } catch (IOException e) {
                                 channel.sendMessageEmbeds(embed.build()).queue();
