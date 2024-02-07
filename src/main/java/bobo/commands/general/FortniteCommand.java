@@ -25,10 +25,11 @@ public class FortniteCommand extends AbstractGeneral {
     public FortniteCommand() {
         super(Commands.slash("fortnite", "Get info about Fortnite.")
                 .addSubcommands(
-                        new SubcommandData("shop", "Get an image of the current Fortnite Shop."),
+                        new SubcommandData("shop", "Get the current Fortnite Item Shop."),
+                        new SubcommandData("news", "Get the current Fortnite (Battle Royale) news."),
                         new SubcommandData("stats", "Get stats for a Fortnite player.")
                                 .addOption(OptionType.STRING, "username", "The Epic Games username of the player.", true),
-                        new SubcommandData("map", "Get an image of the current Fortnite Map.")
+                        new SubcommandData("map", "Get the current Fortnite Map.")
                 )
         );
     }
@@ -46,6 +47,7 @@ public class FortniteCommand extends AbstractGeneral {
 
         switch (subcommandName) {
             case "shop" -> processShopCommand(currentHook);
+            case "news" -> processNewsCommand(currentHook);
             case "stats" -> processStatsCommand(currentHook);
             case "map" -> processMapCommand(currentHook);
         }
@@ -98,6 +100,17 @@ public class FortniteCommand extends AbstractGeneral {
         // Get the stats image and send it.
         // Note the output is always a non-null string, so even if the command fails, the user will get a response.
         String imageUrl = FortniteAPI.getStatsImage(username);
+        currentHook.editOriginal(imageUrl).queue();
+    }
+
+    /**
+     * Processes the news command.
+     * @param currentHook The current interaction hook.
+     */
+    private void processNewsCommand(InteractionHook currentHook) {
+        // Get the stats image and send it.
+        // Note the output is always a non-null string, so even if the command fails, the user will get a response.
+        String imageUrl = FortniteAPI.getNewsImage();
         currentHook.editOriginal(imageUrl).queue();
     }
 

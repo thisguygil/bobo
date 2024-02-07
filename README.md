@@ -64,6 +64,7 @@ Bobo supports the following web sources and file formats:
 * `/fortnite` - Get info about Fortnite
   * Subcommands:
   * `shop` - Gets the current Fortnite shop
+  * `news` - Gets the current Fortnite (Battle Royale) news
   * `stats <username>` - Gets the stats of `<username>` in Fortnite
   * `map` - Gets the current Fortnite map
 

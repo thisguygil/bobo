@@ -299,6 +299,32 @@ public final class FortniteAPI {
     }
 
     /**
+     * Gets the current Battle Royale news image.
+     *
+     * @return The current Battle Royale news image.
+     */
+    public static String getNewsImage() {
+        String jsonResponse = sendGetRequest("/v2/news/br");
+        if (jsonResponse == null) {
+            return "Error getting news";
+        }
+
+        JSONObject newsData = new JSONObject(jsonResponse);
+        return switch (newsData.getInt("status")) {
+            case 200 -> {
+                // Raises JSONException if the image response is null
+                try {
+                    yield newsData.getJSONObject("data").getString("image");
+                } catch (JSONException e) {
+                    yield "Error getting current Battle Royale news";
+                }
+            }
+            case 404 -> "News are empty or do not exist";
+            default -> "Error getting current Battle Royale news";
+        };
+    }
+
+    /**
      * Parses the JSON response from the Fortnite API to get the shop images.
      *
      * @param jsonResponse The JSON response from the Fortnite API.
