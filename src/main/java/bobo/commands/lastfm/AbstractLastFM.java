@@ -26,6 +26,9 @@ public abstract class AbstractLastFM extends AbstractCommand {
         super(commandData);
     }
 
+    /**
+     * Ensure the user is logged in to Last.fm before handling the command, unless the command is fmlogin.
+     */
     @Override
     protected void handleCommand() {
         // If the command is not fmlogin, check if the user is logged in
@@ -85,8 +88,4 @@ public abstract class AbstractLastFM extends AbstractCommand {
     }
 
     protected abstract void handleLastFMCommand();
-
-    protected static void storeSessionKey(String userId, String sessionKey, String lastfmUsername) {
-
-    }
 }
