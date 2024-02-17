@@ -2,6 +2,7 @@ package bobo;
 
 import bobo.commands.*;
 import bobo.commands.admin.*;
+import bobo.commands.lastfm.*;
 import bobo.commands.owner.*;
 import bobo.commands.ai.*;
 import bobo.commands.general.*;
@@ -34,6 +35,10 @@ public class CommandManager {
         commands.add(new GoogleCommand());
         commands.add(new GetQuoteCommand());
         commands.add(new FortniteCommand());
+
+        // Last.fm commands
+        commands.add(new FMLoginCommand());
+        commands.add(new TrackCommand());
 
         // AI commands
         commands.add(new ChatCommand());
