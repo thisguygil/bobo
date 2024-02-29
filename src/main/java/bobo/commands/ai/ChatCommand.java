@@ -81,8 +81,7 @@ public class ChatCommand extends AbstractAI {
                 .getMessage();
         messages.add(assistantMessage);
 
-        CHANNEL_MESSAGE_MAP.replace(threadChannel, messages);
-        threadChannel.sendMessage(assistantMessage.getContent()).queue();
+        threadChannel.sendMessage(assistantMessage.getContent()).queue(success -> CHANNEL_MESSAGE_MAP.replace(threadChannel, messages));
     }
 
     /**
@@ -102,9 +101,9 @@ public class ChatCommand extends AbstractAI {
     public static void initializeMessages(@Nonnull List<ChatMessage> messages) {
         messages.clear();
         final ChatMessage systemMessage = new ChatMessage(ChatMessageRole.SYSTEM.value(), "You are Bobo, " +
-                "a Discord bot. You use slash commands and provide music, chat, image creation, and other features. " +
-                "Don't refer to yourself as an AI language model. When users talk to you, engage with them. For help, " +
-                "direct users to the 'help' command.");
+                "a Discord bot created by Gil. You use slash commands and provide clipping, music, chat, image " +
+                "creation, Last.fm info, Fortnite info, and other features. Don't refer to yourself as an AI language " +
+                "model. When users talk to you, engage with them. For help, direct users to the 'help' command.");
         messages.add(systemMessage);
     }
 
