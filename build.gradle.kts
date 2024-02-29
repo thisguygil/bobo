@@ -10,10 +10,8 @@ val mainClassName = "bobo.Bobo"
 
 repositories {
     mavenCentral()
-    maven {
-        url = uri("https://m2.dv8tion.net/releases")
-        url = uri("https://jitpack.io")
-    }
+    maven { url = uri("https://m2.dv8tion.net/releases") }
+    maven { url = uri("https://jitpack.io") }
 }
 
 dependencies {
@@ -25,13 +23,13 @@ dependencies {
     implementation("com.github.ygimenez:Pagination-Utils:4.0.6")
     implementation("com.theokanning.openai-gpt3-java:service:0.18.2")
     implementation("dev.arbjerg:lavaplayer:2.1.0")
-    implementation("com.google.api-client:google-api-client:2.2.0")
-    implementation("com.google.oauth-client:google-oauth-client-jetty:1.34.1")
-    implementation("com.google.apis:google-api-services-youtube:v3-rev20230904-2.0.0")
-    implementation("se.michaelthelin.spotify:spotify-web-api-java:8.3.4")
+    implementation("com.google.api-client:google-api-client:2.3.0")
+    implementation("com.google.oauth-client:google-oauth-client-jetty:1.35.0")
+    implementation("com.google.apis:google-api-services-youtube:v3-rev20240213-2.0.0")
+    implementation("se.michaelthelin.spotify:spotify-web-api-java:8.3.6")
     implementation("org.sejda.imageio:webp-imageio:0.1.6")
     implementation("org.apache.httpcomponents:httpclient:4.5.14")
-    implementation("org.json:json:20231013")
+    implementation("org.json:json:20240205")
     implementation("mysql:mysql-connector-java:8.0.33")
     implementation("commons-validator:commons-validator:1.7")
     implementation("ch.qos.logback:logback-classic:1.4.11")
