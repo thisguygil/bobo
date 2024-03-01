@@ -5,6 +5,7 @@ import bobo.commands.ai.TTSCommand;
 import bobo.commands.general.GetQuoteCommand;
 import bobo.commands.voice.JoinCommand;
 import bobo.commands.voice.music.SearchCommand;
+import bobo.lavaplayer.AudioReceiveListener;
 import bobo.lavaplayer.GuildMusicManager;
 import bobo.lavaplayer.PlayerManager;
 import bobo.utils.SQLConnection;
@@ -16,6 +17,7 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
+import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -86,31 +88,44 @@ public class Listener extends ListenerAdapter {
     @Override
     public void onGuildVoiceUpdate(@Nonnull GuildVoiceUpdateEvent event) {
         Guild guild = event.getGuild();
-        if (event.getEntity().equals(guild.getSelfMember()) && event.getChannelLeft() != null) {
-            if (event.getChannelJoined() != null) {
-                return;
-            }
+        AudioChannelUnion channelJoined = event.getChannelJoined();
+        AudioChannelUnion channelLeft = event.getChannelLeft();
 
-            final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(guild);
-            final AudioPlayer player = musicManager.player;
-            final TrackScheduler scheduler = musicManager.scheduler;
-            final AudioManager audioManager = guild.getAudioManager();
-            final BlockingQueue<TrackChannelTypeRecord> queue = scheduler.queue;
-
-            for (TrackChannelTypeRecord record : queue) {
-                if (record.trackType() == TrackType.TTS) {
-                    File file = new File(record.track().getInfo().uri);
-                    if (file.exists() && !file.delete()) {
-                        System.err.println("Failed to delete TTS file: " + file.getName());
-                    }
-                    TTSCommand.removeTTSMessage(file.getName());
+        if (event.getEntity().equals(guild.getSelfMember())) {
+            // Bot is the one who joined or left a voice channel
+            if (channelJoined != null) {
+                // Bot joined a voice channel
+                if (channelLeft != null) {
+                    // Moved to a different voice channel, so don't do anything
+                    return;
                 }
+
+                guild.getAudioManager().setReceivingHandler(new AudioReceiveListener(1));
             }
-            audioManager.setReceivingHandler(null);
-            queue.clear();
-            scheduler.looping = false;
-            player.stopTrack();
-            player.setPaused(false);
+
+            if (channelLeft != null) {
+                // Bot left a voice channel
+                final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(guild);
+                final AudioPlayer player = musicManager.player;
+                final TrackScheduler scheduler = musicManager.scheduler;
+                final AudioManager audioManager = guild.getAudioManager();
+                final BlockingQueue<TrackChannelTypeRecord> queue = scheduler.queue;
+
+                for (TrackChannelTypeRecord record : queue) {
+                    if (record.trackType() == TrackType.TTS) {
+                        File file = new File(record.track().getInfo().uri);
+                        if (file.exists() && !file.delete()) {
+                            System.err.println("Failed to delete TTS file: " + file.getName());
+                        }
+                        TTSCommand.removeTTSMessage(file.getName());
+                    }
+                }
+                audioManager.setReceivingHandler(null);
+                queue.clear();
+                scheduler.looping = false;
+                player.stopTrack();
+                player.setPaused(false);
+            }
         }
     }
 

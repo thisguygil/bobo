@@ -53,7 +53,6 @@ public class JoinCommand extends AbstractVoice {
         try {
             AudioManager audioManager = event.getGuildChannel().getGuild().getAudioManager();
             audioManager.openAudioConnection(voiceChannel);
-            audioManager.setReceivingHandler(new AudioReceiveListener(1));
         } catch (Exception e) {
             event.getHook().editOriginal("Failed to join voice channel.").queue();
             e.printStackTrace();
