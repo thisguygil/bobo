@@ -18,18 +18,16 @@ import javax.imageio.ImageReader;
 import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 public final class FortniteAPI {
     private static final String API_KEY = Config.get("FORTNITE_API_KEY");
     private static final String baseURL = "https://fortnite-api.com";
-    private  static final String fortniteFontPath = "resources/fonts/FortniteFont.otf";
 
     private FortniteAPI() {} // Prevent instantiation
 
@@ -44,7 +42,6 @@ public final class FortniteAPI {
         CAR,
         TRACK
     }
-    private static final String shopBackgroundImagePath = "resources/images/shop_background.jpg";
     private static final int shopMargin = 20; // Number of pixels between the edge of the image and the content. Might be better to make this a percentage of the background image size, but it works either way
     private static final double shopLengthPerImagePercentage = 0.96; // Percentage of the length per square that each image should take up. Should be (1 - paddingPercentage)
     private static final double shopPaddingPercentage = 0.04; // Percentage of the length per square that should be padding. Should be (1 - availableWidthPerImagePercentage)
@@ -64,9 +61,16 @@ public final class FortniteAPI {
         int numItems = shopItems.size();
         String vbuckIconUrl = parseVbuckIconUrl(jsonResponse);
 
-        try {
+        // Load the background image and font
+        try (InputStream backgroundInputStream = FortniteAPI.class.getResourceAsStream("/images/shop_background.jpg");
+             InputStream fontInputStream = FortniteAPI.class.getResourceAsStream("/fonts/FortniteFont.otf")) {
+            // Check if the input streams are null
+            if (backgroundInputStream == null || fontInputStream == null) {
+                return null;
+            }
+
             // Load the background image and get its dimensions
-            BufferedImage background = ImageIO.read((Paths.get(shopBackgroundImagePath).toAbsolutePath()).toUri().toURL());
+            BufferedImage background = ImageIO.read(backgroundInputStream);
             int backgroundWidth = background.getWidth();
             int backgroundHeight = background.getHeight();
             int contentWidth = backgroundWidth - (2 * shopMargin);
@@ -112,7 +116,7 @@ public final class FortniteAPI {
             int textPadding = (int) (maxSquareLength * shopTextPaddingPercentage);
 
             // Load the font and its metrics
-            Font fortniteFont = Font.createFont(Font.TRUETYPE_FONT, new File(fortniteFontPath)).deriveFont(fontSize);
+            Font fortniteFont = Font.createFont(Font.TRUETYPE_FONT, fontInputStream).deriveFont(fontSize);
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
             ge.registerFont(fortniteFont);
             g2d.setFont(fortniteFont);
@@ -497,7 +501,7 @@ public final class FortniteAPI {
          * @return a negative integer, zero, or a positive integer as this item is less than, equal to, or greater than the other item.
          */
         @Override
-        public int compareTo(ShopItem item2) {
+        public int compareTo(@Nonnull ShopItem item2) {
             // Bundle comparison
             if (this.shopItemType == ShopItemType.BUNDLE && item2.shopItemType != ShopItemType.BUNDLE) {
                 return -1;
