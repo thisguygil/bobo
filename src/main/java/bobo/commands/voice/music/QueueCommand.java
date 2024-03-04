@@ -136,6 +136,7 @@ public class QueueCommand extends AbstractMusic {
         }
         queue.clear();
         scheduler.looping = false;
+        scheduler.currentTrack = null;
         player.stopTrack();
         player.setPaused(false);
         hook.editOriginal("Queue cleared.").queue();

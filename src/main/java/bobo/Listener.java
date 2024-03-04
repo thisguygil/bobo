@@ -123,6 +123,7 @@ public class Listener extends ListenerAdapter {
                 audioManager.setReceivingHandler(null);
                 queue.clear();
                 scheduler.looping = false;
+                scheduler.currentTrack = null;
                 player.stopTrack();
                 player.setPaused(false);
             }
