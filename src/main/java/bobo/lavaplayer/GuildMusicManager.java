@@ -1,6 +1,7 @@
 package bobo.lavaplayer;
 
-import bobo.commands.ai.TTSCommand;
+import bobo.commands.voice.music.TTSCommand;
+import bobo.utils.Spotify;
 import bobo.utils.TimeFormat;
 import bobo.utils.TrackChannelTypeRecord;
 import bobo.utils.YouTubeUtil;
@@ -12,14 +13,13 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.utils.FileUpload;
+import se.michaelthelin.spotify.SpotifyApi;
 
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.file.Paths;
 
 /**
  * This class contains instances of AudioPlayer, TrackScheduler and AudioPlayerSendHandler, to manage them all in one place
@@ -59,19 +59,35 @@ public class GuildMusicManager {
                     switch (record.trackType()) {
                         case TRACK -> {
                             embed.setTitle(title, uri)
-                                    .setImage("attachment://thumbnail.jpg")
                                     .setFooter(TimeFormat.formatTime((track.getDuration())));
 
+                            // Get the YouTube thumbnail or Spotify album cover
                             try {
-                                BufferedImage image = YouTubeUtil.getThumbnailImage(uri);
-                                if (image == null) {
+                                String spotifyRegex = "^(https?://)?open.spotify.com/.*";
+                                if (YouTubeUtil.isYouTubeUrl(uri)) {
+                                    // Get the thumbnail
+                                    BufferedImage image = YouTubeUtil.getThumbnailImage(uri);
+                                    if (image == null) {
+                                        channel.sendMessageEmbeds(embed.build()).queue();
+                                        return;
+                                    }
+                                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                                    ImageIO.write(image, "jpg", outputStream);
+                                    embed.setImage("attachment://thumbnail.jpg");
+                                    channel.sendFiles(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg"))
+                                            .setEmbeds(embed.build()).queue();
+                                } else if (uri.matches(spotifyRegex)) {
+                                    // Get the album cover
+                                    SpotifyApi spotifyApi = Spotify.getSpotifyApi();
+
+                                    String id = uri.split("/")[uri.split("/").length - 1];
+                                    String imageUrl = spotifyApi.getTrack(id).build().execute().getAlbum().getImages()[0].getUrl();
+                                    embed.setImage(imageUrl);
                                     channel.sendMessageEmbeds(embed.build()).queue();
-                                    return;
+                                } else {
+                                    channel.sendMessageEmbeds(embed.build()).queue();
                                 }
-                                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                                ImageIO.write(image, "jpg", outputStream);
-                                channel.sendFiles(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg")).setEmbeds(embed.build()).queue();
-                            } catch (IOException e) {
+                            } catch (Exception e) {
                                 channel.sendMessageEmbeds(embed.build()).queue();
                                 e.printStackTrace();
                             }
@@ -82,8 +98,7 @@ public class GuildMusicManager {
                             channel.sendMessageEmbeds(embed.build()).queue();
                         }
                         case TTS -> {
-                            embed.setTitle("TTS Message")
-                                    .setDescription(TTSCommand.getTTSMessage(Paths.get(uri).getFileName().toString()));
+                            embed.setTitle("TTS Message").setDescription(TTSCommand.getTTSMessage(track));
                             channel.sendMessageEmbeds(embed.build()).queue();
                         }
                     }

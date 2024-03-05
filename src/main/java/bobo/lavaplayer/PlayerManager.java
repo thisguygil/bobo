@@ -1,6 +1,10 @@
 package bobo.lavaplayer;
 
+import bobo.Config;
+import bobo.commands.voice.music.TTSCommand;
 import bobo.utils.TrackType;
+import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
+import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
@@ -30,6 +34,8 @@ public class PlayerManager {
     public PlayerManager() {
         this.musicManagers = new HashMap<>();
         this.audioPlayerManager = new DefaultAudioPlayerManager();
+        audioPlayerManager.registerSourceManager(new SpotifySourceManager(null, Config.get("SPOTIFY_CLIENT_ID"), Config.get("SPOTIFY_CLIENT_SECRET"), "US", audioPlayerManager));
+        audioPlayerManager.registerSourceManager(new FloweryTTSSourceManager("Eric"));
         AudioSourceManagers.registerRemoteSources(this.audioPlayerManager);
         AudioSourceManagers.registerLocalSource(this.audioPlayerManager);
     }
@@ -74,7 +80,10 @@ public class PlayerManager {
                         AudioTrackInfo info = track.getInfo();
                         hook.editOriginal("Adding to queue [" + info.title + "](<" + info.uri + ">) by **" + info.author + "**").queue();
                     }
-                    case TTS -> hook.editOriginal("Adding to queue **TTS**").queue();
+                    case TTS -> {
+                        hook.editOriginal("Adding to queue **TTS**").queue();
+                        TTSCommand.addTTSMessage(track, trackURL.replace("ftts://", "").replace("%20", " "));
+                    }
                 }
                 scheduler.queue(track, channel, trackType);
             }
@@ -82,7 +91,8 @@ public class PlayerManager {
             @Override
             public void playlistLoaded(AudioPlaylist playlist) {
                 final List<AudioTrack> tracks = playlist.getTracks();
-                hook.editOriginal("Adding to queue **" + tracks.size() + "** tracks from playlist [" + playlist.getName() + "](<" + trackURL + ">)").queue();
+                String regex = "^(https://open.spotify.com/album/|spotify:album:)([a-zA-Z0-9]+)(.*)";
+                hook.editOriginal("Adding to queue **" + tracks.size() + "** tracks from " + (trackURL.matches(regex) ? "album" : "playlist") + " [" + playlist.getName() + "](<" + trackURL + ">)").queue();
                 for (final AudioTrack track : tracks) {
                     scheduler.queue(track, channel, TrackType.TRACK);
                 }

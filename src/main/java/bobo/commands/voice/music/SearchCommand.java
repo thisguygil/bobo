@@ -48,7 +48,7 @@ public class SearchCommand extends AbstractMusic {
                                         new SubcommandData("playlist", "Searches YouTube for a playlist.")
                                                 .addOption(OptionType.STRING, "query", "What to search", true)
                                 ),
-                        new SubcommandGroupData("spotify", "Searches Spotify for a track/playlist/album (NOTE: PLAYS THROUGH YOUTUBE).")
+                        new SubcommandGroupData("spotify", "Searches Spotify for a track/playlist/album.")
                                 .addSubcommands(
                                         new SubcommandData("track", "Searches Spotify for a track.")
                                                 .addOption(OptionType.STRING, "query", "What to search", true),

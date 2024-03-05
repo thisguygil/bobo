@@ -95,6 +95,17 @@ public final class YouTubeUtil {
     }
 
     /**
+     * Method to check if the given link is a YouTube link.
+     *
+     * @param youTubeURL the YouTube link
+     * @return true if the given link is a YouTube link, false otherwise
+     */
+    public static boolean isYouTubeUrl(String youTubeURL) {
+        String pattern = "(?:youtu\\.be/|youtube\\.com/watch\\?v=|youtube\\.com/videos/|youtube\\.com/embed/)[^#&?]*";
+        return Pattern.compile(pattern).matcher(youTubeURL).find();
+    }
+
+    /**
      * @param youTubeURL the YouTube link
      * @return the id of the given YouTube link
      */

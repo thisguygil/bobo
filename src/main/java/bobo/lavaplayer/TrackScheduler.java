@@ -1,6 +1,6 @@
 package bobo.lavaplayer;
 
-import bobo.commands.ai.TTSCommand;
+import bobo.commands.voice.music.TTSCommand;
 import bobo.utils.TrackChannelTypeRecord;
 import bobo.utils.TrackType;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
@@ -11,7 +11,6 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
 import javax.annotation.Nonnull;
-import java.io.File;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -75,11 +74,7 @@ public class TrackScheduler extends AudioEventAdapter {
                     case TRACK, FILE -> nextTrack();
                     case TTS -> {
                         nextTrack();
-                        File file = new File(track.getInfo().uri);
-                        if (file.exists() && !file.delete()) {
-                            System.err.println("Failed to delete TTS file: " + file.getName());
-                        }
-                        TTSCommand.removeTTSMessage(file.getName());
+                        TTSCommand.removeTTSMessage(track);
                     }
                 }
             }

@@ -1,6 +1,5 @@
 package bobo.commands.voice.music;
 
-import bobo.commands.ai.TTSCommand;
 import bobo.utils.TrackChannelTypeRecord;
 import bobo.utils.TimeFormat;
 import bobo.utils.TrackType;
@@ -17,7 +16,6 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 
 import java.awt.*;
-import java.io.File;
 import java.util.*;
 import java.util.List;
 
@@ -126,12 +124,8 @@ public class QueueCommand extends AbstractMusic {
      */
     private void clear() {
         for (TrackChannelTypeRecord record : queue) {
-            if (record.trackType() == TrackType.TTS) {
-                File file = new File(record.track().getInfo().uri);
-                if (file.exists() && !file.delete()) {
-                    System.err.println("Failed to delete TTS file: " + file.getName());
-                }
-                TTSCommand.removeTTSMessage(file.getName());
+            if (currentTrack.trackType() == TrackType.TTS) {
+                TTSCommand.removeTTSMessage(currentTrack.track());
             }
         }
         queue.clear();
@@ -154,11 +148,7 @@ public class QueueCommand extends AbstractMusic {
 
         if (position == 1) {
             if (currentTrack.trackType() == TrackType.TTS) {
-                File file = new File(currentTrack.track().getInfo().uri);
-                if (file.exists() && !file.delete()) {
-                    System.err.println("Failed to delete TTS file: " + file.getName());
-                }
-                TTSCommand.removeTTSMessage(file.getName());
+                TTSCommand.removeTTSMessage(currentTrack.track());
             }
             scheduler.looping = false;
             scheduler.nextTrack();
@@ -169,11 +159,7 @@ public class QueueCommand extends AbstractMusic {
             while (iterator.hasNext()) {
                 if (count == position) {
                     if (currentTrack.trackType() == TrackType.TTS) {
-                        File file = new File(currentTrack.track().getInfo().uri);
-                        if (file.exists() && !file.delete()) {
-                            System.err.println("Failed to delete TTS file: " + file.getName());
-                        }
-                        TTSCommand.removeTTSMessage(file.getName());
+                        TTSCommand.removeTTSMessage(currentTrack.track());
                     }
                     iterator.remove();
                 }
@@ -182,11 +168,7 @@ public class QueueCommand extends AbstractMusic {
             }
             if (count == position) {
                 if (currentTrack.trackType() == TrackType.TTS) {
-                    File file = new File(currentTrack.track().getInfo().uri);
-                    if (file.exists() && !file.delete()) {
-                        System.err.println("Failed to delete TTS file: " + file.getName());
-                    }
-                    TTSCommand.removeTTSMessage(file.getName());
+                    TTSCommand.removeTTSMessage(currentTrack.track());
                 }
                 iterator.remove();
             }

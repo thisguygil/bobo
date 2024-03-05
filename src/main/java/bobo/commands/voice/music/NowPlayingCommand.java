@@ -1,6 +1,6 @@
 package bobo.commands.voice.music;
 
-import bobo.commands.ai.TTSCommand;
+import bobo.utils.Spotify;
 import bobo.utils.TimeFormat;
 import bobo.utils.YouTubeUtil;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
@@ -8,12 +8,12 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.utils.FileUpload;
+import se.michaelthelin.spotify.SpotifyApi;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.nio.file.Paths;
-import java.util.Objects;
 
 public class NowPlayingCommand extends AbstractMusic {
     /**
@@ -43,19 +43,37 @@ public class NowPlayingCommand extends AbstractMusic {
         switch (currentTrack.trackType()) {
             case TRACK -> {
                 embed.setTitle(title, uri)
-                        .setImage("attachment://thumbnail.jpg")
                         .setFooter(TimeFormat.formatTime(currentAudioTrack.getDuration() - currentAudioTrack.getPosition()) + " left");
 
-                ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                // Get the YouTube thumbnail or Spotify album cover
                 try {
-                    ImageIO.write(Objects.requireNonNull(YouTubeUtil.getThumbnailImage(uri)), "jpg", outputStream);
+                    String spotifyRegex = "^(https?://)?open.spotify.com/.*";
+                    if (YouTubeUtil.isYouTubeUrl(uri)) {
+                        // Get the thumbnail
+                        BufferedImage image = YouTubeUtil.getThumbnailImage(uri);
+                        if (image == null) {
+                            hook.editOriginalEmbeds(embed.build()).queue();
+                            return;
+                        }
+                        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                        ImageIO.write(image, "jpg", outputStream);
+                        embed.setImage("attachment://thumbnail.jpg");
+                        hook.editOriginalAttachments(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg"))
+                                .setEmbeds(embed.build()).queue();
+                    } else if (spotifyRegex.matches(uri)) {
+                        // Get the album cover
+                        SpotifyApi spotifyApi = Spotify.getSpotifyApi();
+
+                        String id = uri.split("/")[uri.split("/").length - 1];
+                        String imageUrl = spotifyApi.getTrack(id).build().execute().getAlbum().getImages()[0].getUrl();
+                        embed.setImage(imageUrl);
+                    } else {
+                        hook.editOriginalEmbeds(embed.build()).queue();
+                    }
                 } catch (Exception e) {
-                    embed.setImage("https://img.youtube.com/vi/" + YouTubeUtil.getYouTubeID(uri) + "/hqdefault.jpg");
                     hook.editOriginalEmbeds(embed.build()).queue();
                     e.printStackTrace();
-                    return;
                 }
-                hook.editOriginalAttachments(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg")).setEmbeds(embed.build()).queue();
             }
             case FILE -> {
                 embed.setTitle(title, uri)
@@ -63,8 +81,7 @@ public class NowPlayingCommand extends AbstractMusic {
                 hook.editOriginalEmbeds(embed.build()).queue();
             }
             case TTS -> {
-                embed.setTitle("TTS Message")
-                        .setDescription(TTSCommand.getTTSMessage(Paths.get(uri).getFileName().toString()));
+                embed.setTitle("TTS Message").setDescription(TTSCommand.getTTSMessage(currentAudioTrack));
                 hook.editOriginalEmbeds(embed.build()).queue();
             }
         }

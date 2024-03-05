@@ -22,8 +22,6 @@ public class ConfigCommand extends AbstractAdmin {
     private static final String insertOrUpdateQuotesSQL = "INSERT INTO quotes_channels (guild_id, channel_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE channel_id = ?";
     private static final String createFortniteShopTableSQL = "CREATE TABLE IF NOT EXISTS fortnite_shop_channels (guild_id VARCHAR(255) PRIMARY KEY, channel_id VARCHAR(255) NOT NULL)";
     private static final String insertOrUpdateFortniteShopSQL = "INSERT INTO fortnite_shop_channels (guild_id, channel_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE channel_id = ?";
-    private static final String createTTSVoiceTableSQL = "CREATE TABLE IF NOT EXISTS tts_voice (guild_id VARCHAR(255) PRIMARY KEY, voice VARCHAR(255) NOT NULL)";
-    private static final String insertOrUpdateTTSVoiceSQL = "INSERT INTO tts_voice (guild_id, voice) VALUES (?, ?) ON DUPLICATE KEY UPDATE voice = ?";
     private static final String resetClipsSQL = "DELETE FROM clips_channels WHERE guild_id = ?";
     private static final String resetQuotesSQL = "DELETE FROM quotes_channels WHERE guild_id = ?";
     private static final String resetFortniteShopSQL = "DELETE FROM fortnite_shop_channels WHERE guild_id = ?";
@@ -42,22 +40,12 @@ public class ConfigCommand extends AbstractAdmin {
                                 .addOption(OptionType.INTEGER, "channel-id", "ID of the channel. Defaults to current channel.", false)
                 )
                 .addSubcommandGroups(
-                        new SubcommandGroupData("tts-voice", "Sets the TTS voice for the server.")
-                                .addSubcommands(
-                                        new SubcommandData("alloy", "Sets the TTS voice to alloy."),
-                                        new SubcommandData("echo", "Sets the TTS voice to echo."),
-                                        new SubcommandData("fable", "Sets the TTS voice to fable."),
-                                        new SubcommandData("onyx", "Sets the TTS voice to onyx."),
-                                        new SubcommandData("nova", "Sets the TTS voice to nova."),
-                                        new SubcommandData("shimmer", "Sets the TTS voice to shimmer.")
-                                ),
                         new SubcommandGroupData("reset", "Resets the configured channel in the server.")
                                 .addSubcommands(
                                         new SubcommandData("clips", "Resets the clips channel."),
                                         new SubcommandData("quotes", "Resets the quotes channel."),
                                         new SubcommandData("fortnite-shop", "Resets the Fortnite Shop channel.")
                                 )
-
                 )
         );
     }
@@ -78,14 +66,11 @@ public class ConfigCommand extends AbstractAdmin {
         String subcommandName = Objects.requireNonNull(event.getSubcommandName());
 
         if (subcommandGroupName != null) {
-            switch (subcommandGroupName) {
-                case "tts-voice" -> setTTSVoice(guildId, subcommandName);
-                case "reset" -> {
-                    switch (subcommandName) {
-                        case "clips" -> resetClips(guildId);
-                        case "quotes" -> resetQuotes(guildId);
-                        case "fortnite-shop" -> resetFortniteShop(guildId);
-                    }
+            if (subcommandGroupName.equals("reset")) {
+                switch (subcommandName) {
+                    case "clips" -> resetClips(guildId);
+                    case "quotes" -> resetQuotes(guildId);
+                    case "fortnite-shop" -> resetFortniteShop(guildId);
                 }
             }
         } else {
@@ -169,30 +154,6 @@ public class ConfigCommand extends AbstractAdmin {
             e.printStackTrace();
         }
         hook.editOriginal("The daily Fortnite Shop will be sent in <#" + channelId + "> every day at 0:01 UTC.").queue();
-    }
-
-    /**
-     * Sets the TTS voice for the given guild.
-     *
-     * @param guildId the ID of the guild
-     * @param voice the voice to set
-     */
-    private void setTTSVoice(String guildId, String voice) {
-        try (Connection connection = SQLConnection.getConnection()) {
-            try (Statement statement = connection.createStatement()) {
-                statement.execute(createTTSVoiceTableSQL);
-            }
-
-            try (PreparedStatement statement = connection.prepareStatement(insertOrUpdateTTSVoiceSQL)) {
-                statement.setString(1, guildId);
-                statement.setString(2, voice);
-                statement.setString(3, voice);
-                statement.executeUpdate();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        hook.editOriginal("TTS voice set to " + voice + ".").queue();
     }
 
     /**

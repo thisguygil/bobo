@@ -1,4 +1,4 @@
-package bobo.lavaplayer;
+package bobo.utils;
 
 import net.dv8tion.jda.api.audio.AudioReceiveHandler;
 import net.dv8tion.jda.api.audio.CombinedAudio;

@@ -1,13 +1,13 @@
 package bobo;
 
 import bobo.commands.ai.ChatCommand;
-import bobo.commands.ai.TTSCommand;
 import bobo.commands.general.GetQuoteCommand;
 import bobo.commands.voice.JoinCommand;
 import bobo.commands.voice.music.SearchCommand;
-import bobo.lavaplayer.AudioReceiveListener;
+import bobo.commands.voice.music.TTSCommand;
 import bobo.lavaplayer.GuildMusicManager;
 import bobo.lavaplayer.PlayerManager;
+import bobo.utils.AudioReceiveListener;
 import bobo.utils.SQLConnection;
 import bobo.utils.TrackChannelTypeRecord;
 import bobo.lavaplayer.TrackScheduler;
@@ -30,7 +30,6 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 import javax.annotation.Nonnull;
-import java.io.File;
 import java.sql.*;
 import java.util.concurrent.BlockingQueue;
 
@@ -113,11 +112,7 @@ public class Listener extends ListenerAdapter {
 
                 for (TrackChannelTypeRecord record : queue) {
                     if (record.trackType() == TrackType.TTS) {
-                        File file = new File(record.track().getInfo().uri);
-                        if (file.exists() && !file.delete()) {
-                            System.err.println("Failed to delete TTS file: " + file.getName());
-                        }
-                        TTSCommand.removeTTSMessage(file.getName());
+                        TTSCommand.removeTTSMessage(record.track());
                     }
                 }
                 audioManager.setReceivingHandler(null);

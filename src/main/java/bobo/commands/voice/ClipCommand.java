@@ -1,7 +1,7 @@
 package bobo.commands.voice;
 
 import bobo.Bobo;
-import bobo.lavaplayer.AudioReceiveListener;
+import bobo.utils.AudioReceiveListener;
 import bobo.utils.SQLConnection;
 import net.dv8tion.jda.api.audio.AudioReceiveHandler;
 import net.dv8tion.jda.api.entities.Guild;
