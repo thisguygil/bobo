@@ -110,6 +110,8 @@ public class Bobo {
                 }
             }
 
+            jda.getGuilds().forEach(guild -> guild.getAudioManager().closeAudioConnection());
+
             try (Connection connection = SQLConnection.getConnection()) {
                 try (Statement statement = connection.createStatement()) {
                     statement.execute(resetVoiceChannelsShutdownTableSQL);
