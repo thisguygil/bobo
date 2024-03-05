@@ -9,6 +9,7 @@ import net.dv8tion.jda.api.JDABuilder;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.requests.GatewayIntent;
+import net.dv8tion.jda.api.utils.cache.CacheFlag;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -31,6 +32,7 @@ public class Bobo {
     public static void main(String[] args) {
         jda = JDABuilder.createDefault(Config.get("TOKEN"))
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT)
+                .enableCache(CacheFlag.VOICE_STATE)
                 .build();
 
         jda.addEventListener(new Listener());
