@@ -11,6 +11,8 @@ import org.jetbrains.annotations.Nullable;
 
 import javax.annotation.Nonnull;
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Map;
@@ -43,16 +45,13 @@ public final class LastfmAPI {
             params.put("format", "json");
         }
 
-        // Build the URL with the given parameters
+        // Build the URL with the given parameters encoded
         StringBuilder urlBuilder = new StringBuilder(rootURL).append("?");
         for (Map.Entry<String, String> entry : params.entrySet()) {
-            urlBuilder.append("&").append(entry.getKey())
-                    .append("=").append(entry.getValue());
+            urlBuilder.append("&").append(URLEncoder.encode(entry.getKey(), StandardCharsets.UTF_8))
+                    .append("=").append(URLEncoder.encode(entry.getValue(), StandardCharsets.UTF_8));
         }
         String url = urlBuilder.toString();
-
-        // Ensure any spaces are replaced with %20
-        url = url.replace(" ", "%20");
 
         // Send the GET request and return the response
         try {

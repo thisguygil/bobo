@@ -471,9 +471,6 @@ public final class FortniteAPI {
     @Nullable
     private static String sendGetRequest(String endpoint) {
         try {
-            // First find and replace any spaces in the endpoint with %20
-            endpoint = endpoint.replace(" ", "%20");
-
             HttpClient httpClient = HttpClients.createDefault();
             HttpGet httpGet = new HttpGet(baseURL + endpoint);
 

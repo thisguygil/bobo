@@ -82,7 +82,7 @@ public class PlayerManager {
                     }
                     case TTS -> {
                         hook.editOriginal("Adding to queue **TTS**").queue();
-                        TTSCommand.addTTSMessage(track, trackURL.replace("ftts://", "").replace("%20", " "));
+                        TTSCommand.addTTSMessage(track, trackURL.replace("ftts://", "").replace("%20", " ").replace("%22", "\""));
                     }
                 }
                 scheduler.queue(track, channel, trackType);

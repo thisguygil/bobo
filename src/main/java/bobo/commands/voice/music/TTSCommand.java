@@ -56,6 +56,7 @@ public class TTSCommand extends AbstractMusic {
 
         String message = Objects.requireNonNull(event.getOption("message")).getAsString();
         message = message.replaceAll(" ", "%20");
+        message = message.replaceAll("\"", "%22");
 
         PlayerManager.getInstance().loadAndPlay(event, "ftts://" + message, TrackType.TTS);
     }
