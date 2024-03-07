@@ -18,7 +18,7 @@ public class TrackCommand extends AbstractLastFM {
      * Creates a new track command.
      */
     public TrackCommand() {
-        super(Commands.slash("track", "Gets information about a given track or last played track on LastFM.")
+        super(Commands.slash("track", "Gets information about a given track or last played track on Last.fm")
                 .addOption(OptionType.STRING, "track", "The track to get information of (no input defaults to last played track)", false)
         );
     }
