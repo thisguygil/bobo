@@ -10,7 +10,7 @@ The greatest Discord bot on the planet (don't fact-check that).
   * Chat with AI with [ChatGPT](https://chat.openai.com/)
   * AI-generate images with [DALL-E 3](https://openai.com/dall-e-3)
 * Search Google for images
-* Get Fortnite stats, shop updates, and maps with [Fortnite-API](https://fortnite-api.com/)
+* Get Fortnite stats, daily shop updates, and maps with [Fortnite-API](https://fortnite-api.com/)
 
 ## Supported sources and formats for music
 Bobo supports all the web sources and file formats supported by [Lavaplayer](https://github.com/lavalink-devs/lavaplayer), as well as Spotify supported by [LavaSrc](https://github.com/topi314/LavaSrc)
