@@ -100,7 +100,11 @@ public class PlayerManager {
 
             @Override
             public void noMatches() {
-                hook.editOriginal("Nothing found by **" + trackURL + "**").queue();
+                if (trackType == TrackType.TTS) {
+                    hook.editOriginal("No speakable text found").queue();
+                } else {
+                    hook.editOriginal("Nothing found by **" + trackURL + "**").queue();
+                }
             }
 
             @Override
