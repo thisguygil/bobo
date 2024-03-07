@@ -60,38 +60,39 @@ public class Bobo {
     }
 
     /**
-     * Starts daily tasks.
+     * Starts daily tasks. THIS DEPENDS ON THE TIME ZONE OF THE BOT. HERE IT IS UTC.
      */
     public static void startDailyTasks() {
-        // Get the current time in Eastern Time
-        ZonedDateTime nowEastern = ZonedDateTime.now(ZoneId.of("America/New_York"));
+        // Get the current time in UTC
+        ZonedDateTime nowUTC = ZonedDateTime.now(ZoneId.of("UTC"));
 
-        // Fortnite shop resets at 0:00 UTC, which is 7:00 PM EST or 8:00 PM EDT depending on whether it is daylight savings time or not
-        // While the shop resets at 0:00 EST, we give it an extra minute to make sure the API is updated
-        // Therefore, we set the target time to 7:01 PM EST or 8:01 PM EDT depending on whether it is daylight savings time or not
-        ZonedDateTime zonedFortniteShopResetTime = nowEastern.withMinute(1).withSecond(0).withNano(0);
+        // Set the Fortnite shop reset time at 00:01 UTC
+        ZonedDateTime zonedFortniteShopResetTime = nowUTC.withHour(0).withMinute(1).withSecond(0).withNano(0);
 
-        // Set the hour depending on whether it is daylight savings time or not
-        if (nowEastern.getZone().getRules().isDaylightSavings(nowEastern.toInstant())) {
-            zonedFortniteShopResetTime = zonedFortniteShopResetTime.withHour(20);
-        } else {
-            zonedFortniteShopResetTime = zonedFortniteShopResetTime.withHour(19);
+        // Ensure the Fortnite shop reset time is set to the next occurrence if the current time is past today's reset time
+        if (nowUTC.isAfter(zonedFortniteShopResetTime)) {
+            zonedFortniteShopResetTime = zonedFortniteShopResetTime.plusDays(1);
+        }
+
+        // Set the bot restart time at 08:00 UTC
+        ZonedDateTime zonedBotRestartTime = nowUTC.withHour(8).withMinute(0).withSecond(0).withNano(0);
+
+        // Ensure the bot restart time is set to the next occurrence if the current time is past today's restart time
+        if (nowUTC.isAfter(zonedBotRestartTime)) {
+            zonedBotRestartTime = zonedBotRestartTime.plusDays(1);
         }
 
         // Get LocalDateTime objects for all the necessary times
-        LocalDateTime now = nowEastern.toLocalDateTime();
         LocalDateTime FortniteShopResetTime = zonedFortniteShopResetTime.toLocalDateTime();
-        LocalDateTime botRestartTime = now.withHour(3).withMinute(0).withSecond(0).withNano(0);
+        LocalDateTime botRestartTime = zonedBotRestartTime.toLocalDateTime();
 
         // Sends Fortnite shop image to all registered Discord channels.
         DailyTask dailyFortniteShop = new DailyTask();
         dailyFortniteShop.startDailyTask(dailyFortniteShop::sendFortniteShopImage, FortniteShopResetTime, TimeUnit.DAYS.toMillis(1));
 
-        // Restarts the bot daily at 3:00 AM EST/EDT.
+        // Restarts the bot daily at 8:00 AM UTC.
         DailyTask dailyBotRestart = new DailyTask();
         dailyBotRestart.startDailyTask(Bobo::restart, botRestartTime, TimeUnit.DAYS.toMillis(1));
-        // It may seem counterintuitive to set a recurring daily restart since it will only restart once before setting
-        // it up again, but this is in case there is an error one day with the restart; it can just try again the next day.
     }
 
     /**
