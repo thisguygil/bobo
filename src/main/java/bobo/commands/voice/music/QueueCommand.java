@@ -56,50 +56,60 @@ public class QueueCommand extends AbstractMusic {
      * Shows the current queue.
      */
     private void show() {
+        // Initialize all necessary variables
         final List<TrackChannelTypeRecord> trackList = new ArrayList<>(queue);
-        final List<Page> pages = new ArrayList<>();
-        TrackType trackType = currentTrack.trackType();
-        trackList.add(0, new TrackChannelTypeRecord(currentTrack.track(), event.getMessageChannel(), trackType));
-
-        AudioTrack track;
-        AudioTrackInfo info;
-        int count = 0;
-        int numPages = trackList.size();
+        trackList.add(0, new TrackChannelTypeRecord(currentTrack.track(), event.getMessageChannel(), currentTrack.trackType()));
+        List<EmbedBuilder> builders = new ArrayList<>();
+        List<Page> pages = new ArrayList<>();
+        StringBuilder tracksField = new StringBuilder();
+        int charCount = 0;
+        int trackCounter = 1;
+        int beginTrackCounter = 1;
         Member member = event.getMember();
         assert member != null;
-        EmbedBuilder builder = new EmbedBuilder()
-                .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getEffectiveAvatarUrl())
+
+        // Initialize the first page
+        EmbedBuilder builder = new EmbedBuilder().setAuthor(member.getUser().getEffectiveName(), "https://discord.com/users/" + member.getId(), member.getEffectiveAvatarUrl())
                 .setTitle("Current Queue")
-                .setColor(Color.red)
-                .setFooter("Page 1/" + (int) Math.ceil((double) numPages / 10));
+                .setColor(Color.red);
 
-        for (int i = 0; i < numPages; i++) {
-            track = trackList.get(i).track();
-            info = track.getInfo();
+        // Add all tracks to the pages
+        for (TrackChannelTypeRecord record : trackList) {
+            String trackInfo = formatTrackInfo(trackCounter, record);
+            if (charCount + trackInfo.length() > 1024) {
+                // Create a page for the current tracks
+                builder.addField(beginTrackCounter == trackCounter ? "Track " + beginTrackCounter : "Tracks " + beginTrackCounter + " - " + (trackCounter - 1), tracksField.toString(), false);
+                builders.add(builder);
 
-            long duration = track.getDuration();
-            String timeLeft = "[" + (i == 0 ? TimeFormat.formatTime(duration - track.getPosition()) : TimeFormat.formatTime(duration)) + (i == 0 ? " left] (currently " + (scheduler.looping ? "loop" : "play") + "ing)" : "]") + "\n";
-
-            switch (trackType) {
-                case TRACK, FILE -> builder.addField((i + 1) + ":", "[" + info.title + "](" + info.uri + ") by **" + info.author + "** " + timeLeft, false);
-                case TTS -> builder.addField((i + 1) + ":", "TTS Message " + timeLeft, false);
-            }
-
-            count++;
-            if (count == 10) {
-                pages.add(InteractPage.of(builder.build()));
-                builder = new EmbedBuilder()
-                        .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getEffectiveAvatarUrl())
+                // Reset for the next page
+                builder = new EmbedBuilder().setAuthor(member.getUser().getEffectiveName(), "https://discord.com/users/" + member.getId(), member.getEffectiveAvatarUrl())
                         .setTitle("Current Queue")
-                        .setColor(Color.red)
-                        .setFooter("Page " + ((int) Math.ceil((double) (i + 1) / 10) + 1) + "/" + ((int) Math.ceil((double) numPages / 10)));
-                count = 0;
+                        .setColor(Color.red);
+                tracksField = new StringBuilder();
+                charCount = 0;
+                beginTrackCounter = trackCounter;
             }
-        }
-        if (!builder.getFields().isEmpty()) {
-            pages.add(InteractPage.of(builder.build()));
+
+            tracksField.append(trackInfo);
+            charCount += trackInfo.length();
+            trackCounter++;
         }
 
+        // Add any remaining tracks to the last page
+        if (!tracksField.toString().isEmpty()) {
+            builder.addField(beginTrackCounter == trackCounter ? "Track " + beginTrackCounter : "Tracks " + beginTrackCounter + " - " + trackCounter, tracksField.toString(), false);
+            builders.add(builder);
+        }
+
+        // Add page counts to the footers and construct the pages
+        int pageCount = 1;
+        for (EmbedBuilder embedBuilder : builders) {
+            embedBuilder.setFooter("Page " + pageCount + " of " + builders.size());
+            pages.add(InteractPage.of(embedBuilder.build()));
+            pageCount++;
+        }
+
+        // Send only one page if there is only one page, otherwise paginate
         if (pages.size() == 1) {
             hook.editOriginalEmbeds((MessageEmbed) pages.get(0).getContent()).queue();
         } else {
@@ -175,6 +185,24 @@ public class QueueCommand extends AbstractMusic {
         }
 
         hook.editOriginal("Removed track at position **" + position + "**.").queue();
+    }
+
+    /**
+     * Formats the track info.
+     * @param index the index of the track
+     * @param record the track record
+     * @return the formatted track info
+     */
+    private String formatTrackInfo(int index, TrackChannelTypeRecord record) {
+        AudioTrack track = record.track();
+        AudioTrackInfo info = track.getInfo();
+        String timeLeft = String.format("[%s]\n", (index == 1 ? TimeFormat.formatTime(track.getDuration() - track.getPosition()) + " left" : TimeFormat.formatTime(track.getDuration())));
+        String trackDetails = "";
+        switch (record.trackType()) {
+            case TRACK, FILE -> trackDetails = String.format("**%d**. [%s](%s) by **%s** %s", index, info.title, info.uri, info.author, timeLeft);
+            case TTS -> trackDetails = String.format("**%d**. TTS Message: \"%s\" %s", index, info.title, timeLeft);
+        }
+        return trackDetails;
     }
 
     @Override
