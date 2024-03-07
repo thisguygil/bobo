@@ -99,11 +99,13 @@ public class TrackCommand extends AbstractLastFM {
         // Send the track's information in an embed
         EmbedBuilder embed = new EmbedBuilder()
                 .setTitle(trackName + " by " + artistName, trackURL)
-                .setThumbnail(trackImage)
                 .setColor(Color.RED)
                 .addField("Duration", wrapInBackQuotes(trackDuration), true)
                 .addField("Stats", wrapInBackQuotes(String.valueOf(trackListeners)) + " listeners\n" + wrapInBackQuotes(String.valueOf(trackPlayCount)) + " global play" + (trackPlayCount == 1 ? "" : "s") + "\n" + wrapInBackQuotes(String.valueOf(userPlayCount)) + " play" + (userPlayCount == 1 ? "" : "s") + " by you", true);
-        if (trackSummary != null) {
+        if (trackImage != null && !trackImage.isBlank()) {
+            embed.setThumbnail(trackImage);
+        }
+        if (trackSummary != null && !trackSummary.isBlank()) {
             embed.addField("Summary", trackSummary, false);
         }
 
