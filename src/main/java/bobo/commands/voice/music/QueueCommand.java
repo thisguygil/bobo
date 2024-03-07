@@ -124,8 +124,8 @@ public class QueueCommand extends AbstractMusic {
      */
     private void clear() {
         for (TrackChannelTypeRecord record : queue) {
-            if (currentTrack.trackType() == TrackType.TTS) {
-                TTSCommand.removeTTSMessage(currentTrack.track());
+            if (record.trackType() == TrackType.TTS) {
+                TTSCommand.removeTTSMessage(record.track());
             }
         }
         queue.clear();
