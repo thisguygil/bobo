@@ -1,36 +1,19 @@
 # Bobo
 
-The greatest Discord bot on the planet.
+The greatest Discord bot on the planet (don't fact-check that).
 
 ## Features
-* Playing music in voice channels from all Lavaplayer-supported sources (see below) and Spotify
+* Playing music in voice channels from supported sources (see below)
 * Clipping audio from voice channels (can configure channel to receive all clips)
-* Text-to-speech with AI in voice channels
-* Chat with AI (ChatGPT)
-* AI-generate Images (DALL-E)
-* Search Google for Images
-* Get Fortnite shop updates/maps
+* Text-to-speech with [Flowery TTS](https://flowery.pw/) in voice channels
+* OpenAI integration
+  * Chat with AI with [ChatGPT](https://chat.openai.com/)
+  * AI-generate images with [DALL-E 3](https://openai.com/dall-e-3)
+* Search Google for images
+* Get Fortnite stats, shop updates, and maps with [Fortnite-API](https://fortnite-api.com/)
 
 ## Supported sources and formats for music
-Bobo supports the following web sources and file formats:
-### Sources
-* YouTube
-* Spotify (through YouTube)
-* SoundCloud
-* Bandcamp
-* Vimeo
-* Twitch streams
-* Local files
-* HTTP URLs
-### Formats
-* MP3
-* FLAC
-* WAV
-* Matroska/WebM (AAC, Opus or Vorbis codecs)
-* MP4/M4A (AAC codec)
-* OGG streams (Opus, Vorbis and FLAC codecs)
-* AAC streams
-* Stream playlists (M3U and PLS)
+Bobo supports all the web sources and file formats supported by [Lavaplayer](https://github.com/lavalink-devs/lavaplayer), as well as Spotify supported by [LavaSrc](https://github.com/topi314/LavaSrc)
 
 ## Commands
 ### Bot Owner commands
@@ -52,8 +35,6 @@ Bobo supports the following web sources and file formats:
   * `quotes <channel-id>` - Sets `<channel-id>` to send quotes to (no input defaults to current channel)
   * `fortnite-shop <channel-id>` - Sets `<channel-id>` to send Fortnite shop updates to (no input defaults to current channel)
   * Subcommand Groups:
-    * `tts-voice`
-      * Subcommands: `alloy`, `echo`, `fable`, `onyx`, `nova`, `shimmer` (different voices - defaults to onyx)
     * `reset`
       * Subcommands: `clips`, `quotes`, `fortnite-shop` (resets the channel to none)
 
@@ -68,10 +49,13 @@ Bobo supports the following web sources and file formats:
   * `stats <username>` - Gets the stats of `<username>` in Fortnite
   * `map` - Gets the current Fortnite map
 
+### Last.fm commands
+* `/fmlogin` - Logs into Last.fm
+* `/track <track>` - Gets information about a given track on Last.fm. No input defaults to last played track
+
 ### AI commands
-* `/chat` - Opens a thread to chat with Bobo (ChatGPT)
-* `/image` - Generates an image (DALL-E)
-* `/tts <message>` - Generates an AI voice from `<message>` for the voice channel (voice can be configured with /config tts-voice, defaults to onyx)
+* `/chat` - Opens a thread to chat with ChatGPT
+* `/image` - Generates an image DALL-E 3
 
 ### Voice commands
 * `/join` - Joins the voice channel you are in
@@ -85,13 +69,14 @@ Bobo supports the following web sources and file formats:
     * Subcommands:
     * `track <url/query>` - Plays given YouTube `<url>` or the first track result from `<query>`
     * `file <file>` - Plays the given `<file>` (must be a valid audio file as detailed above)
+* `/tts <message>` - Plays `<message>` as text-to-speech for the voice channel.
 * `/search` - Searches YouTube/Spotify for a track/playlist/album, and plays requested result (this differs from the search of `/play` in that it shows the first several results and allows you to choose one, in addition to allowing you to search YouTube playlists and Spotify tracks/playlists/albums)
     * Subcommand Groups:
     * `youtube` - Searches YouTube for a track/playlist
       * Subcommands:
       * `track <query>` - Searches YouTube for a track
       * `playlist <query>` - Searches YouTube for a playlist
-    * `spotify` - Searches Spotify for a track/album/playlist (plays through YouTube)
+    * `spotify` - Searches Spotify for a track/album/playlist
       * Subcommands:
       * `track <query>` - Searches Spotify for a track
       * `album <query>` - Searches Spotify for an album
