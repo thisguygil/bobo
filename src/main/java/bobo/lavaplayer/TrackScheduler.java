@@ -55,7 +55,7 @@ public class TrackScheduler extends AudioEventAdapter {
      */
     public void nextTrack() {
         if (this.looping == LoopCommand.looping.QUEUE) {
-            this.queue.add(currentTrack);
+            this.queue.add(new TrackChannelTypeRecord(currentTrack.track().makeClone(), currentTrack.channel(), currentTrack.trackType()));
         }
         this.currentTrack = this.queue.poll();
         this.player.startTrack(currentTrack == null ? null : currentTrack.track(), false);
