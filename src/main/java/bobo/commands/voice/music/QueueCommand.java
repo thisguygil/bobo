@@ -68,9 +68,14 @@ public class QueueCommand extends AbstractMusic {
         Member member = event.getMember();
         assert member != null;
 
-        // Initialize the first page
-        EmbedBuilder builder = new EmbedBuilder().setAuthor(member.getUser().getEffectiveName(), "https://discord.com/users/" + member.getId(), member.getEffectiveAvatarUrl())
-                .setTitle("Current Queue")
+        // Initialize the embed params and the first page
+        String memberName = member.getEffectiveName();
+        String memberUrl = "https://discord.com/users/" + member.getId();
+        String memberAvatar = member.getEffectiveAvatarUrl();
+        String embedTitle = "Current Queue" + (scheduler.looping == LoopCommand.looping.QUEUE ? " - Looping" : "");
+        EmbedBuilder builder = new EmbedBuilder()
+                .setAuthor(memberName, memberUrl, memberAvatar)
+                .setTitle(embedTitle)
                 .setColor(Color.red);
 
         // Add all tracks to the pages
@@ -82,8 +87,9 @@ public class QueueCommand extends AbstractMusic {
                 builders.add(builder);
 
                 // Reset for the next page
-                builder = new EmbedBuilder().setAuthor(member.getUser().getEffectiveName(), "https://discord.com/users/" + member.getId(), member.getEffectiveAvatarUrl())
-                        .setTitle("Current Queue")
+                builder = new EmbedBuilder()
+                        .setAuthor(memberName, memberUrl, memberAvatar)
+                        .setTitle(embedTitle)
                         .setColor(Color.red);
                 tracksField = new StringBuilder();
                 charCount = 0;
@@ -140,7 +146,7 @@ public class QueueCommand extends AbstractMusic {
             }
         }
         queue.clear();
-        scheduler.looping = false;
+        scheduler.looping = LoopCommand.looping.NONE;
         scheduler.currentTrack = null;
         player.stopTrack();
         player.setPaused(false);
@@ -158,11 +164,17 @@ public class QueueCommand extends AbstractMusic {
         }
 
         if (position == 1) {
+            if (queue.isEmpty()) {
+                scheduler.looping = LoopCommand.looping.NONE;
+            }
+
+            if (scheduler.looping == LoopCommand.looping.TRACK) {
+                scheduler.looping = LoopCommand.looping.NONE;
+            }
+            scheduler.nextTrack();
             if (currentTrack.trackType() == TrackType.TTS) {
                 TTSCommand.removeTTSMessage(currentTrack.track());
             }
-            scheduler.looping = false;
-            scheduler.nextTrack();
         } else {
             int count = 1;
             Iterator<TrackChannelTypeRecord> iterator = queue.iterator();
@@ -197,7 +209,7 @@ public class QueueCommand extends AbstractMusic {
     private String formatTrackInfo(int index, TrackChannelTypeRecord record) {
         AudioTrack track = record.track();
         AudioTrackInfo info = track.getInfo();
-        String timeLeft = String.format("[%s]\n", (index == 1 ? TimeFormat.formatTime(track.getDuration() - track.getPosition()) + " left" : TimeFormat.formatTime(track.getDuration())));
+        String timeLeft = String.format("[%s]\n", (index == 1 ? TimeFormat.formatTime(track.getDuration() - track.getPosition()) + " left" + (scheduler.looping == LoopCommand.looping.TRACK ? " - looping" : "") : TimeFormat.formatTime(track.getDuration())));
         String trackDetails = "";
         switch (record.trackType()) {
             case TRACK, FILE -> trackDetails = String.format("**%d**. [%s](%s) by **%s** %s", index, info.title, info.uri, info.author, timeLeft);

@@ -1,5 +1,6 @@
 package bobo.lavaplayer;
 
+import bobo.commands.voice.music.LoopCommand;
 import bobo.commands.voice.music.TTSCommand;
 import bobo.utils.TrackChannelTypeRecord;
 import bobo.utils.TrackType;
@@ -22,7 +23,7 @@ public class TrackScheduler extends AudioEventAdapter {
     public final AudioPlayer player;
     public BlockingQueue<TrackChannelTypeRecord> queue;
     public TrackChannelTypeRecord currentTrack;
-    public boolean looping;
+    public LoopCommand.looping looping;
 
     /**
      * @param player The audio player this scheduler uses
@@ -30,7 +31,7 @@ public class TrackScheduler extends AudioEventAdapter {
     public TrackScheduler(AudioPlayer player) {
         this.player = player;
         this.queue = new LinkedBlockingQueue<>();
-        this.looping = false;
+        this.looping = LoopCommand.looping.NONE;
     }
 
     /**
@@ -53,6 +54,9 @@ public class TrackScheduler extends AudioEventAdapter {
      * Start the next track, stopping the current one if it is playing.
      */
     public void nextTrack() {
+        if (this.looping == LoopCommand.looping.QUEUE) {
+            this.queue.add(currentTrack);
+        }
         this.currentTrack = this.queue.poll();
         this.player.startTrack(currentTrack == null ? null : currentTrack.track(), false);
     }
@@ -67,16 +71,18 @@ public class TrackScheduler extends AudioEventAdapter {
     @Override
     public void onTrackEnd(AudioPlayer player, AudioTrack track, @Nonnull AudioTrackEndReason endReason) {
         if (endReason.mayStartNext) {
-            if (this.looping) {
-                this.player.startTrack(track.makeClone(), false);
-            } else {
-                switch (currentTrack.trackType()) {
-                    case TRACK, FILE -> nextTrack();
-                    case TTS -> {
-                        nextTrack();
-                        TTSCommand.removeTTSMessage(track);
+            switch (this.looping) {
+                case NONE -> {
+                    switch (currentTrack.trackType()) {
+                        case TRACK, FILE -> nextTrack();
+                        case TTS -> {
+                            nextTrack();
+                            TTSCommand.removeTTSMessage(track);
+                        }
                     }
                 }
+                case TRACK -> this.player.startTrack(track.makeClone(), false);
+                case QUEUE -> nextTrack();
             }
         }
     }

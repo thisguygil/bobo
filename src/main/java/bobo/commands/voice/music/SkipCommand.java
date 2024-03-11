@@ -18,9 +18,11 @@ public class SkipCommand extends AbstractMusic {
         if (currentTrack == null) {
             hook.editOriginal("There is nothing currently playing.").queue();
         } else {
-            hook.editOriginal("Skipped." + (scheduler.looping ? " Looping has been turned off." : "")).queue();
-            scheduler.looping = false;
+            hook.editOriginal("Skipped." + (scheduler.looping == LoopCommand.looping.TRACK ? " Looping has been turned off." : "")).queue();
             scheduler.nextTrack();
+            if (scheduler.looping == LoopCommand.looping.TRACK) {
+                scheduler.looping = LoopCommand.looping.NONE;
+            }
             if (currentTrack.trackType() == TrackType.TTS) {
                 TTSCommand.removeTTSMessage(currentTrack.track());
             }

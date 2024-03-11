@@ -1,5 +1,6 @@
 package bobo.lavaplayer;
 
+import bobo.commands.voice.music.LoopCommand;
 import bobo.commands.voice.music.TTSCommand;
 import bobo.utils.Spotify;
 import bobo.utils.TimeFormat;
@@ -53,7 +54,7 @@ public class GuildMusicManager {
                     String title = trackInfo.title;
                     String uri = trackInfo.uri;
                     EmbedBuilder embed = new EmbedBuilder()
-                            .setAuthor(scheduler.looping ? "Now Looping" : "Now Playing")
+                            .setAuthor(scheduler.looping == LoopCommand.looping.TRACK ? "Now Looping" : "Now Playing")
                             .setColor(Color.red);
 
                     switch (record.trackType()) {

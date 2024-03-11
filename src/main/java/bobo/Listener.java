@@ -3,6 +3,7 @@ package bobo;
 import bobo.commands.ai.ChatCommand;
 import bobo.commands.general.GetQuoteCommand;
 import bobo.commands.voice.JoinCommand;
+import bobo.commands.voice.music.LoopCommand;
 import bobo.commands.voice.music.SearchCommand;
 import bobo.commands.voice.music.TTSCommand;
 import bobo.lavaplayer.GuildMusicManager;
@@ -117,7 +118,7 @@ public class Listener extends ListenerAdapter {
                 }
                 audioManager.setReceivingHandler(null);
                 queue.clear();
-                scheduler.looping = false;
+                scheduler.looping = LoopCommand.looping.NONE;
                 scheduler.currentTrack = null;
                 player.stopTrack();
                 player.setPaused(false);
