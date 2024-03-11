@@ -97,6 +97,7 @@ public class QueueCommand extends AbstractMusic {
 
         // Add any remaining tracks to the last page
         if (!tracksField.toString().isEmpty()) {
+            trackCounter--;
             builder.addField(beginTrackCounter == trackCounter ? "Track " + beginTrackCounter : "Tracks " + beginTrackCounter + " - " + trackCounter, tracksField.toString(), false);
             builders.add(builder);
         }
