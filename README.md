@@ -81,11 +81,15 @@ Bobo supports all the web sources and file formats supported by [Lavaplayer](htt
       * `track <query>` - Searches Spotify for a track
       * `album <query>` - Searches Spotify for an album
       * `playlist <query>` - Searches Spotify for a playlist
-* `/pause` - Pauses the current song
-* `/resume` - Resumes the current song
-* `/skip` - Skips the current song
-* `/loop` - Loops the current song
-* `/now-playing` - Shows the current song
+* `/pause` - Pauses the current track
+* `/resume` - Resumes the current track
+* `/skip` - Skips the current track
+* `/loop` - Loops the currently playing track or queue
+  * Subcommands:
+  * `track` - Loops the currently playing track
+  * `queue` - Loops the entire queue
+  * `off` - Turns looping off
+* `/now-playing` - Shows the current track
 * `/seek` - Seeks to specified position in the current track
   * Subcommands:
   * `forward <seconds>` - Seeks forward by `<seconds>` seconds
