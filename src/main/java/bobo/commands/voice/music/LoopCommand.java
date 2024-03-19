@@ -51,11 +51,11 @@ public class LoopCommand extends AbstractMusic {
         switch (scheduler.looping) {
             case NONE, QUEUE -> {
                 scheduler.looping = looping.TRACK;
-                hook.editOriginal("The track has been set to **looping**.").queue();
+                hook.editOriginal("The track has been set to loop.").queue();
             }
             case TRACK -> {
                 scheduler.looping = looping.NONE;
-                hook.editOriginal("The track has been set to **not looping**.").queue();
+                hook.editOriginal("Looping has been turned off.").queue();
             }
         }
     }
@@ -67,11 +67,11 @@ public class LoopCommand extends AbstractMusic {
         switch (scheduler.looping) {
             case NONE, TRACK -> {
                 scheduler.looping = looping.QUEUE;
-                hook.editOriginal("The queue has been set to **looping**.").queue();
+                hook.editOriginal("The queue has been set to loop.").queue();
             }
             case QUEUE -> {
                 scheduler.looping = looping.NONE;
-                hook.editOriginal("The queue has been set to **not looping**.").queue();
+                hook.editOriginal("Looping has been turned off.").queue();
             }
         }
     }
