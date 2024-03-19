@@ -34,8 +34,8 @@ public class PlayerManager {
     public PlayerManager() {
         this.musicManagers = new HashMap<>();
         this.audioPlayerManager = new DefaultAudioPlayerManager();
-        audioPlayerManager.registerSourceManager(new SpotifySourceManager(null, Config.get("SPOTIFY_CLIENT_ID"), Config.get("SPOTIFY_CLIENT_SECRET"), "US", audioPlayerManager));
-        audioPlayerManager.registerSourceManager(new FloweryTTSSourceManager("Eric"));
+        this.audioPlayerManager.registerSourceManager(new SpotifySourceManager(null, Config.get("SPOTIFY_CLIENT_ID"), Config.get("SPOTIFY_CLIENT_SECRET"), "US", audioPlayerManager));
+        this.audioPlayerManager.registerSourceManager(new FloweryTTSSourceManager("Eric"));
         AudioSourceManagers.registerRemoteSources(this.audioPlayerManager);
         AudioSourceManagers.registerLocalSource(this.audioPlayerManager);
     }
