@@ -39,6 +39,7 @@ public final class FortniteAPI {
         BUNDLE,
         BR_ITEM,
         INSTRUMENT,
+        LEGO_KIT,
         CAR,
         TRACK
     }
@@ -405,6 +406,16 @@ public final class FortniteAPI {
                     JSONObject itemObject = item.getJSONArray("cars").getJSONObject(0);
                     itemName = itemObject.getString("name");
                     shopItemType = ShopItemType.CAR;
+                    rarity = itemObject.getJSONObject("rarity").getString("value");
+                    try {
+                        set = itemObject.getJSONObject("set").getString("value");
+                    } catch (JSONException ignored) {}
+                    itemType = itemObject.getJSONObject("type").getString("value");
+                } catch (JSONException ignored) {}
+                try {
+                    JSONObject itemObject = item.getJSONArray("legoKits").getJSONObject(0);
+                    itemName = itemObject.getString("name");
+                    shopItemType = ShopItemType.LEGO_KIT;
                     rarity = itemObject.getJSONObject("rarity").getString("value");
                     try {
                         set = itemObject.getJSONObject("set").getString("value");
