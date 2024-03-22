@@ -54,10 +54,14 @@ public class TrackScheduler extends AudioEventAdapter {
      * Start the next track, stopping the current one if it is playing.
      */
     public void nextTrack() {
-        if (this.looping == LoopCommand.looping.QUEUE) {
-            this.queue.add(new TrackChannelTypeRecord(currentTrack.track().makeClone(), currentTrack.channel(), currentTrack.trackType()));
+        switch (this.looping) {
+            case NONE -> this.currentTrack = this.queue.poll();
+            case TRACK -> this.currentTrack = new TrackChannelTypeRecord(currentTrack.track().makeClone(), currentTrack.channel(), currentTrack.trackType());
+            case QUEUE -> {
+                this.queue.add(new TrackChannelTypeRecord(currentTrack.track().makeClone(), currentTrack.channel(), currentTrack.trackType()));
+                this.currentTrack = this.queue.poll();
+            }
         }
-        this.currentTrack = this.queue.poll();
         this.player.startTrack(currentTrack == null ? null : currentTrack.track(), false);
     }
 
@@ -81,8 +85,7 @@ public class TrackScheduler extends AudioEventAdapter {
                         }
                     }
                 }
-                case TRACK -> this.player.startTrack(track.makeClone(), false);
-                case QUEUE -> nextTrack();
+                case TRACK, QUEUE -> nextTrack();
             }
         }
     }
