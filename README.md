@@ -4,11 +4,13 @@ The greatest Discord bot on the planet (don't fact-check that).
 
 ## Features
 * Playing music in voice channels from supported sources (see below)
-* Clipping audio from voice channels (can configure channel to receive all clips)
+* Clipping audio from voice channels
 * Text-to-speech with [Flowery TTS](https://flowery.pw/) in voice channels
 * OpenAI integration
   * Chat with AI with [ChatGPT](https://chat.openai.com/)
   * AI-generate images with [DALL-E 3](https://openai.com/dall-e-3)
+* Last.fm integration
+  * Get currently playing Spotify track information
 * Search Google for images
 * Get Fortnite stats, daily shop updates, and maps with [Fortnite-API](https://fortnite-api.com/)
 
@@ -99,5 +101,5 @@ Bobo supports all the web sources and file formats supported by [Lavaplayer](htt
   * Subcommands:
   * `show` - Shows the current queue
   * `clear` - Clears the current queue
-  * `remove <index>` - Removes the song at `<index>` from the queue
+  * `remove <index>` - Removes the track at `<index>` from the queue
   * `shuffle` - Shuffles the queue
