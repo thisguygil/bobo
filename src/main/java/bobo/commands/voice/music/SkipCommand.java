@@ -33,4 +33,11 @@ public class SkipCommand extends AbstractMusic {
     public String getName() {
         return "skip";
     }
+
+    @Override
+    public String getHelp() {
+        return """
+                Skips the current track.
+                Usage: `/skip`""";
+    }
 }

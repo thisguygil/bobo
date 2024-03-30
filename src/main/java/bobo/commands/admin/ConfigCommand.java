@@ -204,4 +204,18 @@ public class ConfigCommand extends AbstractAdmin {
         }
         event.getHook().editOriginal("Fortnite Shop channel reset.").queue();
     }
+
+    @Override
+    public String getHelp() {
+        return super.getHelp() + " " + """
+                Configures the server.
+                Usage: `/config <subcommand>`
+                Subcommands:
+                * `clips <channel>` - Sets <channel> as the channel to send clips to. No channel defaults to current channel.
+                * `quotes <channel>` - Sets <channel> as the channel to send quotes to. No channel defaults to current channel.
+                * `fortnite-shop <channel> ` - Sets <channel> as the channel to send the daily Fortnite Shop to. No channel defaults to current channel.
+                * `reset clips` - Resets the clips channel.
+                * `reset quotes` - Resets the quotes channel.
+                * `reset fortnite-shop` - Resets the Fortnite Shop channel.""";
+    }
 }

@@ -116,4 +116,14 @@ public class PlayCommand extends AbstractMusic {
     public String getName() {
         return "play";
     }
+
+    @Override
+    public String getHelp() {
+        return """
+                Joins the voice channel and plays given track.
+                Usage: `/play <subcommand>`
+                Subcommands:
+                * `track <track>`: Plays <track> (or searches YouTube for it and plays the first result, use /search otherwise).
+                * `file <file>`: Plays audio from attached audio/video file.""";
+    }
 }

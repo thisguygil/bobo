@@ -63,6 +63,12 @@ public class CommandManager {
         commands.add(new SeekCommand());
     }
 
+    /**
+     * Gets a command by name.
+     *
+     * @param search The name of the command.
+     * @return The command.
+     */
     @Nullable
     public AbstractCommand getCommand(String search) {
         for (AbstractCommand command : this.commands) {
@@ -71,6 +77,14 @@ public class CommandManager {
             }
         }
         return null;
+    }
+
+    /**
+     * Gets the list of commands.
+     * @return The list of commands.
+     */
+    public List<AbstractCommand> getCommands() {
+        return this.commands;
     }
 
     /**

@@ -93,4 +93,15 @@ public class LoopCommand extends AbstractMusic {
     public String getName() {
         return "loop";
     }
+
+    @Override
+    public String getHelp() {
+        return """
+                Loop the currently playing track or queue.
+                Usage: `/loop <subcommand>`
+                Subcommands:
+                * `track` - Loop the currently playing track. If the track is already looping, it will turn off looping.
+                * `queue` - Loop the entire queue. If the queue is already looping, it will turn off looping.
+                * `off` - Turn off looping.""";
+    }
 }

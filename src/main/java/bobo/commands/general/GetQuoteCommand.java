@@ -161,4 +161,12 @@ public class GetQuoteCommand extends AbstractGeneral {
     public String getName() {
         return "get-quote";
     }
+
+    @Override
+    public String getHelp() {
+        return """
+                Gets a random quote from the configured quotes channel.
+                Usage: `/get-quote`
+                Note: Quotes channel must be configured with `/config quotes`.""";
+    }
 }

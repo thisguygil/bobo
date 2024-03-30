@@ -72,4 +72,11 @@ public class ImageCommand extends AbstractAI {
     public String getName() {
         return "image";
     }
+
+    @Override
+    public String getHelp() {
+        return super.getHelp() + " " + """
+                Generates an image of the given prompt.
+                Usage: `/image <prompt>`""";
+    }
 }

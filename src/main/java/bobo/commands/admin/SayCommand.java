@@ -10,8 +10,8 @@ public class SayCommand extends AbstractAdmin {
      * Creates a new say command.
      */
     public SayCommand() {
-        super(Commands.slash("say", "Make bobo say what you tell it to.")
-                .addOption(OptionType.STRING, "content", "What bobo should say", true));
+        super(Commands.slash("say", "Make Bobo say what you tell it to.")
+                .addOption(OptionType.STRING, "content", "What Bobo should say", true));
     }
 
     @Override
@@ -25,5 +25,12 @@ public class SayCommand extends AbstractAdmin {
     @Override
     public String getName() {
         return "say";
+    }
+
+    @Override
+    public String getHelp() {
+        return super.getHelp() + " " + """
+                Make Bobo say what you tell it to.
+                Usage: `/say <content>`""";
     }
 }

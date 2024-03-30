@@ -28,4 +28,9 @@ public abstract class AbstractAI extends AbstractCommand {
      * Handles the AI command.
      */
     protected abstract void handleAICommand();
+
+    @Override
+    public String getHelp() {
+        return "AI command.";
+    }
 }

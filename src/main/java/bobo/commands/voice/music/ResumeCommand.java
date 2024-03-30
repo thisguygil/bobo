@@ -31,4 +31,11 @@ public class ResumeCommand extends AbstractMusic {
     public String getName() {
         return "resume";
     }
+
+    @Override
+    public String getHelp() {
+        return """
+                Resumes the currently paused track. If the player is already playing, it will not do anything. Use `/pause` to pause.
+                Usage: `/resume`""";
+    }
 }

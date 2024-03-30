@@ -122,4 +122,18 @@ public class SetActivityCommand extends AbstractOwner {
     public String getName() {
         return "set-activity";
     }
+
+    @Override
+    public String getHelp() {
+        return """
+                Sets Bobo's activity.
+                Usage: `/set-activity <subcommand>`
+                Subcommands:
+                * `custom <status>`: Sets Bobo's status to <status>.
+                * `playing <activity>`: Sets Bobo's activity to "Playing <activity>".
+                * `streaming <activity> <url>`: Sets Bobo's activity to "Streaming <activity>" with the stream URL <url>.
+                * `listening <activity>`: Sets Bobo's activity to "Listening to <activity>".
+                * `watching <activity>`: Sets Bobo's activity to "Watching <activity>".
+                * `competing <activity>`: Sets Bobo's activity to "Competing in <activity>".""";
+    }
 }

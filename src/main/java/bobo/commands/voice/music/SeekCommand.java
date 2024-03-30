@@ -93,4 +93,15 @@ public class SeekCommand extends AbstractMusic {
         currentAudioTrack.setPosition(time);
         hook.editOriginal("Seeked to **" + position + "**").queue();
     }
+
+    @Override
+    public String getHelp() {
+        return """
+                Seeks to specified position in the current track.
+                Usage: `/seek <subcommand>`
+                Subcommands:
+                * `forward <seconds>` - Seeks forward by <seconds> seconds.
+                * `backward <seconds>` - Seeks backward by <seconds> seconds.
+                * `position <position>` - Seeks to <position>. Format: HH:MM:SS""";
+    }
 }

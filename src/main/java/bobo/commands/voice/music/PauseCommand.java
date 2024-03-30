@@ -31,4 +31,11 @@ public class PauseCommand extends AbstractMusic {
     public String getName() {
         return "pause";
     }
+
+    @Override
+    public String getHelp() {
+        return """
+                Pauses the currently playing track. If the player is already paused, it will not do anything. Use `/resume` to resume.
+                Usage: `/pause`""";
+    }
 }

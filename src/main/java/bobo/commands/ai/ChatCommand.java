@@ -111,4 +111,11 @@ public class ChatCommand extends AbstractAI {
     public String getName() {
         return "chat";
     }
+
+    @Override
+    public String getHelp() {
+        return super.getHelp() + " " + """
+                Starts an OpenAI chat conversation in a new thread.
+                Usage: `/chat`""";
+    }
 }

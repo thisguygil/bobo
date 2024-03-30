@@ -446,4 +446,17 @@ public class SearchCommand extends AbstractMusic {
             case 1 -> message.removeReaction(oneEmoji).queue();
         }
     }
+
+    @Override
+    public String getHelp() {
+        return """
+                Searches YouTube/Spotify for a track/playlist/album, and plays requested result.
+                Usage: `/search <subcommand>`
+                Subcommands:
+                * `youtube track <query>`: Searches YouTube for <query>
+                * `youtube playlist <query>`: Searches YouTube for <query>
+                * `spotify track <query>`: Searches Spotify for <query>
+                * `spotify playlist <query>`: Searches Spotify for <query>
+                * `spotify album <query>`: Searches Spotify for <query>""";
+    }
 }

@@ -85,4 +85,12 @@ public class ClipCommand extends AbstractVoice {
             hook.editOriginal("Clip creation failed.").queue();
         }
     }
+
+    @Override
+    public String getHelp() {
+        return """
+                Clips the most recent 30 seconds of the voice channel with an optional given name.
+                No name defaults to the current date and time.
+                Usage: `/clip <name>`""";
+    }
 }

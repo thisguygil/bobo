@@ -23,4 +23,9 @@ public abstract class AbstractAdmin extends AbstractCommand {
      * Handles the admin command.
      */
     protected abstract void handleAdminCommand();
+
+    @Override
+    public String getHelp() {
+        return "Server admin command.";
+    }
 }

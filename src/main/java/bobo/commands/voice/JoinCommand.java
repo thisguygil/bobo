@@ -86,4 +86,11 @@ public class JoinCommand extends AbstractVoice {
     public String getName() {
         return "join";
     }
+
+    @Override
+    public String getHelp() {
+        return """
+                Joins the voice channel that the user is connected to. If the bot is already connected to a different voice channel, it will join the new one.
+                Usage: `/join`""";
+    }
 }

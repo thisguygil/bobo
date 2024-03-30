@@ -43,4 +43,11 @@ public abstract class AbstractCommand {
      * @return The name of the command.
      */
     public abstract String getName();
+
+    /**
+     * Gets the help message of the command.
+     *
+     * @return The help message of the command.
+     */
+    public abstract String getHelp();
 }

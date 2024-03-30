@@ -39,4 +39,11 @@ public class LeaveCommand extends AbstractVoice {
     public String getName() {
         return "leave";
     }
+
+    @Override
+    public String getHelp() {
+        return """
+                Leaves the voice channel.
+                Usage: `/leave`""";
+    }
 }

@@ -240,4 +240,17 @@ public class QueueCommand extends AbstractMusic {
     public String getName() {
         return "queue";
     }
+
+    @Override
+    public String getHelp() {
+        return """
+                View or change the music queue.
+                Usage: `/queue <subcommand>`
+                Subcommands:
+                * `show`: Shows the currently queued tracks.
+                * `shuffle`: Shuffles the queue.
+                * `loop`: Loop the queue.
+                * `clear`: Clears the queue and stops current track.
+                * `remove <position>`: Removes track at position <position> in the queue.""";
+    }
 }

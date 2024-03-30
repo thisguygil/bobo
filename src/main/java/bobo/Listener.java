@@ -49,6 +49,7 @@ public class Listener extends ListenerAdapter {
 
     /**
      * Sends all DM messages to a private server
+     * <br>
      * Sends all thread messages to the AI
      *
      * @param event the message event
@@ -170,5 +171,14 @@ public class Listener extends ListenerAdapter {
         }
 
         System.out.println("Bobo is ready!");
+    }
+
+    /**
+     * Gets the command manager
+     *
+     * @return the command manager
+     */
+    public CommandManager getManager() {
+        return manager;
     }
 }

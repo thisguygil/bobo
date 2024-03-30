@@ -87,4 +87,11 @@ public class TTSCommand extends AbstractMusic {
     public static void removeTTSMessage(AudioTrack track) {
         trackMessageMap.remove(track);
     }
+
+    @Override
+    public String getHelp() {
+        return """
+                Generates a message for the voice channel.
+                Usage: `/tts <message>`""";
+    }
 }

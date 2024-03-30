@@ -91,4 +91,11 @@ public class NowPlayingCommand extends AbstractMusic {
     public String getName() {
         return "now-playing";
     }
+
+    @Override
+    public String getHelp() {
+        return """
+                Shows the currently playing track.
+                Usage: `/now-playing`""";
+    }
 }

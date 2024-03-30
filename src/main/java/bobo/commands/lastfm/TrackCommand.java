@@ -120,4 +120,11 @@ public class TrackCommand extends AbstractLastFM {
     private static String wrapInBackQuotes(String string) {
         return "`" + string + "`";
     }
+
+    @Override
+    public String getHelp() {
+        return super.getHelp() + """
+                Gets information about a given track or last played track on Last.fm
+                "Usage: `/track <track>`""";
+    }
 }

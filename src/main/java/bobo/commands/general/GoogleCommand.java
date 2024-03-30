@@ -94,4 +94,11 @@ public class GoogleCommand extends AbstractGeneral {
     public String getName() {
         return "google";
     }
+
+    @Override
+    public String getHelp() {
+        return """
+                Searches given query on Google.
+                Usage: `/google <query>""";
+    }
 }

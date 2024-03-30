@@ -21,4 +21,11 @@ public class RestartCommand extends AbstractOwner {
         // Uses callback to ensure that the message is sent before the bot shuts down.
         event.reply("Restarting...").queue(success -> Bobo.restart(), failure -> Bobo.restart());
     }
+
+    @Override
+    public String getHelp() {
+        return """
+                Restarts the bot.
+                Usage: `/restart`""";
+    }
 }

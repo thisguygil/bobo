@@ -88,4 +88,9 @@ public abstract class AbstractLastFM extends AbstractCommand {
     }
 
     protected abstract void handleLastFMCommand();
+
+    @Override
+    public String getHelp() {
+        return "Last.fm Command. Note that you must be logged in to Last.fm to use this command. Use `/fmlogin` to log in.";
+    }
 }

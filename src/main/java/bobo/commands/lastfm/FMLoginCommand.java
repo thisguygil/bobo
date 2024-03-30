@@ -201,4 +201,12 @@ public class FMLoginCommand extends AbstractLastFM {
 
         return token;
     }
+
+    @Override
+    public String getHelp() {
+        return """
+                Log in to Last.fm.
+                Usage: `/fmlogin`
+                Note: You must complete the login process on the Last.fm website after running this command.""";
+    }
 }

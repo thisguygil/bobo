@@ -32,4 +32,11 @@ public class DeafenCommand extends AbstractVoice {
         guild.getAudioManager().setSelfDeafened(!isDeafened);
         hook.editOriginal((isDeafened ? "Und" : "D") + "eafened.").queue();
     }
+
+    @Override
+    public String getHelp() {
+        return """
+                Toggles the deafen state of the bot.
+                Usage: `/deafen`""";
+    }
 }

@@ -149,4 +149,16 @@ public class FortniteCommand extends AbstractGeneral {
             return null;
         }
     }
+
+    @Override
+    public String getHelp() {
+        return """
+                Get info about Fortnite.
+                Usage: `/fortnite <subcommand>`
+                Subcommands:
+                * `shop` - Get the current Fortnite Item Shop.
+                * `news` - Get the current Fortnite (Battle Royale) news.
+                * `stats` - Get stats for a Fortnite player.
+                * `map` - Get the current Fortnite Map.""";
+    }
 }

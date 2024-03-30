@@ -32,4 +32,11 @@ public class MuteCommand extends AbstractVoice {
         guild.getAudioManager().setSelfMuted(!isMuted);
         hook.editOriginal((isMuted ? "Unm" : "M") + "uted.").queue();
     }
+
+    @Override
+    public String getHelp() {
+        return """
+                Toggles the mute state of the bot.
+                Usage: `/mute`""";
+    }
 }
