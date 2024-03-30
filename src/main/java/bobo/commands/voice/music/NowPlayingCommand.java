@@ -43,6 +43,7 @@ public class NowPlayingCommand extends AbstractMusic {
         switch (currentTrack.trackType()) {
             case TRACK -> {
                 embed.setTitle(title, uri)
+                        .addField("Author", info.author, true)
                         .setFooter(TimeFormat.formatTime(currentAudioTrack.getDuration() - currentAudioTrack.getPosition()) + " left");
 
                 // Get the YouTube thumbnail or Spotify album cover
@@ -57,7 +58,7 @@ public class NowPlayingCommand extends AbstractMusic {
                         }
                         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                         ImageIO.write(image, "jpg", outputStream);
-                        embed.setImage("attachment://thumbnail.jpg");
+                        embed.setThumbnail("attachment://thumbnail.jpg");
                         hook.editOriginalAttachments(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg"))
                                 .setEmbeds(embed.build()).queue();
                     } else if (spotifyRegex.matches(uri)) {
@@ -66,7 +67,7 @@ public class NowPlayingCommand extends AbstractMusic {
 
                         String id = uri.split("/")[uri.split("/").length - 1];
                         String imageUrl = spotifyApi.getTrack(id).build().execute().getAlbum().getImages()[0].getUrl();
-                        embed.setImage(imageUrl);
+                        embed.setThumbnail(imageUrl);
                     } else {
                         hook.editOriginalEmbeds(embed.build()).queue();
                     }
@@ -77,11 +78,13 @@ public class NowPlayingCommand extends AbstractMusic {
             }
             case FILE -> {
                 embed.setTitle(title, uri)
+                        .addField("Author", info.author, true)
                         .setFooter(TimeFormat.formatTime(currentAudioTrack.getDuration() - currentAudioTrack.getPosition()) + " left");
                 hook.editOriginalEmbeds(embed.build()).queue();
             }
             case TTS -> {
-                embed.setTitle("TTS Message").setDescription(TTSCommand.getTTSMessage(currentAudioTrack));
+                embed.setTitle("TTS Message")
+                        .setDescription(TTSCommand.getTTSMessage(currentAudioTrack));
                 hook.editOriginalEmbeds(embed.build()).queue();
             }
         }

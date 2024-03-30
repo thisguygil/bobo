@@ -60,6 +60,7 @@ public class GuildMusicManager {
                     switch (record.trackType()) {
                         case TRACK -> {
                             embed.setTitle(title, uri)
+                                    .addField("Author", trackInfo.author, true)
                                     .setFooter(TimeFormat.formatTime((track.getDuration())));
 
                             // Get the YouTube thumbnail or Spotify album cover
@@ -74,7 +75,7 @@ public class GuildMusicManager {
                                     }
                                     ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
                                     ImageIO.write(image, "jpg", outputStream);
-                                    embed.setImage("attachment://thumbnail.jpg");
+                                    embed.setThumbnail("attachment://thumbnail.jpg");
                                     channel.sendFiles(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg"))
                                             .setEmbeds(embed.build()).queue();
                                 } else if (uri.matches(spotifyRegex)) {
@@ -83,7 +84,7 @@ public class GuildMusicManager {
 
                                     String id = uri.split("/")[uri.split("/").length - 1];
                                     String imageUrl = spotifyApi.getTrack(id).build().execute().getAlbum().getImages()[0].getUrl();
-                                    embed.setImage(imageUrl);
+                                    embed.setThumbnail(imageUrl);
                                     channel.sendMessageEmbeds(embed.build()).queue();
                                 } else {
                                     channel.sendMessageEmbeds(embed.build()).queue();
@@ -95,11 +96,13 @@ public class GuildMusicManager {
                         }
                         case FILE -> {
                             embed.setTitle(title, uri)
+                                    .addField("Author", trackInfo.author, true)
                                     .setFooter(TimeFormat.formatTime((track.getDuration())));
                             channel.sendMessageEmbeds(embed.build()).queue();
                         }
                         case TTS -> {
-                            embed.setTitle("TTS Message").setDescription(TTSCommand.getTTSMessage(track));
+                            embed.setTitle("TTS Message")
+                                    .setDescription(TTSCommand.getTTSMessage(track));
                             channel.sendMessageEmbeds(embed.build()).queue();
                         }
                     }
