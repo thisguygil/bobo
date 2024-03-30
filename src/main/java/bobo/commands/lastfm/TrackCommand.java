@@ -3,6 +3,7 @@ package bobo.commands.lastfm;
 import bobo.utils.LastfmAPI;
 import bobo.utils.TimeFormat;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
@@ -35,6 +36,8 @@ public class TrackCommand extends AbstractLastFM {
         // Get the Last.fm username. Note that the user is already logged in at this point, so the username is guaranteed to be non-null
         String username = FMLoginCommand.getUserName(event.getUser().getId());
         assert username != null;
+        Member member = event.getMember();
+        assert member != null;
 
         String trackName, artistName;
         OptionMapping trackOption = event.getOption("track");
@@ -98,6 +101,7 @@ public class TrackCommand extends AbstractLastFM {
 
         // Send the track's information in an embed
         EmbedBuilder embed = new EmbedBuilder()
+                .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getEffectiveAvatarUrl())
                 .setTitle(trackName + " by " + artistName, trackURL)
                 .setColor(Color.RED)
                 .addField("Duration", wrapInBackQuotes(trackDuration), true)
