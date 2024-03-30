@@ -19,7 +19,7 @@ public abstract class AbstractOwner extends AbstractCommand {
         if (event.getUser().getId().equals(Config.get("OWNER_ID"))) {
             handleOwnerCommand();
         } else {
-            event.reply("You must be the owner of the bot to use this command.").setEphemeral(true).queue();
+            event.reply("You do not have permission to use this command.").setEphemeral(true).queue();
         }
     }
 
