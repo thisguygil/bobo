@@ -64,9 +64,7 @@ public class QueueCommand extends AbstractMusic {
         List<EmbedBuilder> builders = new ArrayList<>();
         List<Page> pages = new ArrayList<>();
         StringBuilder tracksField = new StringBuilder();
-        int charCount = 0;
         int trackCounter = 1;
-        int beginTrackCounter = 1;
         Member member = event.getMember();
         assert member != null;
 
@@ -83,9 +81,9 @@ public class QueueCommand extends AbstractMusic {
         // Add all tracks to the pages
         for (TrackRecord record : trackList) {
             String trackInfo = formatTrackInfo(trackCounter, record);
-            if (charCount + trackInfo.length() > 1024) {
+            if (trackCounter % 10 == 1 && trackCounter != 1) {
                 // Create a page for the current tracks
-                builder.addField(beginTrackCounter == trackCounter ? "Track " + beginTrackCounter : "Tracks " + beginTrackCounter + " - " + (trackCounter - 1), tracksField.toString(), false);
+                builder.setDescription(tracksField.toString());
                 builders.add(builder);
 
                 // Reset for the next page
@@ -94,19 +92,15 @@ public class QueueCommand extends AbstractMusic {
                         .setTitle(embedTitle)
                         .setColor(Color.red);
                 tracksField = new StringBuilder();
-                charCount = 0;
-                beginTrackCounter = trackCounter;
             }
 
             tracksField.append(trackInfo);
-            charCount += trackInfo.length();
             trackCounter++;
         }
 
         // Add any remaining tracks to the last page
         if (!tracksField.toString().isEmpty()) {
-            trackCounter--;
-            builder.addField(beginTrackCounter == trackCounter ? "Track " + beginTrackCounter : "Tracks " + beginTrackCounter + " - " + trackCounter, tracksField.toString(), false);
+            builder.setDescription(tracksField.toString());
             builders.add(builder);
         }
 
