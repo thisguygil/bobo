@@ -1,6 +1,6 @@
 package bobo.commands.voice.music;
 
-import bobo.utils.Spotify;
+import bobo.utils.SpotifyLink;
 import bobo.utils.TimeFormat;
 import bobo.utils.YouTubeUtil;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
@@ -64,7 +64,7 @@ public class NowPlayingCommand extends AbstractMusic {
                                 .setEmbeds(embed.build()).queue();
                     } else if (spotifyRegex.matches(uri)) {
                         // Get the album cover
-                        SpotifyApi spotifyApi = Spotify.getSpotifyApi();
+                        SpotifyApi spotifyApi = SpotifyLink.getSpotifyApi();
 
                         String id = uri.split("/")[uri.split("/").length - 1];
                         String imageUrl = spotifyApi.getTrack(id).build().execute().getAlbum().getImages()[0].getUrl();

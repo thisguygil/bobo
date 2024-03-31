@@ -2,7 +2,7 @@ package bobo.commands.voice.music;
 
 import bobo.commands.voice.JoinCommand;
 import bobo.lavaplayer.PlayerManager;
-import bobo.utils.Spotify;
+import bobo.utils.SpotifyLink;
 import bobo.utils.TrackType;
 import bobo.utils.YouTubeUtil;
 import net.dv8tion.jda.api.entities.Message;
@@ -176,7 +176,7 @@ public class SearchCommand extends AbstractMusic {
      */
     private void searchSpotifyTrack(String query) {
         try {
-            SpotifyApi spotifyApi = Spotify.getSpotifyApi();
+            SpotifyApi spotifyApi = SpotifyLink.getSpotifyApi();
 
             Track spotifyTrack = spotifyApi.searchTracks(query).build().execute().getItems()[0];
             ArtistSimplified[] artists = spotifyTrack.getArtists();
@@ -224,7 +224,7 @@ public class SearchCommand extends AbstractMusic {
      */
     private void searchSpotifyPlaylist(String query) {
         try {
-            SpotifyApi spotifyApi = Spotify.getSpotifyApi();
+            SpotifyApi spotifyApi = SpotifyLink.getSpotifyApi();
 
             PlaylistSimplified spotifyPlaylist = spotifyApi.searchPlaylists(query).build().execute().getItems()[0];
 
@@ -263,7 +263,7 @@ public class SearchCommand extends AbstractMusic {
      */
     private void searchSpotifyAlbum(String query) {
         try {
-            SpotifyApi spotifyApi = Spotify.getSpotifyApi();
+            SpotifyApi spotifyApi = SpotifyLink.getSpotifyApi();
 
             AlbumSimplified spotifyAlbum = spotifyApi.searchAlbums(query).build().execute().getItems()[0];
             ArtistSimplified[] artists = spotifyAlbum.getArtists();

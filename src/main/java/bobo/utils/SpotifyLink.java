@@ -9,11 +9,11 @@ import se.michaelthelin.spotify.model_objects.credentials.ClientCredentials;
 import javax.annotation.Nonnull;
 import java.io.IOException;
 
-public final class Spotify {
+public final class SpotifyLink {
     private static final String CLIENT_ID = Config.get("SPOTIFY_CLIENT_ID");
     private static final String CLIENT_SECRET = Config.get("SPOTIFY_CLIENT_SECRET");
 
-    private Spotify() {} // Prevent instantiation
+    private SpotifyLink() {} // Prevent instantiation
 
     /**
      * Gets a Spotify API instance.

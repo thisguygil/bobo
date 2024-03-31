@@ -2,7 +2,7 @@ package bobo.lavaplayer;
 
 import bobo.commands.voice.music.LoopCommand;
 import bobo.commands.voice.music.TTSCommand;
-import bobo.utils.Spotify;
+import bobo.utils.SpotifyLink;
 import bobo.utils.TimeFormat;
 import bobo.utils.TrackRecord;
 import bobo.utils.YouTubeUtil;
@@ -82,7 +82,7 @@ public class GuildMusicManager {
                                             .setEmbeds(embed.build()).queue();
                                 } else if (uri.matches(spotifyRegex)) {
                                     // Get the album cover
-                                    SpotifyApi spotifyApi = Spotify.getSpotifyApi();
+                                    SpotifyApi spotifyApi = SpotifyLink.getSpotifyApi();
 
                                     String id = uri.split("/")[uri.split("/").length - 1];
                                     String imageUrl = spotifyApi.getTrack(id).build().execute().getAlbum().getImages()[0].getUrl();
