@@ -4,7 +4,7 @@ import bobo.commands.voice.music.LoopCommand;
 import bobo.commands.voice.music.TTSCommand;
 import bobo.utils.Spotify;
 import bobo.utils.TimeFormat;
-import bobo.utils.TrackChannelTypeRecord;
+import bobo.utils.TrackRecord;
 import bobo.utils.YouTubeUtil;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
@@ -42,10 +42,11 @@ public class GuildMusicManager {
         this.player.addListener(this.scheduler);
         this.sendHandler = new AudioPlayerSendHandler(this.player);
 
+        // Listener for the AudioPlayer, which sends a message with info about the track when it starts
         this.player.addListener(event -> {
             if (event instanceof TrackStartEvent startEvent) {
                 TrackScheduler scheduler = this.scheduler;
-                TrackChannelTypeRecord record = scheduler.currentTrack;
+                TrackRecord record = scheduler.currentTrack;
 
                 AudioTrack track = startEvent.track;
                 if (record.track().equals(track)) {
@@ -55,6 +56,7 @@ public class GuildMusicManager {
                     String uri = trackInfo.uri;
                     EmbedBuilder embed = new EmbedBuilder()
                             .setAuthor(scheduler.looping == LoopCommand.looping.TRACK ? "Now Looping" : "Now Playing")
+                            .addField("Requested by", record.member().getAsMention(), true)
                             .setColor(Color.red);
 
                     switch (record.trackType()) {

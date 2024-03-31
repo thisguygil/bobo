@@ -38,6 +38,7 @@ public class NowPlayingCommand extends AbstractMusic {
         String uri = info.uri;
         EmbedBuilder embed = new EmbedBuilder()
                 .setAuthor(musicManager.scheduler.looping == LoopCommand.looping.TRACK ? "Now Looping" : "Now Playing")
+                .addField("Requested by", currentTrack.member().getAsMention(), true)
                 .setColor(Color.red);
 
         switch (currentTrack.trackType()) {

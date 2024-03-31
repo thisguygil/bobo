@@ -10,7 +10,7 @@ import bobo.lavaplayer.GuildMusicManager;
 import bobo.lavaplayer.PlayerManager;
 import bobo.utils.AudioReceiveListener;
 import bobo.utils.SQLConnection;
-import bobo.utils.TrackChannelTypeRecord;
+import bobo.utils.TrackRecord;
 import bobo.lavaplayer.TrackScheduler;
 import bobo.utils.TrackType;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
@@ -110,9 +110,9 @@ public class Listener extends ListenerAdapter {
                 final AudioPlayer player = musicManager.player;
                 final TrackScheduler scheduler = musicManager.scheduler;
                 final AudioManager audioManager = guild.getAudioManager();
-                final BlockingQueue<TrackChannelTypeRecord> queue = scheduler.queue;
+                final BlockingQueue<TrackRecord> queue = scheduler.queue;
 
-                for (TrackChannelTypeRecord record : queue) {
+                for (TrackRecord record : queue) {
                     if (record.trackType() == TrackType.TTS) {
                         TTSCommand.removeTTSMessage(record.track());
                     }

@@ -2,13 +2,14 @@ package bobo.lavaplayer;
 
 import bobo.commands.voice.music.LoopCommand;
 import bobo.commands.voice.music.TTSCommand;
-import bobo.utils.TrackChannelTypeRecord;
+import bobo.utils.TrackRecord;
 import bobo.utils.TrackType;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
 import javax.annotation.Nonnull;
@@ -21,8 +22,8 @@ import java.util.concurrent.LinkedBlockingQueue;
 public class TrackScheduler extends AudioEventAdapter {
 
     public final AudioPlayer player;
-    public BlockingQueue<TrackChannelTypeRecord> queue;
-    public TrackChannelTypeRecord currentTrack;
+    public BlockingQueue<TrackRecord> queue;
+    public TrackRecord currentTrack;
     public LoopCommand.looping looping;
 
     /**
@@ -41,11 +42,11 @@ public class TrackScheduler extends AudioEventAdapter {
      * @param channel The channel to send messages to
      * @param trackType The type of track to queue
      */
-    public void queue(AudioTrack track, MessageChannel channel, TrackType trackType) {
-        TrackChannelTypeRecord oldTrack = this.currentTrack;
-        this.currentTrack = new TrackChannelTypeRecord(track, channel, trackType);
+    public void queue(AudioTrack track, Member member, MessageChannel channel, TrackType trackType) {
+        TrackRecord oldTrack = this.currentTrack;
+        this.currentTrack = new TrackRecord(track, member, channel, trackType);
         if (!this.player.startTrack(track, true)) {
-            this.queue.add(new TrackChannelTypeRecord(track, channel, trackType));
+            this.queue.add(new TrackRecord(track, member, channel, trackType));
             this.currentTrack = oldTrack;
         }
     }
@@ -56,9 +57,9 @@ public class TrackScheduler extends AudioEventAdapter {
     public void nextTrack() {
         switch (this.looping) {
             case NONE -> this.currentTrack = this.queue.poll();
-            case TRACK -> this.currentTrack = new TrackChannelTypeRecord(currentTrack.track().makeClone(), currentTrack.channel(), currentTrack.trackType());
+            case TRACK -> this.currentTrack = new TrackRecord(currentTrack.track().makeClone(), currentTrack.member(), currentTrack.channel(), currentTrack.trackType());
             case QUEUE -> {
-                this.queue.add(new TrackChannelTypeRecord(currentTrack.track().makeClone(), currentTrack.channel(), currentTrack.trackType()));
+                this.queue.add(new TrackRecord(currentTrack.track().makeClone(), currentTrack.member(), currentTrack.channel(), currentTrack.trackType()));
                 this.currentTrack = this.queue.poll();
             }
         }

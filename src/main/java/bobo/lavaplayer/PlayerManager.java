@@ -15,6 +15,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -65,6 +66,7 @@ public class PlayerManager {
         InteractionHook hook = event.getHook();
         MessageChannel channel = event.getMessageChannel();
         Guild guild = event.getGuildChannel().getGuild();
+        Member member = event.getMember();
         final GuildMusicManager musicManager = this.getMusicManager(guild);
         TrackScheduler scheduler = musicManager.scheduler;
 
@@ -85,7 +87,7 @@ public class PlayerManager {
                         TTSCommand.addTTSMessage(track, trackURL.replace("ftts://", "").replace("%20", " ").replace("%22", "\""));
                     }
                 }
-                scheduler.queue(track, channel, trackType);
+                scheduler.queue(track, member, channel, trackType);
             }
 
             @Override
@@ -94,7 +96,7 @@ public class PlayerManager {
                 String regex = "^(https://open.spotify.com/album/|spotify:album:)([a-zA-Z0-9]+)(.*)";
                 hook.editOriginal("Adding to queue **" + tracks.size() + "** tracks from " + (trackURL.matches(regex) ? "album" : "playlist") + " [" + playlist.getName() + "](<" + trackURL + ">)").queue();
                 for (final AudioTrack track : tracks) {
-                    scheduler.queue(track, channel, TrackType.TRACK);
+                    scheduler.queue(track, member, channel, TrackType.TRACK);
                 }
             }
 

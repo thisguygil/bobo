@@ -1,6 +1,6 @@
 package bobo.commands.voice.music;
 
-import bobo.utils.TrackChannelTypeRecord;
+import bobo.utils.TrackRecord;
 import bobo.utils.TimeFormat;
 import bobo.utils.TrackType;
 import com.github.ygimenez.method.Pages;
@@ -59,8 +59,8 @@ public class QueueCommand extends AbstractMusic {
      */
     private void show() {
         // Initialize all necessary variables
-        final List<TrackChannelTypeRecord> trackList = new ArrayList<>(queue);
-        trackList.add(0, new TrackChannelTypeRecord(currentTrack.track(), event.getMessageChannel(), currentTrack.trackType()));
+        final List<TrackRecord> trackList = new ArrayList<>(queue);
+        trackList.add(0, new TrackRecord(currentTrack.track(), null, null, currentTrack.trackType())); // Null values are not used
         List<EmbedBuilder> builders = new ArrayList<>();
         List<Page> pages = new ArrayList<>();
         StringBuilder tracksField = new StringBuilder();
@@ -81,7 +81,7 @@ public class QueueCommand extends AbstractMusic {
                 .setColor(Color.red);
 
         // Add all tracks to the pages
-        for (TrackChannelTypeRecord record : trackList) {
+        for (TrackRecord record : trackList) {
             String trackInfo = formatTrackInfo(trackCounter, record);
             if (charCount + trackInfo.length() > 1024) {
                 // Create a page for the current tracks
@@ -130,7 +130,7 @@ public class QueueCommand extends AbstractMusic {
      * Shuffles the queue.
      */
     private void shuffle() {
-        List<TrackChannelTypeRecord> trackList = new ArrayList<>();
+        List<TrackRecord> trackList = new ArrayList<>();
         queue.drainTo(trackList);
         Collections.shuffle(trackList);
         queue.clear();
@@ -158,7 +158,7 @@ public class QueueCommand extends AbstractMusic {
      * Clears the queue.
      */
     private void clear() {
-        for (TrackChannelTypeRecord record : queue) {
+        for (TrackRecord record : queue) {
             if (record.trackType() == TrackType.TTS) {
                 TTSCommand.removeTTSMessage(record.track());
             }
@@ -195,8 +195,8 @@ public class QueueCommand extends AbstractMusic {
             }
         } else {
             int count = 1;
-            Iterator<TrackChannelTypeRecord> iterator = queue.iterator();
-            TrackChannelTypeRecord currentTrack = null;
+            Iterator<TrackRecord> iterator = queue.iterator();
+            TrackRecord currentTrack = null;
             while (iterator.hasNext()) {
                 if (count == position) {
                     if (currentTrack.trackType() == TrackType.TTS) {
@@ -224,7 +224,7 @@ public class QueueCommand extends AbstractMusic {
      * @param record the track record
      * @return the formatted track info
      */
-    private String formatTrackInfo(int index, TrackChannelTypeRecord record) {
+    private String formatTrackInfo(int index, TrackRecord record) {
         AudioTrack track = record.track();
         AudioTrackInfo info = track.getInfo();
         String timeLeft = String.format("[%s]\n", (index == 1 ? TimeFormat.formatTime(track.getDuration() - track.getPosition()) + " left" + (scheduler.looping == LoopCommand.looping.TRACK ? " - looping" : "") : TimeFormat.formatTime(track.getDuration())));
