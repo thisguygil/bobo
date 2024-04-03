@@ -4,8 +4,12 @@ import bobo.Config;
 import bobo.commands.AbstractCommand;
 import bobo.utils.SQLConnection;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+import org.jetbrains.annotations.Nullable;
 
 import java.sql.*;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Map;
 
 public abstract class AbstractLastFM extends AbstractCommand {
@@ -14,7 +18,8 @@ public abstract class AbstractLastFM extends AbstractCommand {
     private static final String createSQL = "CREATE TABLE IF NOT EXISTS lastfmlogins (user_id VARCHAR(255) PRIMARY KEY, session_key VARCHAR(255) NOT NULL, lastfm_username VARCHAR(255) NOT NULL)";
     private static final String insertSQL = "INSERT INTO lastfmlogins (user_id, session_key, lastfm_username) VALUES (?, ?, ?)";
     private static final String selectSQL = "SELECT session_key, lastfm_username FROM lastfmlogins WHERE user_id = ?";
-    private static final String removeSQL = "DELETE FROM lastfmtokens WHERE user_id = ?";
+    private static final String removeTokenSQL = "DELETE FROM lastfmtokens WHERE user_id = ?";
+    private static final String selectUsernameSQL = "SELECT lastfm_username FROM lastfmlogins WHERE user_id = ?";
 
 
     /**
@@ -75,7 +80,7 @@ public abstract class AbstractLastFM extends AbstractCommand {
 
             // Remove the token from the database
             try (Connection connection = SQLConnection.getConnection()) {
-                try (PreparedStatement preparedStatement = connection.prepareStatement(removeSQL)) {
+                try (PreparedStatement preparedStatement = connection.prepareStatement(removeTokenSQL)) {
                     preparedStatement.setString(1, userId);
                     preparedStatement.executeUpdate();
                 }
@@ -91,6 +96,55 @@ public abstract class AbstractLastFM extends AbstractCommand {
 
     @Override
     public String getHelp() {
-        return "Last.fm Command. Note that you must be logged in to Last.fm to use this command. Use `/fmlogin` to log in.";
+        return "Last.fm Command. You must be logged in to Last.fm to use this command. Use `/fmlogin` to log in.";
+    }
+
+    /**
+     * Gets the Last.fm username of the user.
+     *
+     * @param userId The user id.
+     * @return The Last.fm username, or null if the user is not logged in.
+     */
+    @Nullable
+    protected String getUserName(String userId) {
+        String username = null;
+        try (Connection connection = SQLConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(selectUsernameSQL)) {
+            statement.setString(1, userId);
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                username = resultSet.getString("lastfm_username");
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+        return username;
+    }
+
+    /**
+     * Creates a Discord timestamp from a given date of the form YYYY-MM-DD
+     *
+     * @param dateStr The date to create a timestamp from.
+     * @return The Discord timestamp.
+     */
+    protected String createDiscordTimestamp(String dateStr) {
+        // Parse the date string
+        LocalDate date = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        // Convert LocalDate to Unix timestamp (seconds since 1970-01-01 00:00:00 UTC)
+        long unixTimestamp = date.atStartOfDay(ZoneId.of("UTC")).toEpochSecond();
+
+        // Format for Discord and return
+        return String.format("<t:%d:D>", unixTimestamp);
+    }
+
+    /**
+     * Wraps the given string in back quotes.
+     * @param string The string to wrap.
+     * @return The wrapped string.
+     */
+    protected String backQuotes(String string) {
+        return "`" + string + "`";
     }
 }

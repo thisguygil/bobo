@@ -1,6 +1,7 @@
 package bobo.commands.lastfm;
 
 import bobo.utils.LastfmAPI;
+import bobo.utils.MusicBrainzAPI;
 import bobo.utils.TimeFormat;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
@@ -8,6 +9,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.awt.*;
@@ -33,8 +35,7 @@ public class TrackCommand extends AbstractLastFM {
     protected void handleLastFMCommand() {
         event.deferReply().queue();
 
-        // Get the Last.fm username. Note that the user is already logged in at this point, so the username is guaranteed to be non-null
-        String username = FMLoginCommand.getUserName(event.getUser().getId());
+        String username = getUserName(event.getUser().getId());
         assert username != null;
         Member member = event.getMember();
         assert member != null;
@@ -50,9 +51,12 @@ public class TrackCommand extends AbstractLastFM {
             }
 
             JSONObject responseObject = new JSONObject(response);
-            JSONObject trackObject = responseObject.getJSONObject("recenttracks").getJSONArray("track").getJSONObject(0);
+            JSONObject trackObject = responseObject.getJSONObject("recenttracks")
+                    .getJSONArray("track")
+                    .getJSONObject(0);
             trackName = trackObject.getString("name");
-            artistName = trackObject.getJSONObject("artist").getString("#text");
+            artistName = trackObject.getJSONObject("artist")
+                    .getString("#text");
         } else {
             // Search the track information with a GET request to track.search
             String response = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "track.search", "track", trackOption.getAsString(), "limit", "1")), false);
@@ -68,46 +72,73 @@ public class TrackCommand extends AbstractLastFM {
             }
 
             // Parse the track's name and artist
-            JSONObject trackObject = responseObject.getJSONObject("results").getJSONObject("trackmatches").getJSONArray("track").getJSONObject(0);
+            JSONObject trackObject = responseObject.getJSONObject("results")
+                    .getJSONObject("trackmatches")
+                    .getJSONArray("track")
+                    .getJSONObject(0);
             trackName = trackObject.getString("name");
             artistName = trackObject.getString("artist");
         }
 
         // Get the track's information with a GET request to track.getInfo
-        String response = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "track.getInfo", "track", trackName, "artist", artistName, "username", username)), false);
-        if (response == null) {
+        String trackResponse = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "track.getInfo", "track", trackName, "artist", artistName, "username", username)), false);
+        if (trackResponse == null) {
             hook.editOriginal("An error occurred while getting the track's information.").queue();
             return;
         }
 
         // Parse the track's information
-        JSONObject responseObject = new JSONObject(response);
+        JSONObject responseObject = new JSONObject(trackResponse);
         JSONObject trackObject = responseObject.getJSONObject("track");
-        String trackURL = trackObject.getString("url");
+        String trackUrl = trackObject.getString("url");
         String trackImage = null;
+        String albumName = null;
         try {
-            JSONArray imageArray = trackObject.getJSONObject("album").getJSONArray("image");
+            JSONObject trackAlbumObject = trackObject.getJSONObject("album");
+            albumName = trackAlbumObject.getString("title");
+            JSONArray imageArray = trackAlbumObject.getJSONArray("image");
             trackImage = imageArray.getJSONObject(imageArray.length() - 1).getString("#text");
         } catch (Exception ignored) {}
-        String trackDuration = TimeFormat.formatTime(Long.parseLong(trackObject.getString("duration")));
+        String trackDuration = trackObject.getString("duration");
         int trackListeners = Integer.parseInt(trackObject.getString("listeners"));
         int trackPlayCount = Integer.parseInt(trackObject.getString("playcount"));
         int userPlayCount = Integer.parseInt(trackObject.getString("userplaycount"));
         String trackSummary = null;
-        try {
-            // Track summary is not guaranteed to be present
+        try { // Track summary is not guaranteed to be present
             trackSummary = trackObject.getJSONObject("wiki").getString("summary").replaceAll("<[^>]*>.*", ""); // Remove HTML tags and everything after
         } catch (Exception ignored) {}
+
+        // Get the track's release date from MusicBrainz API. First need to get the mbid from the album with a GET request to album.getInfo
+        String releaseDate = null;
+        if (albumName != null) {
+            String albumResponse = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "album.getInfo", "album", albumName, "artist", artistName, "username", username)), false);
+            if (albumResponse != null) {
+                try {
+                    JSONObject albumObject = new JSONObject(albumResponse);
+                    String albumMbid = albumObject.getString("mbid");
+                    String albumInfo = MusicBrainzAPI.getAlbumInfo(albumMbid);
+                    if (albumInfo != null) {
+                        JSONObject albumInfoObject = new JSONObject(albumInfo);
+                        releaseDate = createDiscordTimestamp(albumInfoObject.getString("date"));
+                    }
+                } catch (JSONException ignored) {}
+            }
+        }
 
         // Send the track's information in an embed
         EmbedBuilder embed = new EmbedBuilder()
                 .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getEffectiveAvatarUrl())
-                .setTitle(trackName + " by " + artistName, trackURL)
+                .setTitle(trackName + " by " + artistName, trackUrl)
                 .setColor(Color.RED)
-                .addField("Duration", wrapInBackQuotes(trackDuration), true)
-                .addField("Stats", wrapInBackQuotes(String.valueOf(trackListeners)) + " listeners\n" + wrapInBackQuotes(String.valueOf(trackPlayCount)) + " global play" + (trackPlayCount == 1 ? "" : "s") + "\n" + wrapInBackQuotes(String.valueOf(userPlayCount)) + " play" + (userPlayCount == 1 ? "" : "s") + " by you", true);
+                .addField("Stats", backQuotes(String.valueOf(trackListeners)) + " listeners\n" + backQuotes(String.valueOf(trackPlayCount)) + " global play" + (trackPlayCount == 1 ? "" : "s") + "\n" + backQuotes(String.valueOf(userPlayCount)) + " play" + (userPlayCount == 1 ? "" : "s") + " by you", true);
         if (trackImage != null && !trackImage.isBlank()) {
             embed.setThumbnail(trackImage);
+        }
+        if (!trackDuration.equals("0")) {
+            embed.addField("Duration", backQuotes(TimeFormat.formatTime(Long.parseLong(trackDuration))), true);
+        }
+        if (releaseDate != null && !releaseDate.isBlank()) {
+            embed.setDescription("Released on " + releaseDate);
         }
         if (trackSummary != null && !trackSummary.isBlank()) {
             embed.addField("Summary", trackSummary, false);
@@ -116,19 +147,11 @@ public class TrackCommand extends AbstractLastFM {
         hook.editOriginalEmbeds(embed.build()).queue();
     }
 
-    /**
-     * Wraps the given string in back quotes.
-     * @param string The string to wrap.
-     * @return The wrapped string.
-     */
-    private static String wrapInBackQuotes(String string) {
-        return "`" + string + "`";
-    }
-
     @Override
     public String getHelp() {
         return super.getHelp() + """
                 Gets information about a given track or last played track on Last.fm
-                "Usage: `/track <track>`""";
+                "Usage: `/track <track>`
+                No input defaults to last played track.""";
     }
 }

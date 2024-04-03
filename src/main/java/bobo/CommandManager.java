@@ -38,7 +38,10 @@ public class CommandManager {
 
         // Last.fm commands
         commands.add(new FMLoginCommand());
+        commands.add(new FMLogoutCommand());
         commands.add(new TrackCommand());
+        commands.add(new AlbumCommand());
+        commands.add(new ArtistCommand());
 
         // AI commands
         commands.add(new ChatCommand());

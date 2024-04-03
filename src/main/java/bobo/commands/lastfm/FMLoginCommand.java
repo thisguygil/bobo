@@ -21,7 +21,6 @@ public class FMLoginCommand extends AbstractLastFM {
     private static final String createTokenSQL = "CREATE TABLE IF NOT EXISTS lastfmtokens (user_id VARCHAR(255) PRIMARY KEY, token VARCHAR(255) NOT NULL)";
     private static final String insertTokenSQL = "INSERT INTO lastfmtokens (user_id, token) VALUES (?, ?) ON DUPLICATE KEY UPDATE token = ?";
     private static final String selectSessionKeySQL = "SELECT session_key FROM lastfmlogins WHERE user_id = ?";
-    private static final String selectUsernameSQL = "SELECT lastfm_username FROM lastfmlogins WHERE user_id = ?";
     private static final String selectTokenSQL = "SELECT token FROM lastfmtokens WHERE user_id = ?";
 
     /**
@@ -102,28 +101,6 @@ public class FMLoginCommand extends AbstractLastFM {
         return sessionKey;
     }
 
-    /**
-     * Gets the Last.fm username of the user.
-     *
-     * @param userId The user id.
-     * @return The Last.fm username, or null if the user is not logged in.
-     */
-    @Nullable
-    public static String getUserName(String userId) {
-        String username = null;
-        try (Connection connection = SQLConnection.getConnection();
-             PreparedStatement statement = connection.prepareStatement(selectUsernameSQL)) {
-            statement.setString(1, userId);
-            ResultSet resultSet = statement.executeQuery();
-            if (resultSet.next()) {
-                username = resultSet.getString("lastfm_username");
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-
-        return username;
-    }
 
     /**
      * Gets the session key and username from the token.
