@@ -105,6 +105,8 @@ public class SearchCommand extends AbstractMusic {
 
     /**
      * Searches YouTube for tracks.
+     *
+     * @param query The query to search for.
      */
     private void searchYoutubeTrack(String query) {
         try {
@@ -139,6 +141,8 @@ public class SearchCommand extends AbstractMusic {
 
     /**
      * Searches YouTube for playlists.
+     *
+     * @param query The query to search for.
      */
     private void searchYoutubePlaylist(String query) {
         try {
@@ -173,6 +177,8 @@ public class SearchCommand extends AbstractMusic {
 
     /**
      * Searches Spotify for tracks.
+     *
+     * @param query The query to search for.
      */
     private void searchSpotifyTrack(String query) {
         try {
@@ -221,6 +227,8 @@ public class SearchCommand extends AbstractMusic {
 
     /**
      * Searches Spotify for playlists.
+     *
+     * @param query The query to search for.
      */
     private void searchSpotifyPlaylist(String query) {
         try {
@@ -260,6 +268,8 @@ public class SearchCommand extends AbstractMusic {
 
     /**
      * Searches Spotify for albums.
+     *
+     * @param query The query to search for.
      */
     private void searchSpotifyAlbum(String query) {
         try {
