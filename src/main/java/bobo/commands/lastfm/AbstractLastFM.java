@@ -129,6 +129,13 @@ public abstract class AbstractLastFM extends AbstractCommand {
      * @return The Discord timestamp.
      */
     protected String createDiscordTimestamp(String dateStr) {
+        // Add missing parts of the date string
+        if (dateStr.length() == 4) { // Only year provided
+            dateStr += "-01-01";
+        } else if (dateStr.length() == 7) { // Year and month provided
+            dateStr += "-01";
+        }
+
         // Parse the date string
         LocalDate date = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 
