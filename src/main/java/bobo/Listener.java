@@ -16,8 +16,9 @@ import bobo.utils.TrackType;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
@@ -57,13 +58,13 @@ public class Listener extends ListenerAdapter {
     @Override
     public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
         if (event.isFromType(ChannelType.PRIVATE)) {
-            TextChannel channel = Bobo.getJDA().getTextChannelById(Long.parseLong(Config.get("DM_LOG_CHANNEL_ID")));
+            GuildChannel channel = Bobo.getJDA().getGuildChannelById(Long.parseLong(Config.get("DM_LOG_CHANNEL_ID")));
             MessageCreateData message = new MessageCreateBuilder()
                     .addContent("**" + event.getAuthor().getGlobalName() + "**\n" + event.getMessage().getContentDisplay())
                     .addEmbeds(event.getMessage().getEmbeds())
                     .build();
             assert channel != null;
-            channel.sendMessage(message).queue();
+            ((GuildMessageChannel) channel).sendMessage(message).queue();
         } else if (event.isFromType(ChannelType.GUILD_PRIVATE_THREAD)) {
             ChatCommand.handleThreadMessage(event);
         }

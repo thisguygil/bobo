@@ -1,7 +1,8 @@
 package bobo.utils;
 
 import bobo.Bobo;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.utils.FileUpload;
 
 import java.io.File;
@@ -48,7 +49,7 @@ public class DailyTask {
      * Sends the Fortnite shop image to all registered Discord channels.
      */
     public void sendFortniteShopImage() {
-        TextChannel channel;
+        GuildChannel channel;
         ZonedDateTime nowInUTC = ZonedDateTime.now(ZoneId.of("UTC"));
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy");
         final String message = "# Fortnite Item Shop" + "\n" + "## " + nowInUTC.format(formatter);
@@ -66,9 +67,10 @@ public class DailyTask {
             }
 
             while (resultSet.next()) {
-                channel = Bobo.getJDA().getTextChannelById(resultSet.getString("channel_id"));
-                if (channel != null) {
-                    channel.sendMessage(message).addFiles(upload).queue(success -> {
+                channel = Bobo.getJDA().getGuildChannelById(resultSet.getString("channel_id"));
+                GuildMessageChannel messageChannel = (GuildMessageChannel) channel;
+                if (messageChannel != null) {
+                    messageChannel.sendMessage(message).addFiles(upload).queue(success -> {
                         if (!file.delete()) {
                             System.err.println("Failed to delete file: " + file.getAbsolutePath());
                         }

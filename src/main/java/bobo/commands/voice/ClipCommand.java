@@ -5,7 +5,8 @@ import bobo.utils.AudioReceiveListener;
 import bobo.utils.SQLConnection;
 import net.dv8tion.jda.api.audio.AudioReceiveHandler;
 import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
@@ -57,13 +58,13 @@ public class ClipCommand extends AbstractVoice {
         String name = nameOption == null ? LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) : nameOption.getAsString();
         File file = ((AudioReceiveListener) receiveHandler).createFile(30, name);
         if (file != null) {
-            TextChannel channel;
+            GuildChannel channel;
             try (Connection connection = SQLConnection.getConnection();
                  PreparedStatement statement = connection.prepareStatement(selectSQL)) {
                 statement.setString(1, guild.getId());
                 ResultSet resultSet = statement.executeQuery();
                 if (resultSet.next()) {
-                    channel = Bobo.getJDA().getTextChannelById(resultSet.getString("channel_id"));
+                    channel = Bobo.getJDA().getGuildChannelById(resultSet.getString("channel_id"));
                 } else {
                     channel = null;
                 }
@@ -73,8 +74,8 @@ public class ClipCommand extends AbstractVoice {
             }
 
             FileUpload fileUpload = FileUpload.fromData(file);
-            if (channel != null && channel != event.getChannel().asTextChannel()) {
-                channel.sendFiles(fileUpload).queue();
+            if (channel != null && channel != event.getChannel()) {
+                ((GuildMessageChannel) channel).sendFiles(fileUpload).queue();
             }
             hook.editOriginalAttachments(fileUpload).queue(success -> {
                 if (!file.delete()) {

@@ -5,7 +5,8 @@ import bobo.utils.SQLConnection;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import javax.annotation.Nonnull;
@@ -81,13 +82,14 @@ public class GetQuoteCommand extends AbstractGeneral {
      * @param guild the guild to load quotes from
      */
     private static void loadGuild(@Nonnull Guild guild) throws SQLException {
-        TextChannel channel;
+        GuildChannel channel;
+        GuildMessageChannel messageChannel;
         try (Connection connection = SQLConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(selectSQL)) {
             statement.setString(1, guild.getId());
             ResultSet resultSet = statement.executeQuery();
             if (resultSet.next()) {
-                channel = Bobo.getJDA().getTextChannelById(resultSet.getString("channel_id"));
+                channel = Bobo.getJDA().getGuildChannelById(resultSet.getString("channel_id"));
             } else {
                 channel = null;
             }
@@ -97,8 +99,9 @@ public class GetQuoteCommand extends AbstractGeneral {
             return;
         }
 
+        messageChannel = (GuildMessageChannel) channel;
         List<Message> messages = guildListMap.computeIfAbsent(guild, k -> new ArrayList<>());
-        for (Message message : channel.getIterableHistory()) {
+        for (Message message : messageChannel.getIterableHistory()) {
             if (!messages.contains(message)) {
                 if (message.getContentDisplay().contains("\"")) {
                     messages.add(message);
@@ -119,12 +122,13 @@ public class GetQuoteCommand extends AbstractGeneral {
             JDA jda = Bobo.getJDA();
             while (resultSet.next()) {
                 Guild guild = jda.getGuildById(resultSet.getString("guild_id"));
-                TextChannel channel = jda.getTextChannelById(resultSet.getString("channel_id"));
+                GuildChannel channel = jda.getGuildChannelById(resultSet.getString("channel_id"));
                 assert guild != null;
                 assert channel != null;
 
                 List<Message> messages = new ArrayList<>();
-                for (Message message : channel.getIterableHistory()) {
+                GuildMessageChannel messageChannel = (GuildMessageChannel) channel;
+                for (Message message : messageChannel.getIterableHistory()) {
                     if (message.getContentDisplay().contains("\"")) {
                         messages.add(message);
                     }
