@@ -2,6 +2,7 @@ package bobo.commands.voice.music;
 
 import bobo.commands.voice.JoinCommand;
 import bobo.lavaplayer.PlayerManager;
+import bobo.utils.SoundCloudAPI;
 import bobo.utils.SpotifyLink;
 import bobo.utils.TrackType;
 import bobo.utils.YouTubeUtil;
@@ -14,6 +15,8 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 import net.dv8tion.jda.api.managers.AudioManager;
+import org.json.JSONArray;
+import org.json.JSONObject;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.model_objects.specification.AlbumSimplified;
 import se.michaelthelin.spotify.model_objects.specification.ArtistSimplified;
@@ -21,6 +24,7 @@ import se.michaelthelin.spotify.model_objects.specification.PlaylistSimplified;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -39,22 +43,31 @@ public class SearchCommand extends AbstractMusic {
      * Creates a new search command.
      */
     public SearchCommand() {
-        super(Commands.slash("search", "Searches YouTube/Spotify for a track/playlist/album, and plays requested result.")
+        super(Commands.slash("search", "Searches YouTube/Spotify/SoundCloud, and plays the requested result.")
                 .addSubcommandGroups(
-                        new SubcommandGroupData("youtube", "Searches YouTube for a track/playlist.")
+                        new SubcommandGroupData("youtube", "Search YouTube.")
                                 .addSubcommands(
                                         new SubcommandData("track", "Searches YouTube for a track.")
                                                 .addOption(OptionType.STRING, "query", "What to search", true),
                                         new SubcommandData("playlist", "Searches YouTube for a playlist.")
                                                 .addOption(OptionType.STRING, "query", "What to search", true)
                                 ),
-                        new SubcommandGroupData("spotify", "Searches Spotify for a track/playlist/album.")
+                        new SubcommandGroupData("spotify", "Search Spotify.")
                                 .addSubcommands(
-                                        new SubcommandData("track", "Searches Spotify for a track.")
+                                        new SubcommandData("track", "Search Spotify for a track.")
                                                 .addOption(OptionType.STRING, "query", "What to search", true),
-                                        new SubcommandData("playlist", "Searches Spotify for a playlist.")
+                                        new SubcommandData("playlist", "Search Spotify for a playlist.")
                                                 .addOption(OptionType.STRING, "query", "What to search", true),
-                                        new SubcommandData("album", "Searches Spotify for an album.")
+                                        new SubcommandData("album", "Search Spotify for an album.")
+                                                .addOption(OptionType.STRING, "query", "What to search", true)
+                                ),
+                        new SubcommandGroupData("soundcloud", "Search SoundCloud.")
+                                .addSubcommands(
+                                        new SubcommandData("track", "Search SoundCloud for a track.")
+                                                .addOption(OptionType.STRING, "query", "What to search", true),
+                                        new SubcommandData("playlist", "Search SoundCloud for a playlist.")
+                                                .addOption(OptionType.STRING, "query", "What to search", true),
+                                        new SubcommandData("album", "Search SoundCloud for an album.")
                                                 .addOption(OptionType.STRING, "query", "What to search", true)
                                 )
                 )
@@ -96,6 +109,14 @@ public class SearchCommand extends AbstractMusic {
                     case "track" -> searchSpotifyTrack(query);
                     case "playlist" -> searchSpotifyPlaylist(query);
                     case "album" -> searchSpotifyAlbum(query);
+                    default -> throw new IllegalStateException("Unexpected value: " + subcommandName);
+                }
+            }
+            case "soundcloud" -> {
+                switch (subcommandName) {
+                    case "track" -> searchSoundcloudTrack(query);
+                    case "playlist" -> searchSoundcloudPlaylist(query);
+                    case "album" -> searchSoundcloudAlbum(query);
                     default -> throw new IllegalStateException("Unexpected value: " + subcommandName);
                 }
             }
@@ -314,6 +335,147 @@ public class SearchCommand extends AbstractMusic {
             hook.editOriginal("An error occurred while searching for albums.").queue();
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Searches SoundCloud for tracks.
+     *
+     * @param query The query to search for.
+     */
+    private void searchSoundcloudTrack(String query) {
+        String apiResponse = SoundCloudAPI.search(query, "tracks", 5);
+        if (apiResponse == null) {
+            hook.editOriginal("An error occurred while searching for tracks.").queue();
+            return;
+        }
+
+        JSONObject response = new JSONObject(apiResponse);
+        if (response.getInt("total_results") == 0) {
+            hook.editOriginal("No tracks found.").queue();
+            return;
+        }
+
+        ArrayList<String> titleLinks = new ArrayList<>();
+        ArrayList<String> trackLinks = new ArrayList<>();
+        JSONArray collection = response.getJSONArray("collection");
+        for (int i = 0; i < collection.length(); i++) {
+            titleLinks.add(collection.getJSONObject(i).getString("title"));
+            trackLinks.add(collection.getJSONObject(i).getString("permalink_url"));
+        }
+
+        String[] links = new String[trackLinks.size()];
+        links = trackLinks.toArray(links);
+        EVENT_LINKS_MAP.put(event, links);
+
+        StringBuilder message = new StringBuilder("Found tracks from search: **" + query + "**\n");
+        for (int i = 0; i < links.length; i++) {
+            message.append("**")
+                    .append(i + 1)
+                    .append(":** [")
+                    .append(titleLinks.get(i))
+                    .append("](<")
+                    .append(links[i])
+                    .append(">)\n");
+        }
+
+        message.append("\nPlease select a track to play by selecting the proper reaction, or the :x: reaction to cancel.");
+        String[] finalLinks = links;
+        hook.editOriginal(message.toString()).queue(success -> addReactions(success, finalLinks.length));
+        MESSAGE_EVENT_MAP.put(event.getHook().retrieveOriginal().complete().getIdLong(), event);
+    }
+
+    /**
+     * Searches SoundCloud for playlists.
+     *
+     * @param query The query to search for.
+     */
+    private void searchSoundcloudPlaylist(String query) {
+        String apiResponse = SoundCloudAPI.search(query, "playlists", 5);
+        if (apiResponse == null) {
+            hook.editOriginal("An error occurred while searching for playlists.").queue();
+            return;
+        }
+
+        JSONObject response = new JSONObject(apiResponse);
+        if (response.getInt("total_results") == 0) {
+            hook.editOriginal("No playlists found.").queue();
+            return;
+        }
+
+        ArrayList<String> titleLinks = new ArrayList<>();
+        ArrayList<String> trackLinks = new ArrayList<>();
+        JSONArray collection = response.getJSONArray("collection");
+        for (int i = 0; i < collection.length(); i++) {
+            titleLinks.add(collection.getJSONObject(i).getString("title"));
+            trackLinks.add(collection.getJSONObject(i).getString("permalink_url"));
+        }
+
+        String[] links = new String[trackLinks.size()];
+        links = trackLinks.toArray(links);
+        EVENT_LINKS_MAP.put(event, links);
+
+        StringBuilder message = new StringBuilder("Found playlists from search: **" + query + "**\n");
+        for (int i = 0; i < links.length; i++) {
+            message.append("**")
+                    .append(i + 1)
+                    .append(":** [")
+                    .append(titleLinks.get(i))
+                    .append("](<")
+                    .append(links[i])
+                    .append(">)\n");
+        }
+
+        message.append("\nPlease select a playlist to play by selecting the proper reaction, or the :x: reaction to cancel.");
+        String[] finalLinks = links;
+        hook.editOriginal(message.toString()).queue(success -> addReactions(success, finalLinks.length));
+        MESSAGE_EVENT_MAP.put(event.getHook().retrieveOriginal().complete().getIdLong(), event);
+    }
+
+    /**
+     * Searches SoundCloud for albums.
+     *
+     * @param query The query to search for.
+     */
+    private void searchSoundcloudAlbum(String query) {
+        String apiResponse = SoundCloudAPI.search(query, "albums", 5);
+        if (apiResponse == null) {
+            hook.editOriginal("An error occurred while searching for albums.").queue();
+            return;
+        }
+
+        JSONObject response = new JSONObject(apiResponse);
+        if (response.getInt("total_results") == 0) {
+            hook.editOriginal("No albums found.").queue();
+            return;
+        }
+
+        ArrayList<String> titleLinks = new ArrayList<>();
+        ArrayList<String> trackLinks = new ArrayList<>();
+        JSONArray collection = response.getJSONArray("collection");
+        for (int i = 0; i < collection.length(); i++) {
+            titleLinks.add(collection.getJSONObject(i).getString("title"));
+            trackLinks.add(collection.getJSONObject(i).getString("permalink_url"));
+        }
+
+        String[] links = new String[trackLinks.size()];
+        links = trackLinks.toArray(links);
+        EVENT_LINKS_MAP.put(event, links);
+
+        StringBuilder message = new StringBuilder("Found albums from search: **" + query + "**\n");
+        for (int i = 0; i < links.length; i++) {
+            message.append("**")
+                    .append(i + 1)
+                    .append(":** [")
+                    .append(titleLinks.get(i))
+                    .append("](<")
+                    .append(links[i])
+                    .append(">)\n");
+        }
+
+        message.append("\nPlease select an album to play by selecting the proper reaction, or the :x: reaction to cancel.");
+        String[] finalLinks = links;
+        hook.editOriginal(message.toString()).queue(success -> addReactions(success, finalLinks.length));
+        MESSAGE_EVENT_MAP.put(event.getHook().retrieveOriginal().complete().getIdLong(), event);
     }
 
     /**

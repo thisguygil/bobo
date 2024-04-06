@@ -2,10 +2,7 @@ package bobo.lavaplayer;
 
 import bobo.commands.voice.music.LoopCommand;
 import bobo.commands.voice.music.TTSCommand;
-import bobo.utils.SpotifyLink;
-import bobo.utils.TimeFormat;
-import bobo.utils.TrackRecord;
-import bobo.utils.YouTubeUtil;
+import bobo.utils.*;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.event.TrackStartEvent;
@@ -65,9 +62,10 @@ public class GuildMusicManager {
                                     .addField("Author", trackInfo.author, true)
                                     .setFooter(TimeFormat.formatTime((track.getDuration())));
 
-                            // Get the YouTube thumbnail or Spotify album cover
+                            // Get and add the track's thumbnail to the embed
                             try {
                                 String spotifyRegex = "^(https?://)?open.spotify.com/.*";
+                                String soundcloudRegex = "^(https?://)?soundcloud.com/.*";
                                 if (YouTubeUtil.isYouTubeUrl(uri)) {
                                     // Get the thumbnail
                                     BufferedImage image = YouTubeUtil.getThumbnailImage(uri);
@@ -87,6 +85,12 @@ public class GuildMusicManager {
                                     String id = uri.split("/")[uri.split("/").length - 1];
                                     String imageUrl = spotifyApi.getTrack(id).build().execute().getAlbum().getImages()[0].getUrl();
                                     embed.setThumbnail(imageUrl);
+                                    channel.sendMessageEmbeds(embed.build()).queue();
+                                } else if (uri.matches(soundcloudRegex)) {
+                                    String url = SoundCloudAPI.getArtworkUrl(uri);
+                                    if (url != null) {
+                                        embed.setThumbnail(url);
+                                    }
                                     channel.sendMessageEmbeds(embed.build()).queue();
                                 } else {
                                     channel.sendMessageEmbeds(embed.build()).queue();

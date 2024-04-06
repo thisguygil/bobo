@@ -1,5 +1,6 @@
 package bobo.commands.voice.music;
 
+import bobo.utils.SoundCloudAPI;
 import bobo.utils.SpotifyLink;
 import bobo.utils.TimeFormat;
 import bobo.utils.YouTubeUtil;
@@ -47,9 +48,10 @@ public class NowPlayingCommand extends AbstractMusic {
                         .addField("Author", info.author, true)
                         .setFooter(TimeFormat.formatTime(currentAudioTrack.getDuration() - currentAudioTrack.getPosition()) + " left");
 
-                // Get the YouTube thumbnail or Spotify album cover
+                // Get and add the track's thumbnail to the embed
                 try {
                     String spotifyRegex = "^(https?://)?open.spotify.com/.*";
+                    String soundcloudRegex = "^(https?://)?soundcloud.com/.*";
                     if (YouTubeUtil.isYouTubeUrl(uri)) {
                         // Get the thumbnail
                         BufferedImage image = YouTubeUtil.getThumbnailImage(uri);
@@ -69,6 +71,12 @@ public class NowPlayingCommand extends AbstractMusic {
                         String id = uri.split("/")[uri.split("/").length - 1];
                         String imageUrl = spotifyApi.getTrack(id).build().execute().getAlbum().getImages()[0].getUrl();
                         embed.setThumbnail(imageUrl);
+                        hook.editOriginalEmbeds(embed.build()).queue();
+                    } else if (soundcloudRegex.matches(uri)) {
+                        String url = SoundCloudAPI.getArtworkUrl(uri);
+                        if (url != null) {
+                            embed.setThumbnail(url);
+                        }
                         hook.editOriginalEmbeds(embed.build()).queue();
                     } else {
                         hook.editOriginalEmbeds(embed.build()).queue();
