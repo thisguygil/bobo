@@ -10,7 +10,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 
-public class MusicBrainzAPI {
+public final class MusicBrainzAPI {
     private static final String baseUrl = "https://musicbrainz.org/ws/2/";
 
     private MusicBrainzAPI() {} // Prevent instantiation
