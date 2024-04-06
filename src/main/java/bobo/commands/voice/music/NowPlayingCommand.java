@@ -69,6 +69,7 @@ public class NowPlayingCommand extends AbstractMusic {
                         String id = uri.split("/")[uri.split("/").length - 1];
                         String imageUrl = spotifyApi.getTrack(id).build().execute().getAlbum().getImages()[0].getUrl();
                         embed.setThumbnail(imageUrl);
+                        hook.editOriginalEmbeds(embed.build()).queue();
                     } else {
                         hook.editOriginalEmbeds(embed.build()).queue();
                     }
