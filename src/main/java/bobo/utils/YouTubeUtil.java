@@ -6,11 +6,13 @@ import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.SearchResult;
 import org.apache.commons.text.StringEscapeUtils;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.net.URI;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -92,6 +94,54 @@ public final class YouTubeUtil {
         }
 
         return playlistLinks;
+    }
+
+    /**
+     * Search for YouTube videos and playlists based on the specified query and return their links.
+     *
+     * @param query The search query.
+     * @return An array of links to the videos and playlists in the search results, prioritized by relevance,
+     *         or null if no results were found.
+     * @throws Exception If an error occurs while communicating with the YouTube Data API.
+     */
+    @Nullable
+    public static String[] searchForVideosAndPlaylists(String query) throws Exception {
+        YouTube youtube = new YouTube.Builder(GoogleNetHttpTransport.newTrustedTransport(), GsonFactory.getDefaultInstance(), null)
+                .setApplicationName("Bobo")
+                .build();
+
+        List<SearchResult> searchResultList = youtube.search().list(Arrays.asList("id", "snippet"))
+                .setKey(API_KEY)
+                .setQ(query)
+                .setType(Arrays.asList("video", "playlist"))
+                .setMaxResults(5L)
+                .setFields("items(id/videoId,id/playlistId)")
+                .execute()
+                .getItems();
+
+        if (searchResultList == null || searchResultList.isEmpty()) {
+            return null;
+        }
+
+        List<String> links = getStrings(searchResultList);
+
+        return links.toArray(new String[0]);
+    }
+
+    private static @NotNull List<String> getStrings(List<SearchResult> searchResultList) {
+        List<String> links = new ArrayList<>();
+        for (SearchResult result : searchResultList) {
+            if (result.getId().getVideoId() != null) {
+                // It's a video
+                String videoId = result.getId().getVideoId();
+                links.add("https://www.youtube.com/watch?v=" + videoId);
+            } else if (result.getId().getPlaylistId() != null) {
+                // It's a playlist
+                String playlistId = result.getId().getPlaylistId();
+                links.add("https://www.youtube.com/playlist?list=" + playlistId);
+            }
+        }
+        return links;
     }
 
     /**
