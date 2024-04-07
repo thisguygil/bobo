@@ -49,6 +49,10 @@ tasks.register("stage") {
     dependsOn("build", "clean")
 }
 
+tasks.withType<JavaCompile> {
+    options.encoding = "UTF-8"
+}
+
 tasks.register<JavaExec>("run") {
     classpath = project.configurations.getByName("runtimeClasspath")
     mainClass.set("bobo.Bobo")
