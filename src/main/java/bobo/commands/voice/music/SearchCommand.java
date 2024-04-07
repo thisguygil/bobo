@@ -2,10 +2,7 @@ package bobo.commands.voice.music;
 
 import bobo.commands.voice.JoinCommand;
 import bobo.lavaplayer.PlayerManager;
-import bobo.utils.SoundCloudAPI;
-import bobo.utils.SpotifyLink;
-import bobo.utils.TrackType;
-import bobo.utils.YouTubeUtil;
+import bobo.utils.*;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -32,12 +29,6 @@ import java.util.Objects;
 public class SearchCommand extends AbstractMusic {
     private static final Map<Long, SlashCommandInteractionEvent> MESSAGE_EVENT_MAP = new HashMap<>();
     private static final Map<SlashCommandInteractionEvent, String[]> EVENT_LINKS_MAP = new HashMap<>();
-    private static final Emoji xEmoji = Emoji.fromUnicode("U+274C");
-    private static final Emoji oneEmoji = Emoji.fromUnicode("U+0031 U+20E3");
-    private static final Emoji twoEmoji = Emoji.fromUnicode("U+0032 U+20E3");
-    private static final Emoji threeEmoji = Emoji.fromUnicode("U+0033 U+20E3");
-    private static final Emoji fourEmoji = Emoji.fromUnicode("U+0034 U+20E3");
-    private static final Emoji fiveEmoji = Emoji.fromUnicode("U+0035 U+20E3");
 
     /**
      * Creates a new search command.
@@ -495,21 +486,21 @@ public class SearchCommand extends AbstractMusic {
 
         Emoji reaction = reactionEvent.getReaction().getEmoji();
         int index;
-        if (reaction.equals(xEmoji)) {
+        if (reaction.equals(EmojiType.X.asEmoji())) {
             long messageId = reactionEvent.getMessageIdLong();
             MESSAGE_EVENT_MAP.remove(messageId);
             EVENT_LINKS_MAP.remove(commandEvent);
             reactionEvent.getChannel().deleteMessageById(messageId).queue();
             return;
-        } else if (reaction.equals(oneEmoji)) {
+        } else if (reaction.equals(EmojiType.ONE.asEmoji())) {
             index = 0;
-        } else if (reaction.equals(twoEmoji)) {
+        } else if (reaction.equals(EmojiType.TWO.asEmoji())) {
             index = 1;
-        } else if (reaction.equals(threeEmoji)) {
+        } else if (reaction.equals(EmojiType.THREE.asEmoji())) {
             index = 2;
-        } else if (reaction.equals(fourEmoji)) {
+        } else if (reaction.equals(EmojiType.FOUR.asEmoji())) {
             index = 3;
-        } else if (reaction.equals(fiveEmoji)) {
+        } else if (reaction.equals(EmojiType.FIVE.asEmoji())) {
             index = 4;
         } else {
             return;
@@ -552,32 +543,9 @@ public class SearchCommand extends AbstractMusic {
      * @param numLinks The number of links to add reactions for.
      */
     private static void addReactions(@Nonnull Message message, int numLinks) {
-        message.addReaction(xEmoji).queue();
-        switch (numLinks) {
-            case 5 -> {
-                message.addReaction(oneEmoji).queue();
-                message.addReaction(twoEmoji).queue();
-                message.addReaction(threeEmoji).queue();
-                message.addReaction(fourEmoji).queue();
-                message.addReaction(fiveEmoji).queue();
-            }
-            case 4 -> {
-                message.addReaction(oneEmoji).queue();
-                message.addReaction(twoEmoji).queue();
-                message.addReaction(threeEmoji).queue();
-                message.addReaction(fourEmoji).queue();
-            }
-            case 3 -> {
-                message.addReaction(oneEmoji).queue();
-                message.addReaction(twoEmoji).queue();
-                message.addReaction(threeEmoji).queue();
-            }
-            case 2 -> {
-                message.addReaction(oneEmoji).queue();
-                message.addReaction(twoEmoji).queue();
-            }
-            case 1 -> message.addReaction(oneEmoji).queue();
-        }
+        message.addReaction(EmojiType.X.asEmoji()).queue();
+        List<Emoji> emojis = List.of(EmojiType.ONE.asEmoji(), EmojiType.TWO.asEmoji(), EmojiType.THREE.asEmoji(), EmojiType.FOUR.asEmoji(), EmojiType.FIVE.asEmoji());
+        emojis.stream().limit(numLinks).forEach(emoji -> message.addReaction(emoji).queue());
     }
 
     /**
@@ -591,32 +559,9 @@ public class SearchCommand extends AbstractMusic {
     private static void removeReactions(@Nonnull SlashCommandInteractionEvent commandEvent, @Nonnull MessageReactionAddEvent reactionEvent, int numLinks) {
         Message message = commandEvent.getHook().retrieveOriginal().complete();
         message.removeReaction(reactionEvent.getReaction().getEmoji(), reactionEvent.retrieveUser().complete()).queue();
-        message.removeReaction(xEmoji).queue();
-        switch (numLinks) {
-            case 5 -> {
-                message.removeReaction(oneEmoji).queue();
-                message.removeReaction(twoEmoji).queue();
-                message.removeReaction(threeEmoji).queue();
-                message.removeReaction(fourEmoji).queue();
-                message.removeReaction(fiveEmoji).queue();
-            }
-            case 4 -> {
-                message.removeReaction(oneEmoji).queue();
-                message.removeReaction(twoEmoji).queue();
-                message.removeReaction(threeEmoji).queue();
-                message.removeReaction(fourEmoji).queue();
-            }
-            case 3 -> {
-                message.removeReaction(oneEmoji).queue();
-                message.removeReaction(twoEmoji).queue();
-                message.removeReaction(threeEmoji).queue();
-            }
-            case 2 -> {
-                message.removeReaction(oneEmoji).queue();
-                message.removeReaction(twoEmoji).queue();
-            }
-            case 1 -> message.removeReaction(oneEmoji).queue();
-        }
+        message.removeReaction(EmojiType.X.asEmoji()).queue();
+        List<Emoji> emojis = List.of(EmojiType.ONE.asEmoji(), EmojiType.TWO.asEmoji(), EmojiType.THREE.asEmoji(), EmojiType.FOUR.asEmoji(), EmojiType.FIVE.asEmoji());
+        emojis.stream().limit(numLinks).forEach(emoji -> message.removeReaction(emoji).queue());
     }
 
     @Override
