@@ -8,6 +8,7 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.Nullable;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
@@ -70,9 +71,9 @@ public final class SoundCloudAPI {
         }
 
         JSONObject jsonResponse = new JSONObject(response);
-        if (jsonResponse.has("artwork_url")) {
+        try {
             return jsonResponse.getString("artwork_url");
-        }
+        } catch (JSONException ignored) {}
 
         return null;
     }
