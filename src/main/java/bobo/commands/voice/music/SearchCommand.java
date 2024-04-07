@@ -21,10 +21,7 @@ import se.michaelthelin.spotify.model_objects.specification.PlaylistSimplified;
 import se.michaelthelin.spotify.model_objects.specification.Track;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class SearchCommand extends AbstractMusic {
     private static final Map<Long, SlashCommandInteractionEvent> MESSAGE_EVENT_MAP = new HashMap<>();
@@ -196,43 +193,56 @@ public class SearchCommand extends AbstractMusic {
         try {
             SpotifyApi spotifyApi = SpotifyLink.getSpotifyApi();
 
-            Track spotifyTrack = spotifyApi.searchTracks(query).build().execute().getItems()[0];
-            ArtistSimplified[] artists = spotifyTrack.getArtists();
-
-            StringBuilder spotifyQuery = new StringBuilder(spotifyTrack.getName() + " ");
-            for (int i = 0; i < artists.length; i++) {
-                spotifyQuery.append(artists[i].getName());
-                if (i != artists.length - 1) {
-                    spotifyQuery.append(" ");
-                }
-            }
-
-            String[] videoLinks = YouTubeUtil.searchForVideos(spotifyQuery.toString());
-            if (videoLinks == null) {
-                hook.editOriginal("No videos found.").queue();
+            // Get the tracks from the Spotify API
+            Track[] tracks = spotifyApi.searchTracks(query).limit(5).build().execute().getItems();
+            if (tracks.length == 0) {
+                hook.editOriginal("No tracks found.").queue();
                 return;
             }
 
-            EVENT_LINKS_MAP.put(event, videoLinks);
+            // Store each track's artist(s) in a 2D array
+            ArtistSimplified[][] artists = new ArtistSimplified[tracks.length][];
+            for (int i = 0; i < tracks.length; i++) {
+                ArtistSimplified[] trackArtists = tracks[i].getArtists();
+                artists[i] = new ArtistSimplified[trackArtists.length];
+                System.arraycopy(trackArtists, 0, artists[i], 0, trackArtists.length);
+            }
 
-            StringBuilder message = new StringBuilder("Found videos from search: **" + query + "**\n");
-            for (int i = 0; i < videoLinks.length; i++) {
-                String videoLink = videoLinks[i];
+            // Build the message
+            String[] trackLinks = new String[tracks.length];
+            StringBuilder message = new StringBuilder("Found tracks from search: **" + query + "**\n");
+            for (int i = 0; i < tracks.length; i++) {
+                Track track = tracks[i];
+                String trackUrl = track.getExternalUrls().get("spotify");
+                trackLinks[i] = trackUrl;
+
+                // Build a string for the artists
+                StringBuilder artistString = new StringBuilder();
+                for (int j = 0; j < artists[i].length; j++) {
+                    artistString.append(artists[i][j].getName());
+                    if (j < artists.length - 1) {
+                        artistString.append(", ");
+                    }
+                }
+
                 message.append("**")
                         .append(i + 1)
                         .append(":** [")
-                        .append(YouTubeUtil.getVideoTitle(videoLink))
+                        .append(track.getName())
                         .append("](<")
-                        .append(videoLink)
-                        .append(">)\n");
+                        .append(trackUrl)
+                        .append(">) by ")
+                        .append(artistString)
+                        .append("\n");
             }
 
-            message.append("\nPlease select a track to play by selecting the proper reaction, or the :x: reaction to cancel.")
-                    .append("\n\n**NOTE:** This plays the track through YouTube, not Spotify.");
-            hook.editOriginal(message.toString()).queue(success -> addReactions(success, videoLinks.length));
+            EVENT_LINKS_MAP.put(event, trackLinks);
+
+            message.append("\nPlease select a track to play by selecting the proper reaction, or the :x: reaction to cancel.");
+            hook.editOriginal(message.toString()).queue(success -> addReactions(success, tracks.length));
             MESSAGE_EVENT_MAP.put(event.getHook().retrieveOriginal().complete().getIdLong(), event);
         } catch (Exception e) {
-            hook.editOriginal("An error occurred while searching for videos.").queue();
+            hook.editOriginal("An error occurred while searching for tracks.").queue();
             e.printStackTrace();
         }
     }
@@ -246,30 +256,30 @@ public class SearchCommand extends AbstractMusic {
         try {
             SpotifyApi spotifyApi = SpotifyLink.getSpotifyApi();
 
-            PlaylistSimplified spotifyPlaylist = spotifyApi.searchPlaylists(query).build().execute().getItems()[0];
-
-            String[] playlistLinks = YouTubeUtil.searchForPlaylists(spotifyPlaylist.getName());
-            if (playlistLinks == null) {
+            PlaylistSimplified[] playlists = spotifyApi.searchPlaylists(query).build().execute().getItems();
+            if (playlists.length == 0) {
                 hook.editOriginal("No playlists found.").queue();
                 return;
             }
 
-            EVENT_LINKS_MAP.put(event, playlistLinks);
-
+            String[] playlistLinks = new String[playlists.length];
             StringBuilder message = new StringBuilder("Found playlists from search: **" + query + "**\n");
             for (int i = 0; i < playlistLinks.length; i++) {
-                String playlistLink = playlistLinks[i];
+                PlaylistSimplified playlist = playlists[i];
+                String playlistUrl = playlist.getExternalUrls().get("spotify");
+                playlistLinks[i] = playlistUrl;
                 message.append("**")
                         .append(i + 1)
                         .append(":** [")
-                        .append(YouTubeUtil.getPlaylistTitle(playlistLink))
+                        .append(playlist.getName())
                         .append("](<")
-                        .append(playlistLink)
+                        .append(playlistUrl)
                         .append(">)\n");
             }
 
-            message.append("\nPlease select a playlist to play by selecting the proper reaction, or the :x: reaction to cancel.")
-                    .append("\n\n**NOTE:** This plays the playlist through YouTube, not Spotify.");
+            EVENT_LINKS_MAP.put(event, playlistLinks);
+
+            message.append("\nPlease select a playlist to play by selecting the proper reaction, or the :x: reaction to cancel.");
             hook.editOriginal(message.toString()).queue(success -> addReactions(success, playlistLinks.length));
             MESSAGE_EVENT_MAP.put(event.getHook().retrieveOriginal().complete().getIdLong(), event);
         } catch (Exception e) {
@@ -287,40 +297,49 @@ public class SearchCommand extends AbstractMusic {
         try {
             SpotifyApi spotifyApi = SpotifyLink.getSpotifyApi();
 
-            AlbumSimplified spotifyAlbum = spotifyApi.searchAlbums(query).build().execute().getItems()[0];
-            ArtistSimplified[] artists = spotifyAlbum.getArtists();
-
-            StringBuilder spotifyQuery = new StringBuilder(spotifyAlbum.getName() + " ");
-            for (int i = 0; i < artists.length; i++) {
-                spotifyQuery.append(artists[i].getName());
-                if (i != artists.length - 1) {
-                    spotifyQuery.append(" ");
-                }
-            }
-
-            String[] playlistLinks = YouTubeUtil.searchForPlaylists(spotifyQuery.toString());
-            if (playlistLinks == null) {
-                hook.editOriginal("No albums found.").queue();
+            AlbumSimplified[] albums = spotifyApi.searchAlbums(query).build().execute().getItems();
+            if (albums.length == 0) {
+                hook.editOriginal("No tracks found.").queue();
                 return;
             }
 
-            EVENT_LINKS_MAP.put(event, playlistLinks);
+            ArtistSimplified[][] artists = new ArtistSimplified[albums.length][];
+            for (int i = 0; i < albums.length; i++) {
+                ArtistSimplified[] trackArtists = albums[i].getArtists();
+                artists[i] = new ArtistSimplified[trackArtists.length];
+                System.arraycopy(trackArtists, 0, artists[i], 0, trackArtists.length);
+            }
 
+            String[] albumLinks = new String[albums.length];
             StringBuilder message = new StringBuilder("Found albums from search: **" + query + "**\n");
-            for (int i = 0; i < playlistLinks.length; i++) {
-                String playlistLink = playlistLinks[i];
+            for (int i = 0; i < albumLinks.length; i++) {
+                AlbumSimplified album = albums[i];
+                String albumUrl = album.getExternalUrls().get("spotify");
+                albumLinks[i] = albumUrl;
+
+                StringBuilder artistString = new StringBuilder();
+                for (int j = 0; j < artists[i].length; j++) {
+                    artistString.append(artists[i][j].getName());
+                    if (j < artists.length - 1) {
+                        artistString.append(", ");
+                    }
+                }
+
                 message.append("**")
                         .append(i + 1)
                         .append(":** [")
-                        .append(YouTubeUtil.getPlaylistTitle(playlistLink))
+                        .append(album.getName())
                         .append("](<")
-                        .append(playlistLink)
+                        .append(albumUrl)
+                        .append(">) by ")
+                        .append(artistString)
                         .append(">)\n");
             }
 
-            message.append("\nPlease select an album to play by selecting the proper reaction, or the :x: reaction to cancel.")
-                    .append("\n\n**NOTE:** This plays the album through a YouTube playlist, not Spotify.");
-            hook.editOriginal(message.toString()).queue(success -> addReactions(success, playlistLinks.length));
+            EVENT_LINKS_MAP.put(event, albumLinks);
+
+            message.append("\nPlease select an album to play by selecting the proper reaction, or the :x: reaction to cancel.");
+            hook.editOriginal(message.toString()).queue(success -> addReactions(success, albumLinks.length));
             MESSAGE_EVENT_MAP.put(event.getHook().retrieveOriginal().complete().getIdLong(), event);
         } catch (Exception e) {
             hook.editOriginal("An error occurred while searching for albums.").queue();
@@ -346,16 +365,15 @@ public class SearchCommand extends AbstractMusic {
             return;
         }
 
-        ArrayList<String> titleLinks = new ArrayList<>();
-        ArrayList<String> trackLinks = new ArrayList<>();
         JSONArray collection = response.getJSONArray("collection");
-        for (int i = 0; i < collection.length(); i++) {
-            titleLinks.add(collection.getJSONObject(i).getString("title"));
-            trackLinks.add(collection.getJSONObject(i).getString("permalink_url"));
+        int collectionLength = collection.length();
+        String[] titles = new String[collectionLength];
+        String[] links = new String[collectionLength];
+        for (int i = 0; i < collectionLength; i++) {
+            titles[i] = (collection.getJSONObject(i).getString("title"));
+            links[i] = (collection.getJSONObject(i).getString("permalink_url"));
         }
 
-        String[] links = new String[trackLinks.size()];
-        links = trackLinks.toArray(links);
         EVENT_LINKS_MAP.put(event, links);
 
         StringBuilder message = new StringBuilder("Found tracks from search: **" + query + "**\n");
@@ -363,15 +381,14 @@ public class SearchCommand extends AbstractMusic {
             message.append("**")
                     .append(i + 1)
                     .append(":** [")
-                    .append(titleLinks.get(i))
+                    .append(titles[i])
                     .append("](<")
                     .append(links[i])
                     .append(">)\n");
         }
 
         message.append("\nPlease select a track to play by selecting the proper reaction, or the :x: reaction to cancel.");
-        String[] finalLinks = links;
-        hook.editOriginal(message.toString()).queue(success -> addReactions(success, finalLinks.length));
+        hook.editOriginal(message.toString()).queue(success -> addReactions(success, links.length));
         MESSAGE_EVENT_MAP.put(event.getHook().retrieveOriginal().complete().getIdLong(), event);
     }
 
@@ -393,16 +410,15 @@ public class SearchCommand extends AbstractMusic {
             return;
         }
 
-        ArrayList<String> titleLinks = new ArrayList<>();
-        ArrayList<String> trackLinks = new ArrayList<>();
         JSONArray collection = response.getJSONArray("collection");
-        for (int i = 0; i < collection.length(); i++) {
-            titleLinks.add(collection.getJSONObject(i).getString("title"));
-            trackLinks.add(collection.getJSONObject(i).getString("permalink_url"));
+        int collectionLength = collection.length();
+        String[] titles = new String[collectionLength];
+        String[] links = new String[collectionLength];
+        for (int i = 0; i < collectionLength; i++) {
+            titles[i] = (collection.getJSONObject(i).getString("title"));
+            links[i] = (collection.getJSONObject(i).getString("permalink_url"));
         }
 
-        String[] links = new String[trackLinks.size()];
-        links = trackLinks.toArray(links);
         EVENT_LINKS_MAP.put(event, links);
 
         StringBuilder message = new StringBuilder("Found playlists from search: **" + query + "**\n");
@@ -410,15 +426,14 @@ public class SearchCommand extends AbstractMusic {
             message.append("**")
                     .append(i + 1)
                     .append(":** [")
-                    .append(titleLinks.get(i))
+                    .append(titles[i])
                     .append("](<")
                     .append(links[i])
                     .append(">)\n");
         }
 
         message.append("\nPlease select a playlist to play by selecting the proper reaction, or the :x: reaction to cancel.");
-        String[] finalLinks = links;
-        hook.editOriginal(message.toString()).queue(success -> addReactions(success, finalLinks.length));
+        hook.editOriginal(message.toString()).queue(success -> addReactions(success, links.length));
         MESSAGE_EVENT_MAP.put(event.getHook().retrieveOriginal().complete().getIdLong(), event);
     }
 
@@ -440,16 +455,15 @@ public class SearchCommand extends AbstractMusic {
             return;
         }
 
-        ArrayList<String> titleLinks = new ArrayList<>();
-        ArrayList<String> trackLinks = new ArrayList<>();
         JSONArray collection = response.getJSONArray("collection");
-        for (int i = 0; i < collection.length(); i++) {
-            titleLinks.add(collection.getJSONObject(i).getString("title"));
-            trackLinks.add(collection.getJSONObject(i).getString("permalink_url"));
+        int collectionLength = collection.length();
+        String[] titles = new String[collectionLength];
+        String[] links = new String[collectionLength];
+        for (int i = 0; i < collectionLength; i++) {
+            titles[i] = (collection.getJSONObject(i).getString("title"));
+            links[i] = (collection.getJSONObject(i).getString("permalink_url"));
         }
 
-        String[] links = new String[trackLinks.size()];
-        links = trackLinks.toArray(links);
         EVENT_LINKS_MAP.put(event, links);
 
         StringBuilder message = new StringBuilder("Found albums from search: **" + query + "**\n");
@@ -457,15 +471,14 @@ public class SearchCommand extends AbstractMusic {
             message.append("**")
                     .append(i + 1)
                     .append(":** [")
-                    .append(titleLinks.get(i))
+                    .append(titles[i])
                     .append("](<")
                     .append(links[i])
                     .append(">)\n");
         }
 
         message.append("\nPlease select an album to play by selecting the proper reaction, or the :x: reaction to cancel.");
-        String[] finalLinks = links;
-        hook.editOriginal(message.toString()).queue(success -> addReactions(success, finalLinks.length));
+        hook.editOriginal(message.toString()).queue(success -> addReactions(success, links.length));
         MESSAGE_EVENT_MAP.put(event.getHook().retrieveOriginal().complete().getIdLong(), event);
     }
 
@@ -567,13 +580,16 @@ public class SearchCommand extends AbstractMusic {
     @Override
     public String getHelp() {
         return """
-                Searches YouTube/Spotify for a track/playlist/album, and plays requested result.
+                Searches YouTube/Spotify/SoundCloud, and plays the requested result.
                 Usage: `/search <subcommand>`
                 Subcommands:
-                * `youtube track <query>`: Searches YouTube for <query>
-                * `youtube playlist <query>`: Searches YouTube for <query>
-                * `spotify track <query>`: Searches Spotify for <query>
-                * `spotify playlist <query>`: Searches Spotify for <query>
-                * `spotify album <query>`: Searches Spotify for <query>""";
+                * `youtube track <query>`: Search YouTube for a track with <query>
+                * `youtube playlist <query>`: Search YouTube for a playlist with <query>
+                * `spotify track <query>`: Search Spotify for a track with <query>
+                * `spotify playlist <query>`: Search Spotify for a playlist with <query>
+                * `spotify album <query>`: Search Spotify for an album with <query>
+                * `soundcloud track <query>`: Search SoundCloud for a track with <query>
+                * `soundcloud playlist <query>`: Search SoundCloud for a playlist with <query>
+                * `soundcloud album <query>`: Search SoundCloud for an album with <query>""";
     }
 }
