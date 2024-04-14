@@ -5,13 +5,14 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.SearchResult;
-import org.apache.commons.text.StringEscapeUtils;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.net.URI;
+import java.security.GeneralSecurityException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -21,6 +22,17 @@ import java.util.regex.Pattern;
 
 public final class YouTubeUtil {
     private static final String API_KEY = Config.get("GOOGLE_API_KEY");
+    private static final YouTube youtube;
+
+    static {
+        try {
+            youtube = new YouTube.Builder(GoogleNetHttpTransport.newTrustedTransport(), GsonFactory.getDefaultInstance(), null)
+                    .setApplicationName(Config.get("YOUTUBE_APPLICATION_NAME"))
+                    .build();
+        } catch (GeneralSecurityException | IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
 
     private YouTubeUtil() {} // Prevent instantiation
 
@@ -32,17 +44,14 @@ public final class YouTubeUtil {
      * @throws Exception If an error occurs while communicating with the YouTube Data API.
      */
     @Nullable
-    public static String[] searchForVideos(String query) throws Exception {
-        YouTube youtube = new YouTube.Builder(GoogleNetHttpTransport.newTrustedTransport(), GsonFactory.getDefaultInstance(), null)
-                .setApplicationName("Bobo")
-                .build();
-
-        List<SearchResult> searchResultList = youtube.search().list(Arrays.asList("id", "snippet"))
+    public static List<SearchResult> searchForVideos(String query) throws Exception {
+        List<SearchResult> searchResultList = youtube.search()
+                .list(Arrays.asList("id", "snippet"))
                 .setKey(API_KEY)
                 .setQ(query)
                 .setType(List.of("video"))
                 .setMaxResults(5L)
-                .setFields("items(id/videoId)")
+                .setFields("items(id/videoId,snippet/channelId,snippet/title,snippet/channelTitle)")
                 .execute()
                 .getItems();
 
@@ -50,14 +59,7 @@ public final class YouTubeUtil {
             return null;
         }
 
-        String[] videoLinks = new String[searchResultList.size()];
-        for (int i = 0; i < searchResultList.size(); i++) {
-            SearchResult result = searchResultList.get(i);
-            String videoId = result.getId().getVideoId();
-            videoLinks[i] = "https://www.youtube.com/watch?v=" + videoId;
-        }
-
-        return videoLinks;
+        return searchResultList;
     }
 
     /**
@@ -68,17 +70,14 @@ public final class YouTubeUtil {
      * @throws Exception If an error occurs while communicating with the YouTube Data API.
      */
     @Nullable
-    public static String[] searchForPlaylists(String query) throws Exception {
-        YouTube youtube = new YouTube.Builder(GoogleNetHttpTransport.newTrustedTransport(), GsonFactory.getDefaultInstance(), null)
-                .setApplicationName("Bobo")
-                .build();
-
-        List<SearchResult> searchResultList = youtube.search().list(Arrays.asList("id", "snippet"))
+    public static List<SearchResult> searchForPlaylists(String query) throws Exception {
+        List<SearchResult> searchResultList = youtube.search()
+                .list(Arrays.asList("id", "snippet"))
                 .setKey(API_KEY)
                 .setQ(query)
                 .setType(List.of("playlist"))
                 .setMaxResults(5L)
-                .setFields("items(id/playlistId)")
+                .setFields("items(id/playlistId,snippet/channelId,snippet/title,snippet/channelTitle)")
                 .execute()
                 .getItems();
 
@@ -86,14 +85,7 @@ public final class YouTubeUtil {
             return null;
         }
 
-        String[] playlistLinks = new String[searchResultList.size()];
-        for (int i = 0; i < searchResultList.size(); i++) {
-            SearchResult result = searchResultList.get(i);
-            String playlistId = result.getId().getPlaylistId();
-            playlistLinks[i] = "https://www.youtube.com/playlist?list=" + playlistId;
-        }
-
-        return playlistLinks;
+        return searchResultList;
     }
 
     /**
@@ -106,11 +98,8 @@ public final class YouTubeUtil {
      */
     @Nullable
     public static String[] searchForVideosAndPlaylists(String query) throws Exception {
-        YouTube youtube = new YouTube.Builder(GoogleNetHttpTransport.newTrustedTransport(), GsonFactory.getDefaultInstance(), null)
-                .setApplicationName("Bobo")
-                .build();
-
-        List<SearchResult> searchResultList = youtube.search().list(Arrays.asList("id", "snippet"))
+        List<SearchResult> searchResultList = youtube.search()
+                .list(Arrays.asList("id", "snippet"))
                 .setKey(API_KEY)
                 .setQ(query)
                 .setType(Arrays.asList("video", "playlist"))
@@ -200,74 +189,6 @@ public final class YouTubeUtil {
                 image = image.getSubimage(0, startY, width, newHeight);
             }
             return image;
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    /**
-     * @param youTubeURL the YouTube link
-     * @return a String with the title of the YouTube video from given link
-     */
-    @Nullable
-    public static String getVideoTitle(String youTubeURL) {
-        try {
-            YouTube youtube = new YouTube.Builder(GoogleNetHttpTransport.newTrustedTransport(), GsonFactory.getDefaultInstance(), null)
-                    .setApplicationName("Bobo")
-                    .build();
-
-            List<SearchResult> searchResultList = youtube.search().list(Arrays.asList("id", "snippet"))
-                    .setKey(API_KEY)
-                    .setQ(getYouTubeID(youTubeURL))
-                    .setType(List.of("video"))
-                    .setMaxResults((long) 1)
-                    .setFields("items(id/videoId,snippet/title)")
-                    .execute()
-                    .getItems();
-
-            if (searchResultList == null || searchResultList.isEmpty()) {
-                return null;
-            }
-
-            SearchResult result = searchResultList.get(0);
-            String title = result.getSnippet().getTitle();
-
-            return StringEscapeUtils.unescapeHtml4(title);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
-    }
-
-    /**
-     * @param youTubeURL the YouTube link
-     * @return a String with the title of the YouTube playlist from given link
-     */
-    @Nullable
-    public static String getPlaylistTitle(String youTubeURL) {
-        try {
-            YouTube youtube = new YouTube.Builder(GoogleNetHttpTransport.newTrustedTransport(), GsonFactory.getDefaultInstance(), null)
-                    .setApplicationName("Bobo")
-                    .build();
-
-            List<SearchResult> searchResultList = youtube.search().list(Arrays.asList("id", "snippet"))
-                    .setKey(API_KEY)
-                    .setQ(getYouTubeID(youTubeURL))
-                    .setType(List.of("playlist"))
-                    .setMaxResults((long) 1)
-                    .setFields("items(id/playlistId,snippet/title)")
-                    .execute()
-                    .getItems();
-
-            if (searchResultList == null || searchResultList.isEmpty()) {
-                return null;
-            }
-
-            SearchResult result = searchResultList.get(0);
-            String title = result.getSnippet().getTitle();
-
-            return StringEscapeUtils.unescapeHtml4(title);
         } catch (Exception e) {
             e.printStackTrace();
             return null;

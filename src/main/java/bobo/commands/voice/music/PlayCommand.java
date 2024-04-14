@@ -3,6 +3,7 @@ package bobo.commands.voice.music;
 import bobo.commands.voice.JoinCommand;
 import bobo.utils.TrackType;
 import bobo.utils.YouTubeUtil;
+import com.google.api.services.youtube.model.SearchResult;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -12,6 +13,7 @@ import net.dv8tion.jda.api.managers.AudioManager;
 import org.apache.commons.validator.routines.UrlValidator;
 
 import javax.annotation.Nonnull;
+import java.util.List;
 import java.util.Objects;
 
 public class PlayCommand extends AbstractMusic {
@@ -68,13 +70,13 @@ public class PlayCommand extends AbstractMusic {
             playerManager.loadAndPlay(event, track, TrackType.TRACK);
         } else {
             try {
-                String[] videoLinks = YouTubeUtil.searchForVideos(track);
-                if (videoLinks == null) {
+                List<SearchResult> videoSearch = YouTubeUtil.searchForVideos(track);
+                if (videoSearch == null) {
                     hook.editOriginal("Nothing found by **" + track + "**.").queue();
                     return;
                 }
 
-                playerManager.loadAndPlay(event, videoLinks[0], TrackType.TRACK);
+                playerManager.loadAndPlay(event, "https://www.youtube.com/watch?v=" + videoSearch.get(0).getId().getVideoId(), TrackType.TRACK);
             } catch (Exception e) {
                 hook.editOriginal("Nothing found by **" + track + "**.").queue();
                 e.printStackTrace();

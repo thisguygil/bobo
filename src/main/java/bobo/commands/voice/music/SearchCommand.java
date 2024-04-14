@@ -3,6 +3,8 @@ package bobo.commands.voice.music;
 import bobo.commands.voice.JoinCommand;
 import bobo.lavaplayer.PlayerManager;
 import bobo.utils.*;
+import com.google.api.services.youtube.model.SearchResult;
+import com.google.api.services.youtube.model.SearchResultSnippet;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -15,10 +17,7 @@ import net.dv8tion.jda.api.managers.AudioManager;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import se.michaelthelin.spotify.SpotifyApi;
-import se.michaelthelin.spotify.model_objects.specification.AlbumSimplified;
-import se.michaelthelin.spotify.model_objects.specification.ArtistSimplified;
-import se.michaelthelin.spotify.model_objects.specification.PlaylistSimplified;
-import se.michaelthelin.spotify.model_objects.specification.Track;
+import se.michaelthelin.spotify.model_objects.specification.*;
 
 import javax.annotation.Nonnull;
 import java.util.*;
@@ -119,24 +118,31 @@ public class SearchCommand extends AbstractMusic {
      */
     private void searchYoutubeTrack(String query) {
         try {
-            String[] videoLinks = YouTubeUtil.searchForVideos(query);
-            if (videoLinks == null) {
+            List<SearchResult> videoSearch = YouTubeUtil.searchForVideos(query);
+            if (videoSearch == null) {
                 hook.editOriginal("No videos found.").queue();
                 return;
+            }
+
+            String[] videoLinks = new String[videoSearch.size()];
+            for (int i = 0; i < videoSearch.size(); i++) {
+                SearchResult result = videoSearch.get(i);
+                String videoId = result.getId().getVideoId();
+                videoLinks[i] = "https://www.youtube.com/watch?v=" + videoId;
             }
 
             EVENT_LINKS_MAP.put(event, videoLinks);
 
             StringBuilder message = new StringBuilder("Found videos from search: **" + query + "**\n");
             for (int i = 0; i < videoLinks.length; i++) {
-                String videoLink = videoLinks[i];
+                SearchResultSnippet snippet = videoSearch.get(i).getSnippet();
                 message.append("**")
                         .append(i + 1)
-                        .append(":** [")
-                        .append(YouTubeUtil.getVideoTitle(videoLink))
-                        .append("](<")
-                        .append(videoLink)
-                        .append(">)\n");
+                        .append(":** ")
+                        .append(markdownLink(snippet.getTitle(), videoLinks[i]))
+                        .append(" by ")
+                        .append(markdownLink(snippet.getChannelTitle(), "https://www.youtube.com/channel/" + snippet.getChannelId()))
+                        .append("\n");
             }
 
             message.append("\nPlease select a track to play by selecting the proper reaction, or the :x: reaction to cancel.");
@@ -155,24 +161,31 @@ public class SearchCommand extends AbstractMusic {
      */
     private void searchYoutubePlaylist(String query) {
         try {
-            String[] playlistLinks = YouTubeUtil.searchForPlaylists(query);
-            if (playlistLinks == null) {
+            List<SearchResult> playlistSearch = YouTubeUtil.searchForPlaylists(query);
+            if (playlistSearch == null) {
                 hook.editOriginal("No playlists found.").queue();
                 return;
+            }
+
+            String[] playlistLinks = new String[playlistSearch.size()];
+            for (int i = 0; i < playlistSearch.size(); i++) {
+                SearchResult result = playlistSearch.get(i);
+                String playlistId = result.getId().getPlaylistId();
+                playlistLinks[i] = "https://www.youtube.com/playlist?list=" + playlistId;
             }
 
             EVENT_LINKS_MAP.put(event, playlistLinks);
 
             StringBuilder message = new StringBuilder("Found playlists from search: **" + query + "**\n");
             for (int i = 0; i < playlistLinks.length; i++) {
-                String playlistLink = playlistLinks[i];
+                SearchResultSnippet snippet = playlistSearch.get(i).getSnippet();
                 message.append("**")
                         .append(i + 1)
-                        .append(":** [")
-                        .append(YouTubeUtil.getPlaylistTitle(playlistLink))
-                        .append("](<")
-                        .append(playlistLink)
-                        .append(">)\n");
+                        .append(":** ")
+                        .append(markdownLink(snippet.getTitle(), playlistLinks[i]))
+                        .append(" by ")
+                        .append(markdownLink(snippet.getChannelTitle(), "https://www.youtube.com/channel/" + snippet.getChannelId()))
+                        .append("\n");
             }
 
             message.append("\nPlease select a playlist to play by selecting the proper reaction, or the :x: reaction to cancel.");
@@ -219,19 +232,17 @@ public class SearchCommand extends AbstractMusic {
                 // Build a string for the artists
                 StringBuilder artistString = new StringBuilder();
                 for (int j = 0; j < artists[i].length; j++) {
-                    artistString.append(artists[i][j].getName());
-                    if (j < artists.length - 1) {
+                    artistString.append(markdownLink(artists[i][j].getName(), artists[i][j].getExternalUrls().get("spotify")));
+                    if (j < artists[i].length - 1) {
                         artistString.append(", ");
                     }
                 }
 
                 message.append("**")
                         .append(i + 1)
-                        .append(":** [")
-                        .append(track.getName())
-                        .append("](<")
-                        .append(trackUrl)
-                        .append(">) by ")
+                        .append(":** ")
+                        .append(markdownLink(track.getName(), trackUrl))
+                        .append(" by ")
                         .append(artistString)
                         .append("\n");
             }
@@ -256,7 +267,7 @@ public class SearchCommand extends AbstractMusic {
         try {
             SpotifyApi spotifyApi = SpotifyLink.getSpotifyApi();
 
-            PlaylistSimplified[] playlists = spotifyApi.searchPlaylists(query).build().execute().getItems();
+            PlaylistSimplified[] playlists = spotifyApi.searchPlaylists(query).limit(5).build().execute().getItems();
             if (playlists.length == 0) {
                 hook.editOriginal("No playlists found.").queue();
                 return;
@@ -267,14 +278,15 @@ public class SearchCommand extends AbstractMusic {
             for (int i = 0; i < playlistLinks.length; i++) {
                 PlaylistSimplified playlist = playlists[i];
                 String playlistUrl = playlist.getExternalUrls().get("spotify");
+                User owner = playlist.getOwner();
                 playlistLinks[i] = playlistUrl;
                 message.append("**")
                         .append(i + 1)
-                        .append(":** [")
-                        .append(playlist.getName())
-                        .append("](<")
-                        .append(playlistUrl)
-                        .append(">)\n");
+                        .append(":** ")
+                        .append(markdownLink(playlist.getName(), playlistUrl))
+                        .append(" by ")
+                        .append(markdownLink(owner.getDisplayName(), owner.getExternalUrls().get("spotify")))
+                        .append("\n");
             }
 
             EVENT_LINKS_MAP.put(event, playlistLinks);
@@ -297,7 +309,7 @@ public class SearchCommand extends AbstractMusic {
         try {
             SpotifyApi spotifyApi = SpotifyLink.getSpotifyApi();
 
-            AlbumSimplified[] albums = spotifyApi.searchAlbums(query).build().execute().getItems();
+            AlbumSimplified[] albums = spotifyApi.searchAlbums(query).limit(5).build().execute().getItems();
             if (albums.length == 0) {
                 hook.editOriginal("No tracks found.").queue();
                 return;
@@ -319,21 +331,19 @@ public class SearchCommand extends AbstractMusic {
 
                 StringBuilder artistString = new StringBuilder();
                 for (int j = 0; j < artists[i].length; j++) {
-                    artistString.append(artists[i][j].getName());
-                    if (j < artists.length - 1) {
+                    artistString.append(markdownLink(artists[i][j].getName(), artists[i][j].getExternalUrls().get("spotify")));
+                    if (j < artists[i].length - 1) {
                         artistString.append(", ");
                     }
                 }
 
                 message.append("**")
                         .append(i + 1)
-                        .append(":** [")
-                        .append(album.getName())
-                        .append("](<")
-                        .append(albumUrl)
-                        .append(">) by ")
+                        .append(":** ")
+                        .append(markdownLink(album.getName(), albumUrl))
+                        .append(" by ")
                         .append(artistString)
-                        .append(">)\n");
+                        .append("\n");
             }
 
             EVENT_LINKS_MAP.put(event, albumLinks);
@@ -369,9 +379,11 @@ public class SearchCommand extends AbstractMusic {
         int collectionLength = collection.length();
         String[] titles = new String[collectionLength];
         String[] links = new String[collectionLength];
+        String[] artists = new String[collectionLength];
         for (int i = 0; i < collectionLength; i++) {
             titles[i] = (collection.getJSONObject(i).getString("title"));
             links[i] = (collection.getJSONObject(i).getString("permalink_url"));
+            artists[i] = collection.getJSONObject(i).getJSONObject("user").getString("username");
         }
 
         EVENT_LINKS_MAP.put(event, links);
@@ -380,11 +392,11 @@ public class SearchCommand extends AbstractMusic {
         for (int i = 0; i < links.length; i++) {
             message.append("**")
                     .append(i + 1)
-                    .append(":** [")
-                    .append(titles[i])
-                    .append("](<")
-                    .append(links[i])
-                    .append(">)\n");
+                    .append(":** ")
+                    .append(markdownLink(titles[i], links[i]))
+                    .append(" by ")
+                    .append(artists[i])
+                    .append("\n");
         }
 
         message.append("\nPlease select a track to play by selecting the proper reaction, or the :x: reaction to cancel.");
@@ -414,9 +426,11 @@ public class SearchCommand extends AbstractMusic {
         int collectionLength = collection.length();
         String[] titles = new String[collectionLength];
         String[] links = new String[collectionLength];
+        String[] artists = new String[collectionLength];
         for (int i = 0; i < collectionLength; i++) {
             titles[i] = (collection.getJSONObject(i).getString("title"));
             links[i] = (collection.getJSONObject(i).getString("permalink_url"));
+            artists[i] = collection.getJSONObject(i).getJSONObject("user").getString("username");
         }
 
         EVENT_LINKS_MAP.put(event, links);
@@ -425,11 +439,11 @@ public class SearchCommand extends AbstractMusic {
         for (int i = 0; i < links.length; i++) {
             message.append("**")
                     .append(i + 1)
-                    .append(":** [")
-                    .append(titles[i])
-                    .append("](<")
-                    .append(links[i])
-                    .append(">)\n");
+                    .append(":** ")
+                    .append(markdownLink(titles[i], links[i]))
+                    .append(" by ")
+                    .append(artists[i])
+                    .append("\n");
         }
 
         message.append("\nPlease select a playlist to play by selecting the proper reaction, or the :x: reaction to cancel.");
@@ -459,9 +473,11 @@ public class SearchCommand extends AbstractMusic {
         int collectionLength = collection.length();
         String[] titles = new String[collectionLength];
         String[] links = new String[collectionLength];
+        String[] artists = new String[collectionLength];
         for (int i = 0; i < collectionLength; i++) {
             titles[i] = (collection.getJSONObject(i).getString("title"));
             links[i] = (collection.getJSONObject(i).getString("permalink_url"));
+            artists[i] = collection.getJSONObject(i).getJSONObject("user").getString("username");
         }
 
         EVENT_LINKS_MAP.put(event, links);
@@ -470,11 +486,11 @@ public class SearchCommand extends AbstractMusic {
         for (int i = 0; i < links.length; i++) {
             message.append("**")
                     .append(i + 1)
-                    .append(":** [")
-                    .append(titles[i])
-                    .append("](<")
-                    .append(links[i])
-                    .append(">)\n");
+                    .append(":** ")
+                    .append(markdownLink(titles[i], links[i]))
+                    .append(" by ")
+                    .append(artists[i])
+                    .append("\n");
         }
 
         message.append("\nPlease select an album to play by selecting the proper reaction, or the :x: reaction to cancel.");
@@ -575,6 +591,17 @@ public class SearchCommand extends AbstractMusic {
         message.removeReaction(EmojiType.X.asEmoji()).queue();
         List<Emoji> emojis = List.of(EmojiType.ONE.asEmoji(), EmojiType.TWO.asEmoji(), EmojiType.THREE.asEmoji(), EmojiType.FOUR.asEmoji(), EmojiType.FIVE.asEmoji());
         emojis.stream().limit(numLinks).forEach(emoji -> message.removeReaction(emoji).queue());
+    }
+
+    /**
+     * Helper method to create a Markdown link.
+     *
+     * @param text The text to display. Uses <> to stop the URL from embedding on Discord.
+     * @param url The URL to link to.
+     * @return The Markdown link.
+     */
+    private static String markdownLink(String text, String url) {
+        return "[" + text + "](<" + url + ">)";
     }
 
     @Override
