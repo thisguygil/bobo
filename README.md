@@ -12,13 +12,14 @@ The greatest Discord bot on the planet (don't fact-check that).
 * Last.fm integration
   * Get currently playing Spotify track information
 * Search Google for images
-* Get Fortnite stats, daily shop updates, and maps with [Fortnite-API](https://fortnite-api.com/)
+* Get Fortnite stats, daily shop updates, and map information
 
-## Supported sources and formats for music
-Bobo supports all the web sources and file formats supported by [Lavaplayer](https://github.com/lavalink-devs/lavaplayer), as well as Spotify supported by [LavaSrc](https://github.com/topi314/LavaSrc)
+### Supported sources and formats for music
+Bobo supports all the web sources and file formats supported by [Lavaplayer](https://github.com/lavalink-devs/lavaplayer), as well as Spotify supported by [LavaSrc](https://github.com/topi314/LavaSrc) and the [Spotify API](https://developer.spotify.com/documentation/web-api/).
 
 ## Commands
 ### Bot Owner commands
+Can be used by the bot owner only - configured with the owner's Discord user ID in the .env file
 * `/restart` - Restarts Bobo
 * `/set-activity` - Sets Bobo's activity/status
     * Subcommands:
@@ -30,6 +31,7 @@ Bobo supports all the web sources and file formats supported by [Lavaplayer](htt
     * `competing <activity>` - Sets Bobo's activity to `competing in <activity>`
 
 ### Server Admin commands
+Can be used by server admins only
 * `/say <message>` - Makes Bobo say `<message>` in the current channel
 * `/config` - Configures the server
   * Subcommands:
@@ -53,13 +55,17 @@ Bobo supports all the web sources and file formats supported by [Lavaplayer](htt
 
 ### Last.fm commands
 * `/fmlogin` - Logs into Last.fm
+* `/fmlogout` - Logs out of Last.fm
 * `/track <track>` - Gets information about a given track on Last.fm. No input defaults to last played track
+* `/album <album>` - Gets information about a given album on Last.fm. No input defaults to last played album
+* `/artist <artist>` - Gets information about a given artist on Last.fm. No input defaults to last played artist
 
 ### AI commands
 * `/chat` - Opens a thread to chat with ChatGPT
-* `/image` - Generates an image DALL-E 3
+* `/image` - Generates an image with DALL-E 3
 
 ### Voice commands
+Can be used in voice channels only
 * `/join` - Joins the voice channel you are in
 * `/leave` - Leaves the voice channel
 * `/mute` - Mutes/unmutes Bobo in the voice channel
@@ -67,22 +73,28 @@ Bobo supports all the web sources and file formats supported by [Lavaplayer](htt
 * `/clip` - Clips the last 30 seconds of audio from the voice channel you are in
 
 ### Music commands
+Subset of voice commands
 * `/play` - Plays a track in the voice channel you are in
     * Subcommands:
     * `track <url/query>` - Plays given YouTube `<url>` or the first track result from `<query>`
     * `file <file>` - Plays the given `<file>` (must be a valid audio file as detailed above)
 * `/tts <message>` - Plays `<message>` as text-to-speech for the voice channel.
-* `/search` - Searches YouTube/Spotify for a track/playlist/album, and plays requested result (this differs from the search of `/play` in that it shows the first several results and allows you to choose one, in addition to allowing you to search YouTube playlists and Spotify tracks/playlists/albums)
+* `/search` - Searches YouTube/Spotify/SoundCloud, and plays the requested result
     * Subcommand Groups:
-    * `youtube` - Searches YouTube for a track/playlist
+    * `youtube` - Search YouTube
       * Subcommands:
-      * `track <query>` - Searches YouTube for a track
-      * `playlist <query>` - Searches YouTube for a playlist
-    * `spotify` - Searches Spotify for a track/album/playlist
+      * `track <query>` - Search YouTube for a track
+      * `playlist <query>` - Search YouTube for a playlist
+    * `spotify` - Search Spotify
       * Subcommands:
-      * `track <query>` - Searches Spotify for a track
-      * `album <query>` - Searches Spotify for an album
-      * `playlist <query>` - Searches Spotify for a playlist
+      * `track <query>` - Search Spotify for a track
+      * `playlist <query>` - Search Spotify for a playlist
+      * `album <query>` - Search Spotify for an album
+    * `soundcloud` - Search SoundCloud
+      * Subcommands:
+      * `track <query>` - Search SoundCloud for a track
+      * `playlist <query>` - Search SoundCloud for a playlist
+      * `album <query>` - Search SoundCloud for an album
 * `/pause` - Pauses the current track
 * `/resume` - Resumes the current track
 * `/skip` - Skips the current track
