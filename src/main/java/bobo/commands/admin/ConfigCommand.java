@@ -68,9 +68,18 @@ public class ConfigCommand extends AbstractAdmin {
         if (subcommandGroupName != null) {
             if (subcommandGroupName.equals("reset")) {
                 switch (subcommandName) {
-                    case "clips" -> resetClips(guildId);
-                    case "quotes" -> resetQuotes(guildId);
-                    case "fortnite-shop" -> resetFortniteShop(guildId);
+                    case "clips" -> {
+                        resetClips(guildId);
+                        hook.editOriginal("Clips channel reset.").queue();
+                    }
+                    case "quotes" -> {
+                        resetQuotes(guildId);
+                        hook.editOriginal("Quotes channel reset.").queue();
+                    }
+                    case "fortnite-shop" -> {
+                        resetFortniteShop(guildId);
+                        hook.editOriginal("Fortnite Shop channel reset.").queue();
+                    }
                 }
             }
         } else {
@@ -161,7 +170,7 @@ public class ConfigCommand extends AbstractAdmin {
      *
      * @param guildId the ID of the guild
      */
-    private void resetClips(String guildId) {
+    private static void resetClips(String guildId) {
         try (Connection connection = SQLConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(resetClipsSQL)) {
             statement.setString(1, guildId);
@@ -169,7 +178,6 @@ public class ConfigCommand extends AbstractAdmin {
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        event.getHook().editOriginal("Clips channel reset.").queue();
     }
 
     /**
@@ -177,7 +185,7 @@ public class ConfigCommand extends AbstractAdmin {
      *
      * @param guildId the ID of the guild
      */
-    private void resetQuotes(String guildId) {
+    private static void resetQuotes(String guildId) {
         try (Connection connection = SQLConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(resetQuotesSQL)) {
             statement.setString(1, guildId);
@@ -186,7 +194,6 @@ public class ConfigCommand extends AbstractAdmin {
             e.printStackTrace();
         }
         GetQuoteCommand.guildListMap.remove(Bobo.getJDA().getGuildById(guildId));
-        event.getHook().editOriginal("Quotes channel reset.").queue();
     }
 
     /**
@@ -194,15 +201,25 @@ public class ConfigCommand extends AbstractAdmin {
      *
      * @param guildId the ID of the guild
      */
-    private void resetFortniteShop(String guildId) {
+    private static void resetFortniteShop(String guildId) {
         try (Connection connection = SQLConnection.getConnection();
-        PreparedStatement statement = connection.prepareStatement(resetFortniteShopSQL)) {
+             PreparedStatement statement = connection.prepareStatement(resetFortniteShopSQL)) {
             statement.setString(1, guildId);
             statement.executeUpdate();
         } catch (SQLException e) {
             e.printStackTrace();
         }
-        event.getHook().editOriginal("Fortnite Shop channel reset.").queue();
+    }
+
+    /**
+     * Resets all the configured channels for the given guild.
+     *
+     * @param guildId the ID of the guild
+     */
+    public static void resetGuild(String guildId) {
+        resetClips(guildId);
+        resetQuotes(guildId);
+        resetFortniteShop(guildId);
     }
 
     @Override

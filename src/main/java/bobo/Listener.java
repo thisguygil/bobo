@@ -1,5 +1,6 @@
 package bobo;
 
+import bobo.commands.admin.ConfigCommand;
 import bobo.commands.ai.ChatCommand;
 import bobo.commands.general.GetQuoteCommand;
 import bobo.commands.voice.JoinCommand;
@@ -21,6 +22,7 @@ import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
+import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -128,6 +130,22 @@ public class Listener extends ListenerAdapter {
         }
     }
 
+    /**
+     * Deletes the guild from all tables when the bot leaves or is kicked
+     *
+     * @param event the guild leave event
+     */
+    @Override
+    public void onGuildLeave(@Nonnull GuildLeaveEvent event) {
+        String guildId = event.getGuild().getId();
+        ConfigCommand.resetGuild(guildId);
+    }
+
+    /**
+     * Handles reaction events for the search command
+     *
+     * @param event the message reaction add event
+     */
     @Override
     public void onMessageReactionAdd(@Nonnull MessageReactionAddEvent event) {
         if (event.retrieveUser().complete().isBot()) {
@@ -139,6 +157,7 @@ public class Listener extends ListenerAdapter {
 
     /**
      * Loads quotes on bot startup
+     * <br>
      * Prints "Bobo is ready!" to console when finally ready
      *
      * @param event the ready event
