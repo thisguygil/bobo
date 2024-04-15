@@ -21,8 +21,12 @@ import se.michaelthelin.spotify.model_objects.specification.*;
 
 import javax.annotation.Nonnull;
 import java.util.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class SearchCommand extends AbstractMusic {
+    private static final ScheduledExecutorService scheduledService = Executors.newScheduledThreadPool(1);
     private static final Map<Long, SlashCommandInteractionEvent> MESSAGE_EVENT_MAP = new HashMap<>();
     private static final Map<SlashCommandInteractionEvent, String[]> EVENT_LINKS_MAP = new HashMap<>();
 
@@ -559,45 +563,43 @@ public class SearchCommand extends AbstractMusic {
         }
 
         PlayerManager.getInstance().loadAndPlay(commandEvent, links[index], TrackType.TRACK);
-        MESSAGE_EVENT_MAP.remove(reactionEvent.getMessageIdLong());
-        EVENT_LINKS_MAP.remove(commandEvent);
-
-        removeReactions(commandEvent, reactionEvent, numLinks);
+        cleanupResources(reactionEvent.getMessageIdLong(), commandEvent);
     }
 
     /**
-     * Helper method to add reactions to the message.
+     * Adds the reactions to the message.
      *
      * @param message The message to add reactions to.
      * @param numLinks The number of links to add reactions for.
      */
-    private static void addReactions(@Nonnull Message message, int numLinks) {
+    private void addReactions(@Nonnull Message message, int numLinks) {
         message.addReaction(EmojiType.X.asEmoji()).queue();
         List<Emoji> emojis = List.of(EmojiType.ONE.asEmoji(), EmojiType.TWO.asEmoji(), EmojiType.THREE.asEmoji(), EmojiType.FOUR.asEmoji(), EmojiType.FIVE.asEmoji());
         emojis.stream().limit(numLinks).forEach(emoji -> message.addReaction(emoji).queue());
+
+        // Schedule a task to clean up resources after 1 minute
+        scheduledService.schedule(() -> {
+            cleanupResources(message.getIdLong(), event);
+        }, 1, TimeUnit.MINUTES);
     }
 
     /**
-     * Helper method to remove reactions from the message.
-     * To be used after a track has been selected or the search has been cancelled.
+     * Cleans up resources.
      *
-     * @param commandEvent The command event.
-     * @param reactionEvent The reaction event.
-     * @param numLinks The number of links to remove reactions for.
+     * @param messageId The ID of the message.
+     * @param event The event.
      */
-    private static void removeReactions(@Nonnull SlashCommandInteractionEvent commandEvent, @Nonnull MessageReactionAddEvent reactionEvent, int numLinks) {
-        Message message = commandEvent.getHook().retrieveOriginal().complete();
-        message.removeReaction(reactionEvent.getReaction().getEmoji(), reactionEvent.retrieveUser().complete()).queue();
-        message.removeReaction(EmojiType.X.asEmoji()).queue();
-        List<Emoji> emojis = List.of(EmojiType.ONE.asEmoji(), EmojiType.TWO.asEmoji(), EmojiType.THREE.asEmoji(), EmojiType.FOUR.asEmoji(), EmojiType.FIVE.asEmoji());
-        emojis.stream().limit(numLinks).forEach(emoji -> message.removeReaction(emoji).queue());
+    private static void cleanupResources(long messageId, SlashCommandInteractionEvent event) {
+        event.getHook().retrieveOriginal().queue(message -> message.clearReactions().queue());
+        MESSAGE_EVENT_MAP.remove(messageId);
+        EVENT_LINKS_MAP.remove(event);
     }
 
     /**
-     * Helper method to create a Markdown link.
+     * Creates a Markdown link for Discord.
      *
-     * @param text The text to display. Uses <> to stop the URL from embedding on Discord.
-     * @param url The URL to link to.
+     * @param text The text to display.
+     * @param url The URL to link to. Uses <> to stop the URL from embedding on Discord.
      * @return The Markdown link.
      */
     private static String markdownLink(String text, String url) {
@@ -607,16 +609,11 @@ public class SearchCommand extends AbstractMusic {
     @Override
     public String getHelp() {
         return """
-                Searches YouTube/Spotify/SoundCloud, and plays the requested result.
+                Searches YouTube, Spotify, or SoundCloud, and plays the requested result.
                 Usage: `/search <subcommand>`
                 Subcommands:
-                * `youtube track <query>`: Search YouTube for a track with <query>
-                * `youtube playlist <query>`: Search YouTube for a playlist with <query>
-                * `spotify track <query>`: Search Spotify for a track with <query>
-                * `spotify playlist <query>`: Search Spotify for a playlist with <query>
-                * `spotify album <query>`: Search Spotify for an album with <query>
-                * `soundcloud track <query>`: Search SoundCloud for a track with <query>
-                * `soundcloud playlist <query>`: Search SoundCloud for a playlist with <query>
-                * `soundcloud album <query>`: Search SoundCloud for an album with <query>""";
+                * `youtube track/playlist <query>`: Search YouTube for a track/playlist with <query>
+                * `spotify track/playlist/album <query>`: Search Spotify for a track/playlist/album with <query>
+                * `soundcloud track/playlist/album <query>`: Search SoundCloud for a track/playlist/album with <query>""";
     }
 }
