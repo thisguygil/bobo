@@ -85,7 +85,13 @@ public class ArtistCommand extends AbstractLastFM {
 
         // Parse the artist's information
         JSONObject responseObject = new JSONObject(response);
-        JSONObject artistObject = responseObject.getJSONObject("artist");
+        JSONObject artistObject;
+        try {
+            artistObject = responseObject.getJSONObject("artist");
+        } catch (JSONException e) {
+            hook.editOriginal("No results found for the artist. This usually happens for recently released artists. Check back later.").queue();
+            return;
+        }
         String artistUrl = artistObject.getString("url");
         String artistImage = null;
         try {

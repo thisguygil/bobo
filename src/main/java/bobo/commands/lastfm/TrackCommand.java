@@ -89,7 +89,13 @@ public class TrackCommand extends AbstractLastFM {
 
         // Parse the track's information
         JSONObject responseObject = new JSONObject(trackResponse);
-        JSONObject trackObject = responseObject.getJSONObject("track");
+        JSONObject trackObject;
+        try {
+            trackObject = responseObject.getJSONObject("track");
+        } catch (JSONException e) {
+            hook.editOriginal("No results found for the track. This usually happens for recently released tracks. Check back later.").queue();
+            return;
+        }
         String trackUrl = trackObject.getString("url");
         String trackImage = null;
         String albumName = null;

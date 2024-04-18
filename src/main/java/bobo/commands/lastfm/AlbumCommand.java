@@ -88,7 +88,13 @@ public class AlbumCommand extends AbstractLastFM {
 
         // Parse the album's information
         JSONObject responseObject = new JSONObject(response);
-        JSONObject albumObject = responseObject.getJSONObject("album");
+        JSONObject albumObject;
+        try {
+            albumObject = responseObject.getJSONObject("album");
+        } catch (JSONException e) {
+            hook.editOriginal("No results found for the album. This usually happens for recently released albums. Check back later.").queue();
+            return;
+        }
         String albumUrl = albumObject.getString("url");
         String albumImage = null;
         try {
