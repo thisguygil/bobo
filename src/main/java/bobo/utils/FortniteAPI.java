@@ -426,7 +426,10 @@ public final class FortniteAPI {
 
             // Get the item price and add the item to the list
             int itemPrice = item.getInt("finalPrice");
-            shopItems.add(new ShopItem(shopItemType, itemName, itemPrice, imageUrl, rarity, set, itemType));
+            ShopItem shopItem = new ShopItem(shopItemType, itemName, itemPrice, imageUrl, rarity, set, itemType);
+            if (!shopItems.contains(shopItem)) {
+                shopItems.add(shopItem);
+            }
         }
 
         // Sort and return the items
@@ -564,6 +567,30 @@ public final class FortniteAPI {
 
             // Name comparison. Returns here as it is the last comparison
             return this.name.compareTo(item2.name);
+        }
+
+        /**
+         * Checks if the items are equal. This is used to prevent duplicates in the shop items list.
+         * @param obj   the reference object with which to compare.
+         * @return true if this object is the same as the obj argument; false otherwise.
+         */
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null || getClass() != obj.getClass()) {
+                return false;
+            }
+
+            ShopItem shopItem = (ShopItem) obj;
+            return shopItemType == shopItem.shopItemType &&
+                    name.equals(shopItem.name) &&
+                    price == shopItem.price &&
+                    imageUrl.equals(shopItem.imageUrl) &&
+                    rarity.equals(shopItem.rarity) &&
+                    set.equals(shopItem.set) &&
+                    itemType.equals(shopItem.itemType);
         }
     }
 }
