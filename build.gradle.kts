@@ -19,7 +19,7 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
     implementation("org.apache.commons:commons-text:1.11.0")
-    implementation("net.dv8tion:JDA:5.0.0-beta.22")
+    implementation("net.dv8tion:JDA:5.0.0-beta.23")
     implementation("com.github.ygimenez:Pagination-Utils:4.0.6")
     implementation("com.theokanning.openai-gpt3-java:service:0.18.2")
     implementation("dev.arbjerg:lavaplayer:2.1.1")
