@@ -1,6 +1,7 @@
 package bobo.utils;
 
 import bobo.Config;
+import net.coobird.thumbnailator.Thumbnails;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -14,8 +15,6 @@ import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
-import javax.imageio.ImageReader;
-import javax.imageio.stream.ImageInputStream;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -24,6 +23,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 
 public final class FortniteAPI {
     private static final String API_KEY = Config.get("FORTNITE_API_KEY");
@@ -121,16 +121,9 @@ public final class FortniteAPI {
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
             ge.registerFont(fortniteFont);
             g2d.setFont(fortniteFont);
-            FontMetrics fontMetrics = g2d.getFontMetrics();
-            int stringHeight = fontMetrics.getHeight();
+            final FontMetrics[] fontMetrics = {g2d.getFontMetrics()};
+            int stringHeight = fontMetrics[0].getHeight();
             int grayRectangleHeight = (stringHeight + textPadding) * 2;
-
-            // Initialize the x and y coordinates
-            int x = (contentWidth - (maxSquareLength * bestImagesPerRow) + padding) / 2 + shopMargin;
-            int y = (contentHeight - (maxSquareLength * bestNumRows) + padding) / 2 + shopMargin;
-
-            // Save the initial x coordinate so that we can reset it when we move to the next row
-            int initialX = x;
 
             // Calculate the length per image
             int lengthPerImage = (int) (maxSquareLength * shopLengthPerImagePercentage);
@@ -140,98 +133,130 @@ public final class FortniteAPI {
             int vbuckIconHeight = vbuckIcon.getHeight();
             int vbuckIconWidth = vbuckIcon.getWidth();
 
-            // Draw the images and text
-            int countRows = 1;
-            int countImages = 1;
-            for (ShopItem item : shopItems) {
-                String itemUrl = item.imageUrl();
+            List<CompletableFuture<BufferedImage>> imageFutures = shopItems.stream()
+                    .map(item -> loadImageAsync(item.imageUrl(), lengthPerImage))
+                    .toList();
+            CompletableFuture<Void> allLoaded = CompletableFuture.allOf(imageFutures.toArray(new CompletableFuture[0]));
 
-                // Deals with webp images, which is the shopItemType that the API returns for items with backgrounds
-                BufferedImage unsizedImage;
-                if (itemUrl.endsWith(".webp")) {
-                    ImageReader reader = ImageIO.getImageReadersByMIMEType("image/webp").next();
-                    ImageInputStream stream = ImageIO.createImageInputStream((new URI(itemUrl)).toURL().openStream());
-                    reader.setInput(stream);
-                    unsizedImage = reader.read(0);
-                } else {
-                    unsizedImage = ImageIO.read((new URI(itemUrl)).toURL());
-                }
+            int finalBestImagesPerRow = bestImagesPerRow;
+            int finalBestNumRows = bestNumRows;
+            int finalMaxSquareLength = maxSquareLength;
 
-                // Resize the image to fit the available width
-                BufferedImage itemImage = resizeImage(unsizedImage, (lengthPerImage));
-                int itemImageHeight = itemImage.getHeight();
-                int itemImageWidth = itemImage.getWidth();
+            return allLoaded.thenApply(v -> {
+                List<BufferedImage> images = imageFutures.stream()
+                        .map(CompletableFuture::join)
+                        .toList();
 
-                // Move to the next row if the image won't fit
-                if (countImages > bestImagesPerRow) {
-                    countImages = 1;
-                    countRows++;
+                // Initialize the x and y coordinates
+                int x = (contentWidth - (finalMaxSquareLength * finalBestImagesPerRow) + padding) / 2 + shopMargin;
+                int y = (contentHeight - (finalMaxSquareLength * finalBestNumRows) + padding) / 2 + shopMargin;
 
-                    // If this is the last row, center the images
-                    if (countRows == bestNumRows) {
-                        x = (contentWidth - (maxSquareLength * imagesInLastRow) + padding) / 2 + shopMargin;
-                    } else {
-                        x = initialX;
+                // Save the initial x coordinate so that we can reset it when we move to the next row
+                int initialX = x;
+
+                // Draw the images and text
+                int countRows = 1;
+                int countImages = 1;
+                for (int i = 0; i < numItems; i++) {
+                    BufferedImage itemImage = images.get(i);
+
+                    int itemImageHeight = itemImage.getHeight();
+                    int itemImageWidth = itemImage.getWidth();
+
+                    // Move to the next row if the image won't fit
+                    if (countImages > finalBestImagesPerRow) {
+                        countImages = 1;
+                        countRows++;
+
+                        // If this is the last row, center the images
+                        if (countRows == finalBestNumRows) {
+                            x = (contentWidth - (finalMaxSquareLength * imagesInLastRow) + padding) / 2 + shopMargin;
+                        } else {
+                            x = initialX;
+                        }
+
+                        // Move to the next row
+                        y += itemImageWidth + padding;
                     }
 
-                    // Move to the next row
-                    y += itemImageWidth + padding;
+                    // Draw the image
+                    g2d.drawImage(itemImage, x, y, null);
+
+                    // Draw an opaque gray rectangle behind the text
+                    int grayRectangleX = x;
+                    int grayRectangleY = y + itemImageHeight - grayRectangleHeight;
+                    g2d.setColor(opaqueGray);
+                    g2d.fillRect(grayRectangleX, grayRectangleY, itemImageWidth, grayRectangleHeight);
+
+                    // Change the color to white for the text
+                    g2d.setColor(Color.WHITE);
+
+                    // If the item name is too long, resize the font to fit it
+                    String itemName = shopItems.get(i).name();
+                    int itemNameWidth = fontMetrics[0].stringWidth(itemName);
+                    if (itemNameWidth > itemImageWidth) {
+                        float newFontSize = fontSize * ((float) itemImageWidth / itemNameWidth);
+                        g2d.setFont(fortniteFont.deriveFont(newFontSize));
+                        fontMetrics[0] = g2d.getFontMetrics();
+                        itemNameWidth = fontMetrics[0].stringWidth(itemName);
+                    }
+
+                    // Draw the item name
+                    int itemNameX = x + (itemImageWidth - itemNameWidth) / 2;
+                    int itemNameY = y + itemImageHeight + (int) fontSize - grayRectangleHeight;
+                    g2d.drawString(itemName, itemNameX, itemNameY);
+
+                    // Reset the font to the original size
+                    g2d.setFont(fortniteFont.deriveFont(fontSize));
+                    fontMetrics[0] = g2d.getFontMetrics();
+
+                    // Draw the item price
+                    int itemPrice = shopItems.get(i).price();
+                    int itemPriceWidth = fontMetrics[0].stringWidth(String.valueOf(itemPrice));
+                    int itemPriceX = x + (itemImageWidth - itemPriceWidth) / 2;
+                    int itemPriceY = itemNameY + (int) fontSize;
+                    g2d.drawString(String.valueOf(itemPrice), itemPriceX, itemPriceY);
+
+                    // Draw the vbuck icon
+                    int vBuckIconX = itemPriceX - vbuckIconWidth - textPadding;
+                    int vbuckIconY = itemPriceY - vbuckIconHeight + textPadding;
+                    g2d.drawImage(vbuckIcon, vBuckIconX, vbuckIconY, null);
+
+                    // Move to the next image
+                    x += itemImageWidth + padding;
+                    countImages++;
                 }
 
-                // Draw the image
-                g2d.drawImage(itemImage, x, y, null);
-
-                // Draw an opaque gray rectangle behind the text
-                int grayRectangleX = x;
-                int grayRectangleY = y + itemImageHeight - grayRectangleHeight;
-                g2d.setColor(opaqueGray);
-                g2d.fillRect(grayRectangleX, grayRectangleY, itemImageWidth, grayRectangleHeight);
-
-                // Change the color to white for the text
-                g2d.setColor(Color.WHITE);
-
-                // If the item name is too long, resize the font to fit it
-                String itemName = item.name();
-                int itemNameWidth = fontMetrics.stringWidth(itemName);
-                if (itemNameWidth > itemImageWidth) {
-                    float newFontSize = fontSize * ((float) itemImageWidth / itemNameWidth);
-                    g2d.setFont(fortniteFont.deriveFont(newFontSize));
-                    fontMetrics = g2d.getFontMetrics();
-                    itemNameWidth = fontMetrics.stringWidth(itemName);
-                }
-
-                // Draw the item name
-                int itemNameX = x + (itemImageWidth - itemNameWidth) / 2;
-                int itemNameY =  y + itemImageHeight + (int) fontSize - grayRectangleHeight;
-                g2d.drawString(itemName, itemNameX, itemNameY);
-
-                // Reset the font to the original size
-                g2d.setFont(fortniteFont.deriveFont(fontSize));
-                fontMetrics = g2d.getFontMetrics();
-
-                // Draw the item price
-                int itemPrice = item.price();
-                int itemPriceWidth = fontMetrics.stringWidth(String.valueOf(itemPrice));
-                int itemPriceX = x + (itemImageWidth - itemPriceWidth) / 2;
-                int itemPriceY = itemNameY + (int) fontSize;
-                g2d.drawString(String.valueOf(itemPrice), itemPriceX, itemPriceY);
-
-                // Draw the vbuck icon
-                int vBuckIconX = itemPriceX - vbuckIconWidth - textPadding;
-                int vbuckIconY = itemPriceY - vbuckIconHeight + textPadding;
-                g2d.drawImage(vbuckIcon, vBuckIconX, vbuckIconY, null);
-
-                // Move to the next image
-                x += itemImageWidth + padding;
-                countImages++;
-            }
-
-            g2d.dispose();
-            return background;
+                g2d.dispose();
+                return background;
+            }).exceptionally(e -> {
+                e.printStackTrace();
+                return null;
+            }).join();
         } catch (IOException | URISyntaxException | FontFormatException e) {
             e.printStackTrace();
             return null;
         }
+
+    }
+
+    /**
+     * Gets the current Fortnite shop image asynchronously to prevent blocking the main thread.
+     * @param imageUrl The URL of the image to load.
+     * @param targetWidth The width to resize the image to.
+     * @return The current Fortnite shop image.
+     */
+    public static CompletableFuture<BufferedImage> loadImageAsync(String imageUrl, int targetWidth) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                return Thumbnails.of(ImageIO.read((new URI(imageUrl)).toURL()))
+                        .width(targetWidth)
+                        .asBufferedImage();
+            } catch (IOException | URISyntaxException e) {
+                e.printStackTrace();
+                return null;
+            }
+        });
     }
 
     /**
