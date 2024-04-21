@@ -1,6 +1,5 @@
 package bobo;
 
-import bobo.commands.admin.ConfigCommand;
 import bobo.commands.ai.ChatCommand;
 import bobo.commands.general.GetQuoteCommand;
 import bobo.commands.voice.JoinCommand;
@@ -36,6 +35,8 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import javax.annotation.Nonnull;
 import java.sql.*;
 import java.util.concurrent.BlockingQueue;
+
+import static bobo.commands.admin.ConfigCommand.*;
 
 public class Listener extends ListenerAdapter {
     private final CommandManager manager = new CommandManager();
@@ -138,7 +139,22 @@ public class Listener extends ListenerAdapter {
     @Override
     public void onGuildLeave(@Nonnull GuildLeaveEvent event) {
         String guildId = event.getGuild().getId();
-        ConfigCommand.resetGuild(guildId);
+
+        try (Connection connection = SQLConnection.getConnection();
+             PreparedStatement statement1 = connection.prepareStatement(resetClipsSQL);
+             PreparedStatement statement2 = connection.prepareStatement(resetQuotesSQL);
+             PreparedStatement statement3 = connection.prepareStatement(resetFortniteShopSQL)) {
+            statement1.setString(1, guildId);
+            statement1.executeUpdate();
+
+            statement2.setString(1, guildId);
+            statement2.executeUpdate();
+
+            statement3.setString(1, guildId);
+            statement3.executeUpdate();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 
     /**

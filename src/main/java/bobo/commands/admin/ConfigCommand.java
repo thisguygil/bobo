@@ -22,9 +22,9 @@ public class ConfigCommand extends AbstractAdmin {
     private static final String insertOrUpdateQuotesSQL = "INSERT INTO quotes_channels (guild_id, channel_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE channel_id = ?";
     private static final String createFortniteShopTableSQL = "CREATE TABLE IF NOT EXISTS fortnite_shop_channels (guild_id VARCHAR(255) PRIMARY KEY, channel_id VARCHAR(255) NOT NULL)";
     private static final String insertOrUpdateFortniteShopSQL = "INSERT INTO fortnite_shop_channels (guild_id, channel_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE channel_id = ?";
-    private static final String resetClipsSQL = "DELETE FROM clips_channels WHERE guild_id = ?";
-    private static final String resetQuotesSQL = "DELETE FROM quotes_channels WHERE guild_id = ?";
-    private static final String resetFortniteShopSQL = "DELETE FROM fortnite_shop_channels WHERE guild_id = ?";
+    public static final String resetClipsSQL = "DELETE FROM clips_channels WHERE guild_id = ?";
+    public static final String resetQuotesSQL = "DELETE FROM quotes_channels WHERE guild_id = ?";
+    public static final String resetFortniteShopSQL = "DELETE FROM fortnite_shop_channels WHERE guild_id = ?";
 
     /**
      * Creates a new config command.
@@ -68,18 +68,9 @@ public class ConfigCommand extends AbstractAdmin {
         if (subcommandGroupName != null) {
             if (subcommandGroupName.equals("reset")) {
                 switch (subcommandName) {
-                    case "clips" -> {
-                        resetClips(guildId);
-                        hook.editOriginal("Clips channel reset.").queue();
-                    }
-                    case "quotes" -> {
-                        resetQuotes(guildId);
-                        hook.editOriginal("Quotes channel reset.").queue();
-                    }
-                    case "fortnite-shop" -> {
-                        resetFortniteShop(guildId);
-                        hook.editOriginal("Fortnite Shop channel reset.").queue();
-                    }
+                    case "clips" -> resetClips(guildId);
+                    case "quotes" -> resetQuotes(guildId);
+                    case "fortnite-shop" -> resetFortniteShop(guildId);
                 }
             }
         } else {
@@ -89,8 +80,6 @@ public class ConfigCommand extends AbstractAdmin {
                 case "fortnite-shop" -> configFortniteShop(guildId, channelId);
             }
         }
-
-
     }
 
     /**
@@ -112,9 +101,10 @@ public class ConfigCommand extends AbstractAdmin {
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            hook.editOriginal("An error occurred while configuring the clips channel.").queue();
+            return;
         }
-        event.getHook().editOriginal("Clips channel set to <#" + channelId + ">.").queue();
+        hook.editOriginal("Clips channel set to <#" + channelId + ">.").queue();
     }
 
     /**
@@ -136,7 +126,8 @@ public class ConfigCommand extends AbstractAdmin {
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            hook.editOriginal("An error occurred while configuring the quotes channel.").queue();
+            return;
         }
         event.getHook().editOriginal("Quotes channel set to <#" + channelId + ">.").queue();
     }
@@ -160,7 +151,8 @@ public class ConfigCommand extends AbstractAdmin {
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            hook.editOriginal("An error occurred while configuring the Fortnite Shop channel.").queue();
+            return;
         }
         hook.editOriginal("The daily Fortnite Shop will be sent in <#" + channelId + "> every day at 0:01 UTC.").queue();
     }
@@ -170,14 +162,16 @@ public class ConfigCommand extends AbstractAdmin {
      *
      * @param guildId the ID of the guild
      */
-    private static void resetClips(String guildId) {
+    private void resetClips(String guildId) {
         try (Connection connection = SQLConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(resetClipsSQL)) {
             statement.setString(1, guildId);
             statement.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            hook.editOriginal("An error occurred while resetting the clips channel.").queue();
+            return;
         }
+        hook.editOriginal("Clips channel reset.").queue();
     }
 
     /**
@@ -185,15 +179,17 @@ public class ConfigCommand extends AbstractAdmin {
      *
      * @param guildId the ID of the guild
      */
-    private static void resetQuotes(String guildId) {
+    private void resetQuotes(String guildId) {
         try (Connection connection = SQLConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(resetQuotesSQL)) {
             statement.setString(1, guildId);
             statement.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            hook.editOriginal("An error occurred while resetting the quotes channel.").queue();
+            return;
         }
         GetQuoteCommand.guildListMap.remove(Bobo.getJDA().getGuildById(guildId));
+        hook.editOriginal("Quotes channel reset.").queue();
     }
 
     /**
@@ -201,25 +197,16 @@ public class ConfigCommand extends AbstractAdmin {
      *
      * @param guildId the ID of the guild
      */
-    private static void resetFortniteShop(String guildId) {
+    private void resetFortniteShop(String guildId) {
         try (Connection connection = SQLConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(resetFortniteShopSQL)) {
             statement.setString(1, guildId);
             statement.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            hook.editOriginal("An error occurred while resetting the Fortnite Shop channel.").queue();
+            return;
         }
-    }
-
-    /**
-     * Resets all the configured channels for the given guild.
-     *
-     * @param guildId the ID of the guild
-     */
-    public static void resetGuild(String guildId) {
-        resetClips(guildId);
-        resetQuotes(guildId);
-        resetFortniteShop(guildId);
+        hook.editOriginal("Fortnite Shop channel reset.").queue();
     }
 
     @Override
