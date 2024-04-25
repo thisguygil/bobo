@@ -10,6 +10,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.utils.FileUpload;
 import se.michaelthelin.spotify.SpotifyApi;
+import se.michaelthelin.spotify.model_objects.specification.AlbumSimplified;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
@@ -69,8 +70,11 @@ public class NowPlayingCommand extends AbstractMusic {
                         SpotifyApi spotifyApi = SpotifyLink.getSpotifyApi();
 
                         String id = uri.split("/")[uri.split("/").length - 1];
-                        String imageUrl = spotifyApi.getTrack(id).build().execute().getAlbum().getImages()[0].getUrl();
+                        AlbumSimplified album = spotifyApi.getTrack(id).build().execute().getAlbum();
+                        String imageUrl = album.getImages()[0].getUrl();
+                        String albumName = album.getName();
                         embed.setThumbnail(imageUrl);
+                        embed.addField("Album", albumName, true);
                         hook.editOriginalEmbeds(embed.build()).queue();
                     } else if (soundcloudRegex.matches(uri)) {
                         String url = SoundCloudAPI.getArtworkUrl(uri);

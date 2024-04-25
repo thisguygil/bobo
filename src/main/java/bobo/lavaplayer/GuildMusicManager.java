@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.utils.FileUpload;
 import se.michaelthelin.spotify.SpotifyApi;
+import se.michaelthelin.spotify.model_objects.specification.AlbumSimplified;
 
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
@@ -83,8 +84,11 @@ public class GuildMusicManager {
                                     SpotifyApi spotifyApi = SpotifyLink.getSpotifyApi();
 
                                     String id = uri.split("/")[uri.split("/").length - 1];
-                                    String imageUrl = spotifyApi.getTrack(id).build().execute().getAlbum().getImages()[0].getUrl();
+                                    AlbumSimplified album = spotifyApi.getTrack(id).build().execute().getAlbum();
+                                    String imageUrl = album.getImages()[0].getUrl();
+                                    String albumName = album.getName();
                                     embed.setThumbnail(imageUrl);
+                                    embed.addField("Album", albumName, true);
                                     channel.sendMessageEmbeds(embed.build()).queue();
                                 } else if (uri.matches(soundcloudRegex)) {
                                     String url = SoundCloudAPI.getArtworkUrl(uri);
