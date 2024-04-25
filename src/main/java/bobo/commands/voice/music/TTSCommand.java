@@ -36,8 +36,7 @@ public class TTSCommand extends AbstractMusic {
     protected void handleMusicCommand() {
         event.deferReply().queue();
 
-        Guild guild = event.getGuildChannel().getGuild();
-        AudioManager audioManager = guild.getAudioManager();
+        AudioManager audioManager = event.getGuildChannel().getGuild().getAudioManager();
         if (!audioManager.isConnected()) {
             if (!JoinCommand.join(event)) {
                 return;
@@ -58,7 +57,7 @@ public class TTSCommand extends AbstractMusic {
         message = message.replaceAll(" ", "%20");
         message = message.replaceAll("\"", "%22");
 
-        PlayerManager.getInstance().loadAndPlay(event, "ftts://" + message, TrackType.TTS);
+        playerManager.loadAndPlay(event, "ftts://" + message, TrackType.TTS);
     }
 
     /**
