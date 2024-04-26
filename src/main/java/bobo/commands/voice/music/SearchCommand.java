@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
 import net.dv8tion.jda.api.managers.AudioManager;
+import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import se.michaelthelin.spotify.SpotifyApi;
@@ -105,9 +106,9 @@ public class SearchCommand extends AbstractMusic {
             }
             case "soundcloud" -> {
                 switch (subcommandName) {
-                    case "track" -> searchSoundcloudTrack(query);
-                    case "playlist" -> searchSoundcloudPlaylist(query);
-                    case "album" -> searchSoundcloudAlbum(query);
+                    case "track" -> searchSoundcloud(query, "track");
+                    case "playlist" -> searchSoundcloud(query, "playlist");
+                    case "album" -> searchSoundcloud(query, "album");
                     default -> throw new IllegalStateException("Unexpected value: " + subcommandName);
                 }
             }
@@ -135,23 +136,7 @@ public class SearchCommand extends AbstractMusic {
                 videoLinks[i] = "https://www.youtube.com/watch?v=" + videoId;
             }
 
-            EVENT_LINKS_MAP.put(event, videoLinks);
-
-            StringBuilder message = new StringBuilder("Found videos from search: **" + query + "**\n");
-            for (int i = 0; i < videoLinks.length; i++) {
-                SearchResultSnippet snippet = videoSearch.get(i).getSnippet();
-                message.append("**")
-                        .append(i + 1)
-                        .append(":** ")
-                        .append(markdownLink(snippet.getTitle(), videoLinks[i]))
-                        .append(" by ")
-                        .append(markdownLink(snippet.getChannelTitle(), "https://www.youtube.com/channel/" + snippet.getChannelId()))
-                        .append("\n");
-            }
-
-            message.append("\nPlease select a track to play by selecting the proper reaction, or the :x: reaction to cancel.");
-            hook.editOriginal(message.toString()).queue(success -> addReactions(success, videoLinks.length));
-            MESSAGE_EVENT_MAP.put(event.getHook().retrieveOriginal().complete().getIdLong(), event);
+            handleYoutubeSearch(videoSearch, videoLinks, query, "video");
         } catch (Exception e) {
             hook.editOriginal("An error occurred while searching for videos.").queue();
             e.printStackTrace();
@@ -178,27 +163,29 @@ public class SearchCommand extends AbstractMusic {
                 playlistLinks[i] = "https://www.youtube.com/playlist?list=" + playlistId;
             }
 
-            EVENT_LINKS_MAP.put(event, playlistLinks);
-
-            StringBuilder message = new StringBuilder("Found playlists from search: **" + query + "**\n");
-            for (int i = 0; i < playlistLinks.length; i++) {
-                SearchResultSnippet snippet = playlistSearch.get(i).getSnippet();
-                message.append("**")
-                        .append(i + 1)
-                        .append(":** ")
-                        .append(markdownLink(snippet.getTitle(), playlistLinks[i]))
-                        .append(" by ")
-                        .append(markdownLink(snippet.getChannelTitle(), "https://www.youtube.com/channel/" + snippet.getChannelId()))
-                        .append("\n");
-            }
-
-            message.append("\nPlease select a playlist to play by selecting the proper reaction, or the :x: reaction to cancel.");
-            hook.editOriginal(message.toString()).queue(success -> addReactions(success, playlistLinks.length));
-            MESSAGE_EVENT_MAP.put(event.getHook().retrieveOriginal().complete().getIdLong(), event);
+            handleYoutubeSearch(playlistSearch, playlistLinks, query, "playlist");
         } catch (Exception e) {
             hook.editOriginal("An error occurred while searching for playlists.").queue();
             e.printStackTrace();
         }
+    }
+
+    private void handleYoutubeSearch(List<SearchResult> searchResults, String[] links, String query, String type) {
+        EVENT_LINKS_MAP.put(event, links);
+
+        StringBuilder message = new StringBuilder("Found " + type + "s from search: **" + query + "**\n");
+        for (int i = 0; i < links.length; i++) {
+            SearchResultSnippet snippet = searchResults.get(i).getSnippet();
+            message.append("**")
+                    .append(i + 1)
+                    .append(":** ")
+                    .append(markdownLink(snippet.getTitle(), links[i]))
+                    .append(" by ")
+                    .append(markdownLink(snippet.getChannelTitle(), "https://www.youtube.com/channel/" + snippet.getChannelId()))
+                    .append("\n");
+        }
+
+        handleResult(message.toString(), type, links.length);
     }
 
     /**
@@ -253,9 +240,7 @@ public class SearchCommand extends AbstractMusic {
 
             EVENT_LINKS_MAP.put(event, trackLinks);
 
-            message.append("\nPlease select a track to play by selecting the proper reaction, or the :x: reaction to cancel.");
-            hook.editOriginal(message.toString()).queue(success -> addReactions(success, tracks.length));
-            MESSAGE_EVENT_MAP.put(event.getHook().retrieveOriginal().complete().getIdLong(), event);
+            handleResult(message.toString(), "track", trackLinks.length);
         } catch (Exception e) {
             hook.editOriginal("An error occurred while searching for tracks.").queue();
             e.printStackTrace();
@@ -295,9 +280,7 @@ public class SearchCommand extends AbstractMusic {
 
             EVENT_LINKS_MAP.put(event, playlistLinks);
 
-            message.append("\nPlease select a playlist to play by selecting the proper reaction, or the :x: reaction to cancel.");
-            hook.editOriginal(message.toString()).queue(success -> addReactions(success, playlistLinks.length));
-            MESSAGE_EVENT_MAP.put(event.getHook().retrieveOriginal().complete().getIdLong(), event);
+            handleResult(message.toString(), "playlist", playlistLinks.length);
         } catch (Exception e) {
             hook.editOriginal("An error occurred while searching for playlists.").queue();
             e.printStackTrace();
@@ -352,9 +335,7 @@ public class SearchCommand extends AbstractMusic {
 
             EVENT_LINKS_MAP.put(event, albumLinks);
 
-            message.append("\nPlease select an album to play by selecting the proper reaction, or the :x: reaction to cancel.");
-            hook.editOriginal(message.toString()).queue(success -> addReactions(success, albumLinks.length));
-            MESSAGE_EVENT_MAP.put(event.getHook().retrieveOriginal().complete().getIdLong(), event);
+            handleResult(message.toString(), "album", albumLinks.length);
         } catch (Exception e) {
             hook.editOriginal("An error occurred while searching for albums.").queue();
             e.printStackTrace();
@@ -362,20 +343,21 @@ public class SearchCommand extends AbstractMusic {
     }
 
     /**
-     * Searches SoundCloud for tracks.
+     * Searches SoundCloud for tracks, playlists, or albums.
      *
      * @param query The query to search for.
+     * @param type The type of search.
      */
-    private void searchSoundcloudTrack(String query) {
-        String apiResponse = SoundCloudAPI.search(query, "tracks", 5);
+    private void searchSoundcloud(String query, String type) {
+        String apiResponse = SoundCloudAPI.search(query, type + "s", 5);
         if (apiResponse == null) {
-            hook.editOriginal("An error occurred while searching for tracks.").queue();
+            hook.editOriginal("An error occurred while searching for " + type + "s.").queue();
             return;
         }
 
         JSONObject response = new JSONObject(apiResponse);
         if (response.getInt("total_results") == 0) {
-            hook.editOriginal("No tracks found.").queue();
+            hook.editOriginal("No " + type + "s found.").queue();
             return;
         }
 
@@ -392,7 +374,7 @@ public class SearchCommand extends AbstractMusic {
 
         EVENT_LINKS_MAP.put(event, links);
 
-        StringBuilder message = new StringBuilder("Found tracks from search: **" + query + "**\n");
+        StringBuilder message = new StringBuilder("Found " + type + "s from search: **" + query + "**\n");
         for (int i = 0; i < links.length; i++) {
             message.append("**")
                     .append(i + 1)
@@ -403,102 +385,19 @@ public class SearchCommand extends AbstractMusic {
                     .append("\n");
         }
 
-        message.append("\nPlease select a track to play by selecting the proper reaction, or the :x: reaction to cancel.");
-        hook.editOriginal(message.toString()).queue(success -> addReactions(success, links.length));
-        MESSAGE_EVENT_MAP.put(event.getHook().retrieveOriginal().complete().getIdLong(), event);
+        handleResult(message.toString(), type, links.length);
     }
 
     /**
-     * Searches SoundCloud for playlists.
+     * Handles the result of the search.
      *
-     * @param query The query to search for.
+     * @param message The message to send.
+     * @param type The type of search.
+     * @param numLinks The number of links.
      */
-    private void searchSoundcloudPlaylist(String query) {
-        String apiResponse = SoundCloudAPI.search(query, "playlists", 5);
-        if (apiResponse == null) {
-            hook.editOriginal("An error occurred while searching for playlists.").queue();
-            return;
-        }
-
-        JSONObject response = new JSONObject(apiResponse);
-        if (response.getInt("total_results") == 0) {
-            hook.editOriginal("No playlists found.").queue();
-            return;
-        }
-
-        JSONArray collection = response.getJSONArray("collection");
-        int collectionLength = collection.length();
-        String[] titles = new String[collectionLength];
-        String[] links = new String[collectionLength];
-        String[] artists = new String[collectionLength];
-        for (int i = 0; i < collectionLength; i++) {
-            titles[i] = (collection.getJSONObject(i).getString("title"));
-            links[i] = (collection.getJSONObject(i).getString("permalink_url"));
-            artists[i] = collection.getJSONObject(i).getJSONObject("user").getString("username");
-        }
-
-        EVENT_LINKS_MAP.put(event, links);
-
-        StringBuilder message = new StringBuilder("Found playlists from search: **" + query + "**\n");
-        for (int i = 0; i < links.length; i++) {
-            message.append("**")
-                    .append(i + 1)
-                    .append(":** ")
-                    .append(markdownLink(titles[i], links[i]))
-                    .append(" by ")
-                    .append(artists[i])
-                    .append("\n");
-        }
-
-        message.append("\nPlease select a playlist to play by selecting the proper reaction, or the :x: reaction to cancel.");
-        hook.editOriginal(message.toString()).queue(success -> addReactions(success, links.length));
-        MESSAGE_EVENT_MAP.put(event.getHook().retrieveOriginal().complete().getIdLong(), event);
-    }
-
-    /**
-     * Searches SoundCloud for albums.
-     *
-     * @param query The query to search for.
-     */
-    private void searchSoundcloudAlbum(String query) {
-        String apiResponse = SoundCloudAPI.search(query, "albums", 5);
-        if (apiResponse == null) {
-            hook.editOriginal("An error occurred while searching for albums.").queue();
-            return;
-        }
-
-        JSONObject response = new JSONObject(apiResponse);
-        if (response.getInt("total_results") == 0) {
-            hook.editOriginal("No albums found.").queue();
-            return;
-        }
-
-        JSONArray collection = response.getJSONArray("collection");
-        int collectionLength = collection.length();
-        String[] titles = new String[collectionLength];
-        String[] links = new String[collectionLength];
-        String[] artists = new String[collectionLength];
-        for (int i = 0; i < collectionLength; i++) {
-            titles[i] = (collection.getJSONObject(i).getString("title"));
-            links[i] = (collection.getJSONObject(i).getString("permalink_url"));
-            artists[i] = collection.getJSONObject(i).getJSONObject("user").getString("username");
-        }
-
-        EVENT_LINKS_MAP.put(event, links);
-
-        StringBuilder message = new StringBuilder("Found albums from search: **" + query + "**\n");
-        for (int i = 0; i < links.length; i++) {
-            message.append("**")
-                    .append(i + 1)
-                    .append(":** ")
-                    .append(markdownLink(titles[i], links[i]))
-                    .append(" by ")
-                    .append(artists[i])
-                    .append("\n");
-        }
-
-        message.append("\nPlease select an album to play by selecting the proper reaction, or the :x: reaction to cancel.");
-        hook.editOriginal(message.toString()).queue(success -> addReactions(success, links.length));
+    private void handleResult(String message, String type, int numLinks) {
+        message += "\nPlease select a " + type + " to play by selecting the proper reaction, or the :x: reaction to cancel.";
+        hook.editOriginal(StringEscapeUtils.unescapeHtml4(message)).queue(success -> addReactions(success, numLinks));
         MESSAGE_EVENT_MAP.put(event.getHook().retrieveOriginal().complete().getIdLong(), event);
     }
 
@@ -578,9 +477,7 @@ public class SearchCommand extends AbstractMusic {
         emojis.stream().limit(numLinks).forEach(emoji -> message.addReaction(emoji).queue());
 
         // Schedule a task to clean up resources after 1 minute
-        scheduledService.schedule(() -> {
-            cleanupResources(message.getIdLong(), event);
-        }, 1, TimeUnit.MINUTES);
+        scheduledService.schedule(() -> cleanupResources(message.getIdLong(), event), 1, TimeUnit.MINUTES);
     }
 
     /**
