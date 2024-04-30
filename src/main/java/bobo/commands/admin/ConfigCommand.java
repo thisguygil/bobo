@@ -1,7 +1,7 @@
 package bobo.commands.admin;
 
 import bobo.Bobo;
-import bobo.commands.general.GetQuoteCommand;
+import bobo.commands.general.RandomCommand;
 import bobo.utils.SQLConnection;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -171,6 +171,7 @@ public class ConfigCommand extends AbstractAdmin {
             hook.editOriginal("An error occurred while resetting the clips channel.").queue();
             return;
         }
+        RandomCommand.guildClipListMap.remove(Bobo.getJDA().getGuildById(guildId));
         hook.editOriginal("Clips channel reset.").queue();
     }
 
@@ -188,7 +189,7 @@ public class ConfigCommand extends AbstractAdmin {
             hook.editOriginal("An error occurred while resetting the quotes channel.").queue();
             return;
         }
-        GetQuoteCommand.guildListMap.remove(Bobo.getJDA().getGuildById(guildId));
+        RandomCommand.guildQuoteListMap.remove(Bobo.getJDA().getGuildById(guildId));
         hook.editOriginal("Quotes channel reset.").queue();
     }
 

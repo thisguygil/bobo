@@ -33,7 +33,7 @@ public class CommandManager {
         // General commands
         commands.add(new HelpCommand());
         commands.add(new GoogleCommand());
-        commands.add(new GetQuoteCommand());
+        commands.add(new RandomCommand());
         commands.add(new FortniteCommand());
 
         // Last.fm commands

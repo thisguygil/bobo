@@ -1,7 +1,7 @@
 package bobo;
 
 import bobo.commands.ai.ChatCommand;
-import bobo.commands.general.GetQuoteCommand;
+import bobo.commands.general.RandomCommand;
 import bobo.commands.voice.JoinCommand;
 import bobo.commands.voice.music.LoopCommand;
 import bobo.commands.voice.music.SearchCommand;
@@ -180,7 +180,8 @@ public class Listener extends ListenerAdapter {
      */
     @Override
     public void onReady(@Nonnull ReadyEvent event) {
-        GetQuoteCommand.loadMap();
+        RandomCommand.loadQuotesMap();
+        RandomCommand.loadClipsMap();
 
         // Join voice channels that the bot was in before shutdown
         String createTableSQL = "CREATE TABLE IF NOT EXISTS voice_channels_shutdown (channel_id VARCHAR(255) NOT NULL)";

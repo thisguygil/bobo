@@ -45,7 +45,10 @@ Can be used by server admins only
 ### General commands
 * `/help` - Shows the list of commands or gets info on a specific command
 * `/google <query>` - Searches Google for `<query>` and returns the first 10 results
-* `/get-quote` - Gets a random quote from the configured quotes channel
+* `/random` - Gets a random quote/clip from the configured channel
+  * Subcommands:
+  * `quote` - Gets a random quote
+  * `clip` - Gets a random clip
 * `/fortnite` - Get info about Fortnite
   * Subcommands:
   * `shop` - Gets the current Fortnite shop
