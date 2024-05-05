@@ -1,21 +1,14 @@
 package bobo.commands.voice.music;
 
-import bobo.utils.SoundCloudAPI;
 import bobo.utils.SpotifyLink;
 import bobo.utils.TimeFormat;
-import bobo.utils.YouTubeUtil;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
-import net.dv8tion.jda.api.utils.FileUpload;
 import se.michaelthelin.spotify.SpotifyApi;
-import se.michaelthelin.spotify.model_objects.specification.AlbumSimplified;
 
-import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 
 public class NowPlayingCommand extends AbstractMusic {
     /**
@@ -39,7 +32,7 @@ public class NowPlayingCommand extends AbstractMusic {
         String title = info.title;
         String uri = info.uri;
         EmbedBuilder embed = new EmbedBuilder()
-                .setAuthor(musicManager.scheduler.looping == LoopCommand.looping.TRACK ? "Now Looping" : "Now Playing")
+                .setAuthor("Now " + (info.isStream ? "Streaming" : (musicManager.scheduler.looping == LoopCommand.looping.TRACK ? "Looping" : "Playing")))
                 .addField("Requested by", currentTrack.member().getAsMention(), true)
                 .setColor(Color.red);
 
@@ -47,61 +40,38 @@ public class NowPlayingCommand extends AbstractMusic {
             case TRACK -> {
                 embed.setTitle(title, uri)
                         .addField("Author", info.author, true)
-                        .setFooter(TimeFormat.formatTime(currentAudioTrack.getDuration() - currentAudioTrack.getPosition()) + " left");
+                        .setThumbnail(info.artworkUrl);
 
-                // Get and add the track's thumbnail to the embed
+                if (!info.isStream) {
+                    embed.setFooter(TimeFormat.formatTime(currentAudioTrack.getDuration() - currentAudioTrack.getPosition()) + " left");
+                }
+
+                // Add the album name if the track is from Spotify
                 try {
                     String spotifyRegex = "^(https?://)?open.spotify.com/.*";
-                    String soundcloudRegex = "^(https?://)?soundcloud.com/.*";
-                    if (YouTubeUtil.isYouTubeUrl(uri)) {
-                        // Get the thumbnail
-                        BufferedImage image = YouTubeUtil.getThumbnailImage(uri);
-                        if (image == null) {
-                            hook.editOriginalEmbeds(embed.build()).queue();
-                            return;
-                        }
-                        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                        ImageIO.write(image, "jpg", outputStream);
-                        embed.setThumbnail("attachment://thumbnail.jpg");
-                        hook.editOriginalAttachments(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg"))
-                                .setEmbeds(embed.build()).queue();
-                    } else if (spotifyRegex.matches(uri)) {
-                        // Get the album cover
+                    if (spotifyRegex.matches(uri)) {
                         SpotifyApi spotifyApi = SpotifyLink.getSpotifyApi();
-
                         String id = uri.split("/")[uri.split("/").length - 1];
-                        AlbumSimplified album = spotifyApi.getTrack(id).build().execute().getAlbum();
-                        String imageUrl = album.getImages()[0].getUrl();
-                        String albumName = album.getName();
-                        embed.setThumbnail(imageUrl);
+                        String albumName = spotifyApi.getTrack(id)
+                                .build()
+                                .execute()
+                                .getAlbum()
+                                .getName();
                         embed.addField("Album", albumName, true);
-                        hook.editOriginalEmbeds(embed.build()).queue();
-                    } else if (soundcloudRegex.matches(uri)) {
-                        String url = SoundCloudAPI.getArtworkUrl(uri);
-                        if (url != null) {
-                            embed.setThumbnail(url);
-                        }
-                        hook.editOriginalEmbeds(embed.build()).queue();
-                    } else {
-                        hook.editOriginalEmbeds(embed.build()).queue();
                     }
                 } catch (Exception e) {
-                    hook.editOriginalEmbeds(embed.build()).queue();
                     e.printStackTrace();
                 }
+
             }
-            case FILE -> {
-                embed.setTitle(title, uri)
-                        .addField("Author", info.author, true)
-                        .setFooter(TimeFormat.formatTime(currentAudioTrack.getDuration() - currentAudioTrack.getPosition()) + " left");
-                hook.editOriginalEmbeds(embed.build()).queue();
-            }
-            case TTS -> {
-                embed.setTitle("TTS Message")
-                        .setDescription(TTSCommand.getTTSMessage(currentAudioTrack));
-                hook.editOriginalEmbeds(embed.build()).queue();
-            }
+            case FILE -> embed.setTitle(title, uri)
+                    .addField("Author", info.author, true)
+                    .setFooter(TimeFormat.formatTime(currentAudioTrack.getDuration() - currentAudioTrack.getPosition()) + " left");
+            case TTS -> embed.setTitle("TTS Message")
+                    .setDescription(TTSCommand.getTTSMessage(currentAudioTrack));
         }
+
+        hook.editOriginalEmbeds(embed.build()).queue();
     }
 
     @Override

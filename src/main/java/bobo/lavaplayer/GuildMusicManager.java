@@ -10,15 +10,10 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-import net.dv8tion.jda.api.utils.FileUpload;
 import se.michaelthelin.spotify.SpotifyApi;
-import se.michaelthelin.spotify.model_objects.specification.AlbumSimplified;
 
 import javax.annotation.Nonnull;
-import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
 
 /**
  * This class contains instances of AudioPlayer, TrackScheduler and AudioPlayerSendHandler, to manage them all in one place
@@ -53,7 +48,7 @@ public class GuildMusicManager {
                     String title = trackInfo.title;
                     String uri = trackInfo.uri;
                     EmbedBuilder embed = new EmbedBuilder()
-                            .setAuthor(scheduler.looping == LoopCommand.looping.TRACK ? "Now Looping" : "Now Playing")
+                            .setAuthor("Now " + (trackInfo.isStream ? "Streaming" : (scheduler.looping == LoopCommand.looping.TRACK ? "Looping" : "Playing")))
                             .addField("Requested by", record.member().getAsMention(), true)
                             .setColor(Color.red);
 
@@ -61,61 +56,37 @@ public class GuildMusicManager {
                         case TRACK -> {
                             embed.setTitle(title, uri)
                                     .addField("Author", trackInfo.author, true)
-                                    .setFooter(TimeFormat.formatTime((track.getDuration())));
+                                    .setThumbnail(trackInfo.artworkUrl);
 
-                            // Get and add the track's thumbnail to the embed
+                            if (!trackInfo.isStream) {
+                                embed.setFooter(TimeFormat.formatTime(trackInfo.length));
+                            }
+
+                            // Add the album name if the track is from Spotify
                             try {
                                 String spotifyRegex = "^(https?://)?open.spotify.com/.*";
-                                String soundcloudRegex = "^(https?://)?soundcloud.com/.*";
-                                if (YouTubeUtil.isYouTubeUrl(uri)) {
-                                    // Get the thumbnail
-                                    BufferedImage image = YouTubeUtil.getThumbnailImage(uri);
-                                    if (image == null) {
-                                        channel.sendMessageEmbeds(embed.build()).queue();
-                                        return;
-                                    }
-                                    ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                                    ImageIO.write(image, "jpg", outputStream);
-                                    embed.setThumbnail("attachment://thumbnail.jpg");
-                                    channel.sendFiles(FileUpload.fromData(outputStream.toByteArray(), "thumbnail.jpg"))
-                                            .setEmbeds(embed.build()).queue();
-                                } else if (uri.matches(spotifyRegex)) {
-                                    // Get the album cover
+                                if (uri.matches(spotifyRegex)) {
                                     SpotifyApi spotifyApi = SpotifyLink.getSpotifyApi();
-
                                     String id = uri.split("/")[uri.split("/").length - 1];
-                                    AlbumSimplified album = spotifyApi.getTrack(id).build().execute().getAlbum();
-                                    String imageUrl = album.getImages()[0].getUrl();
-                                    String albumName = album.getName();
-                                    embed.setThumbnail(imageUrl);
+                                    String albumName = spotifyApi.getTrack(id)
+                                            .build()
+                                            .execute()
+                                            .getAlbum()
+                                            .getName();
                                     embed.addField("Album", albumName, true);
-                                    channel.sendMessageEmbeds(embed.build()).queue();
-                                } else if (uri.matches(soundcloudRegex)) {
-                                    String url = SoundCloudAPI.getArtworkUrl(uri);
-                                    if (url != null) {
-                                        embed.setThumbnail(url);
-                                    }
-                                    channel.sendMessageEmbeds(embed.build()).queue();
-                                } else {
-                                    channel.sendMessageEmbeds(embed.build()).queue();
                                 }
                             } catch (Exception e) {
-                                channel.sendMessageEmbeds(embed.build()).queue();
                                 e.printStackTrace();
                             }
                         }
-                        case FILE -> {
-                            embed.setTitle(title, uri)
-                                    .addField("Author", trackInfo.author, true)
-                                    .setFooter(TimeFormat.formatTime((track.getDuration())));
-                            channel.sendMessageEmbeds(embed.build()).queue();
-                        }
-                        case TTS -> {
-                            embed.setTitle("TTS Message")
-                                    .setDescription(TTSCommand.getTTSMessage(track));
-                            channel.sendMessageEmbeds(embed.build()).queue();
-                        }
+                        case FILE -> embed.setTitle(title, uri)
+                                .addField("Author", trackInfo.author, true)
+                                .setFooter(TimeFormat.formatTime((track.getDuration())));
+                        case TTS -> embed.setTitle("TTS Message")
+                                .setDescription(TTSCommand.getTTSMessage(track));
                     }
+
+                    channel.sendMessageEmbeds(embed.build()).queue();
                 }
             }
         });
