@@ -10,8 +10,9 @@ val mainClassName = "bobo.Bobo"
 
 repositories {
     mavenCentral()
-    maven { url = uri("https://m2.dv8tion.net/releases") }
-    maven { url = uri("https://jitpack.io") }
+    maven(url = "https://m2.dv8tion.net/releases")
+    maven(url = "https://jitpack.io")
+    maven(url = "https://maven.lavalink.dev/releases")
 }
 
 dependencies {
@@ -22,7 +23,8 @@ dependencies {
     implementation("net.dv8tion:JDA:5.0.0-beta.23")
     implementation("com.github.ygimenez:Pagination-Utils:4.0.6")
     implementation("com.theokanning.openai-gpt3-java:service:0.18.2")
-    implementation("dev.arbjerg:lavaplayer:2.1.1")
+    implementation("dev.arbjerg:lavaplayer:2.1.2")
+    implementation("dev.lavalink.youtube:v2:1.1.0")
     implementation("com.github.topi314.lavasrc:lavasrc:4.0.1")
     implementation("com.google.api-client:google-api-client:2.3.0")
     implementation("com.google.oauth-client:google-oauth-client-jetty:1.35.0")
