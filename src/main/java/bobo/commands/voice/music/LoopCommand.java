@@ -32,7 +32,7 @@ public class LoopCommand extends AbstractMusic {
     protected void handleMusicCommand() {
         event.deferReply().queue();
 
-        if (player.getPlayingTrack() == null) {
+        if (currentTrack == null) {
             hook.editOriginal("There is nothing currently playing.").queue();
             return;
         }
