@@ -80,36 +80,41 @@ public class PlayerManager {
         this.audioPlayerManager.loadItemOrdered(musicManager, trackURL, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
+                StringBuilder message = new StringBuilder("Adding to queue ");
                 switch (trackType) {
                     case TRACK, FILE -> {
                         AudioTrackInfo info = track.getInfo();
-                        hook.editOriginal("Adding to queue [" + info.title + "](<" + info.uri + ">) by **" + info.author + "**").queue();
+                        message.append(markdownLink(info.title, info.uri))
+                                .append(" by **")
+                                .append(info.author)
+                                .append("**");
                     }
                     case TTS -> {
-                        hook.editOriginal("Adding to queue **TTS**").queue();
+                        message.append("**TTS**");
                         TTSCommand.addTTSMessage(track, trackURL.replace("ftts://", "").replace("%20", " ").replace("%22", "\""));
                     }
                 }
-                scheduler.queue(track, member, channel, trackType);
+
+                // Uses the success callback to ensure that the message is edited before the track is queued.
+                // Otherwise, the message that the track was added to the queue may be sent after the message that the track is now playing.
+                // Also ensures that if there's an error, the track is not queued.
+                hook.editOriginal(message.toString()).queue(success -> scheduler.queue(track, member, channel, trackType));
             }
 
             @Override
             public void playlistLoaded(AudioPlaylist playlist) {
                 final List<AudioTrack> tracks = playlist.getTracks();
                 String regex = "^(https://open.spotify.com/album/|spotify:album:)([a-zA-Z0-9]+)(.*)";
-                hook.editOriginal("Adding to queue **" + tracks.size() + "** tracks from " + (trackURL.matches(regex) ? "album" : "playlist") + " [" + playlist.getName() + "](<" + trackURL + ">)").queue();
-                for (final AudioTrack track : tracks) {
-                    scheduler.queue(track, member, channel, TrackType.TRACK);
-                }
+                hook.editOriginal("Adding to queue **" + tracks.size() + "** tracks from " + (trackURL.matches(regex) ? "album" : "playlist") + " " + markdownLink(playlist.getName(), trackURL)).queue(success -> {
+                    for (final AudioTrack track : tracks) {
+                        scheduler.queue(track, member, channel, TrackType.TRACK);
+                    }
+                });
             }
 
             @Override
             public void noMatches() {
-                if (trackType == TrackType.TTS) {
-                    hook.editOriginal("No speakable text found").queue();
-                } else {
-                    hook.editOriginal("Nothing found by **" + trackURL + "**").queue();
-                }
+                hook.editOriginal(trackType == TrackType.TTS ? "No speakable text found" : "Nothing found by **" + trackURL + "**").queue();
             }
 
             @Override
@@ -117,6 +122,10 @@ public class PlayerManager {
                 hook.editOriginal("Could not load: **" + e.getMessage() + "**").queue();
             }
         });
+    }
+
+    private String markdownLink(String text, String url) {
+        return "[" + text + "](<" + url + ">)";
     }
 
     /**
