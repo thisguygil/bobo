@@ -2,9 +2,7 @@ package bobo.commands.voice.music;
 
 import bobo.commands.voice.JoinCommand;
 import bobo.utils.TrackType;
-import bobo.lavaplayer.PlayerManager;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
