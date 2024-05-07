@@ -61,36 +61,17 @@ public class QueueCommand extends AbstractMusic {
         // Initialize all necessary variables
         final List<TrackRecord> trackList = new ArrayList<>(queue);
         trackList.add(0, new TrackRecord(currentTrack.track(), null, null, currentTrack.trackType())); // Null values are not used
-        List<EmbedBuilder> builders = new ArrayList<>();
-        List<Page> pages = new ArrayList<>();
         StringBuilder tracksField = new StringBuilder();
         int trackCounter = 1;
         Member member = event.getMember();
         assert member != null;
 
-        // Initialize the embed params and the first page
-        String memberName = member.getEffectiveName();
-        String memberUrl = "https://discord.com/users/" + member.getId();
-        String memberAvatar = member.getEffectiveAvatarUrl();
-        String embedTitle = "Current Queue" + (scheduler.looping == LoopCommand.looping.QUEUE ? " - Looping" : "");
-        EmbedBuilder builder = new EmbedBuilder()
-                .setAuthor(memberName, memberUrl, memberAvatar)
-                .setTitle(embedTitle)
-                .setColor(Color.red);
-
         // Add all tracks to the pages
+        List<EmbedBuilder> embedBuilders = new ArrayList<>();
         for (TrackRecord record : trackList) {
             String trackInfo = formatTrackInfo(trackCounter, record);
             if (trackCounter % 10 == 1 && trackCounter != 1) {
-                // Create a page for the current tracks
-                builder.setDescription(tracksField.toString());
-                builders.add(builder);
-
-                // Reset for the next page
-                builder = new EmbedBuilder()
-                        .setAuthor(memberName, memberUrl, memberAvatar)
-                        .setTitle(embedTitle)
-                        .setColor(Color.red);
+                embedBuilders.add(createQueueEmbed(member, tracksField.toString()));
                 tracksField = new StringBuilder();
             }
 
@@ -99,25 +80,39 @@ public class QueueCommand extends AbstractMusic {
         }
 
         // Add any remaining tracks to the last page
-        if (!tracksField.toString().isEmpty()) {
-            builder.setDescription(tracksField.toString());
-            builders.add(builder);
+        String finalTracksField = tracksField.toString();
+        if (!finalTracksField.isEmpty()) {
+            embedBuilders.add(createQueueEmbed(member, finalTracksField));
         }
 
         // Add page counts to the footers and construct the pages
         int pageCount = 1;
-        for (EmbedBuilder embedBuilder : builders) {
-            embedBuilder.setFooter("Page " + pageCount + " of " + builders.size());
+        List<Page> pages = new ArrayList<>();
+        for (EmbedBuilder embedBuilder : embedBuilders) {
+            embedBuilder.setFooter("Page " + pageCount + " of " + embedBuilders.size());
             pages.add(InteractPage.of(embedBuilder.build()));
             pageCount++;
         }
 
-        // Send only one page if there is only one page, otherwise paginate
-        if (pages.size() == 1) {
+        if (pages.size() == 1) { // Don't paginate if there's only one page
             hook.editOriginalEmbeds((MessageEmbed) pages.get(0).getContent()).queue();
         } else {
             hook.editOriginalEmbeds((MessageEmbed) pages.get(0).getContent()).queue(success -> Pages.paginate(success, pages, true));
         }
+    }
+
+    /**
+     * Creates an embed with the current up to 10 tracks.
+     * @param member the member who requested the queue
+     * @param tracksField the field containing the tracks
+     * @return the embed
+     */
+    private EmbedBuilder createQueueEmbed(Member member, String tracksField) {
+        return new EmbedBuilder()
+                .setAuthor(member.getEffectiveName(), "https://discord.com/users/" + member.getId(), member.getEffectiveAvatarUrl())
+                .setTitle("Current Queue" + (scheduler.looping == LoopCommand.looping.QUEUE ? " - Looping" : ""))
+                .setDescription(tracksField)
+                .setColor(Color.red);
     }
 
     /**

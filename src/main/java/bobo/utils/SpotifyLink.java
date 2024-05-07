@@ -7,6 +7,7 @@ import se.michaelthelin.spotify.exceptions.SpotifyWebApiException;
 import se.michaelthelin.spotify.model_objects.credentials.ClientCredentials;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.io.IOException;
 
 public final class SpotifyLink {
@@ -37,5 +38,31 @@ public final class SpotifyLink {
         String accessToken = clientCredentials.getAccessToken();
         spotifyApi.setAccessToken(accessToken);
         return spotifyApi;
+    }
+
+    /**
+     * Gets the name of the album from a Spotify URL, or null if the URL is not a Spotify URL.
+     *
+     * @param url The Spotify URL.
+     * @return The name of the album.
+     */
+    @Nullable
+    public static String getAlbumName(String url) {
+        try {
+            String spotifyRegex = "^(https?://)?open.spotify.com/.*";
+            if (url.matches(spotifyRegex)) {
+                SpotifyApi spotifyApi = SpotifyLink.getSpotifyApi();
+                String id = url.split("/")[url.split("/").length - 1];
+                return spotifyApi.getTrack(id)
+                        .build()
+                        .execute()
+                        .getAlbum()
+                        .getName();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        return null;
     }
 }

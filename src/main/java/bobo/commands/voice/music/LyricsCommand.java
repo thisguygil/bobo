@@ -1,5 +1,6 @@
 package bobo.commands.voice.music;
 
+import bobo.utils.SpotifyLink;
 import com.github.topi314.lavalyrics.LyricsManager;
 import com.github.topi314.lavalyrics.lyrics.AudioLyrics;
 import com.github.ygimenez.method.Pages;
@@ -54,48 +55,57 @@ public class LyricsCommand extends AbstractMusic {
             return;
         }
 
-        List<EmbedBuilder> builders = new ArrayList<>();
+        List<EmbedBuilder> embedBuilders = new ArrayList<>();
         Member member = event.getMember();
         assert member != null;
         AudioTrackInfo info = currentTrack.track().getInfo();
-        EmbedBuilder embed;
-        while (lyricsText.length() > 4096) {
-            embed = new EmbedBuilder()
-                    .setAuthor(member.getEffectiveName(), "https://discord.com/users/" + member.getId(), member.getUser().getEffectiveAvatarUrl())
-                    .setTitle("Lyrics for " + info.title, info.uri)
-                    .setThumbnail(info.artworkUrl)
-                    .addField("Author", info.author, true)
-                    .setDescription(lyricsText.substring(0, 4096))
-                    .setColor(Color.RED);
-
-            builders.add(embed);
+        while (lyricsText.length() > 4096) { // Discord embed description limit; split the lyrics into multiple pages if necessary
+            embedBuilders.add(createEmbed(member, info, lyricsText.substring(0, 4096)));
             lyricsText.delete(0, 4096);
         }
 
         // Add the remaining lyrics
-        embed = new EmbedBuilder()
-                .setAuthor(member.getEffectiveName(), "https://discord.com/users/" + member.getId(), member.getUser().getEffectiveAvatarUrl())
-                .setTitle("Lyrics for " + info.title, info.uri)
-                .setThumbnail(info.artworkUrl)
-                .addField("Author", info.author, true)
-                .setDescription(lyricsText.toString())
-                .setColor(Color.RED);
-
-        builders.add(embed);
+        embedBuilders.add(createEmbed(member, info, lyricsText.toString()));
 
         int pageCount = 1;
         List<Page> pages = new ArrayList<>();
-        for (EmbedBuilder builder : builders) {
-            builder.setFooter("Page " + pageCount + " of " + builders.size());
-            pages.add(InteractPage.of(builder.build()));
+        for (EmbedBuilder embedBuilder : embedBuilders) {
+            embedBuilder.setFooter("Page " + pageCount + " of " + embedBuilders.size());
+            pages.add(InteractPage.of(embedBuilder.build()));
             pageCount++;
         }
 
-        if (pages.size() == 1) {
+        if (pages.size() == 1) { // Don't paginate if there's only one page
             hook.editOriginalEmbeds((MessageEmbed) pages.get(0).getContent()).queue();
         } else {
             hook.editOriginalEmbeds((MessageEmbed) pages.get(0).getContent()).queue(success -> Pages.paginate(success, pages, true));
         }
+    }
+
+    /**
+     * Creates an embed with the lyrics of the current track.
+     *
+     * @param member     The member who requested the lyrics
+     * @param info       The info of the current track
+     * @param lyricsText The lyrics of the current track
+     * @return The embed with the lyrics
+     */
+    private EmbedBuilder createEmbed(Member member, AudioTrackInfo info, String lyricsText) {
+        String uri = info.uri;
+        EmbedBuilder embed = new EmbedBuilder()
+                .setAuthor(member.getEffectiveName(), "https://discord.com/users/" + member.getId(), member.getUser().getEffectiveAvatarUrl())
+                .setTitle("Lyrics for " + info.title, uri)
+                .setThumbnail(info.artworkUrl)
+                .addField("Author", info.author, true)
+                .setDescription(lyricsText)
+                .setColor(Color.RED);
+
+        String albumName = SpotifyLink.getAlbumName(uri);
+        if (albumName != null) {
+            embed.addField("Album", albumName, true);
+        }
+
+        return embed;
     }
 
     @Override
