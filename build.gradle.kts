@@ -13,6 +13,7 @@ repositories {
     maven(url = "https://m2.dv8tion.net/releases")
     maven(url = "https://jitpack.io")
     maven(url = "https://maven.lavalink.dev/releases")
+    maven(url = "https://maven.topi.wtf/releases")
 }
 
 dependencies {
@@ -25,7 +26,8 @@ dependencies {
     implementation("com.theokanning.openai-gpt3-java:service:0.18.2")
     implementation("dev.arbjerg:lavaplayer:2.1.2")
     implementation("dev.lavalink.youtube:v2:1.1.0")
-    implementation("com.github.topi314.lavasrc:lavasrc:4.0.1")
+    implementation("com.github.topi314.lavasrc:lavasrc:4.1.0")
+    implementation("com.github.topi314.lavalyrics:lavalyrics:1.0.0")
     implementation("com.google.api-client:google-api-client:2.3.0")
     implementation("com.google.oauth-client:google-oauth-client-jetty:1.35.0")
     implementation("com.google.apis:google-api-services-youtube:v3-rev20240213-2.0.0")

@@ -57,6 +57,7 @@ public class CommandManager {
         // Music commands
         commands.add(new PlayCommand());
         commands.add(new SearchCommand());
+        commands.add(new LyricsCommand());
         commands.add(new PauseCommand());
         commands.add(new ResumeCommand());
         commands.add(new NowPlayingCommand());

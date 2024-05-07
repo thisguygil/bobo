@@ -3,7 +3,9 @@ package bobo.lavaplayer;
 import bobo.Config;
 import bobo.commands.voice.music.TTSCommand;
 import bobo.utils.TrackType;
+import com.github.topi314.lavalyrics.LyricsManager;
 import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
+import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
 import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
@@ -30,6 +32,7 @@ public class PlayerManager {
     private static PlayerManager INSTANCE;
     private final Map<Long, GuildMusicManager> musicManagers;
     private final AudioPlayerManager audioPlayerManager;
+    private final LyricsManager lyricsManager;
 
     /**
      * Creates a new player manager.
@@ -37,11 +40,17 @@ public class PlayerManager {
     public PlayerManager() {
         this.musicManagers = new HashMap<>();
         this.audioPlayerManager = new DefaultAudioPlayerManager();
+
+        SpotifySourceManager spotifySourceManager = new SpotifySourceManager(Config.get("SPOTIFY_CLIENT_ID"), Config.get("SPOTIFY_CLIENT_SECRET"), Config.get("SP_DC"), "US", (v) -> audioPlayerManager, new DefaultMirroringAudioTrackResolver(null));
+
         this.audioPlayerManager.registerSourceManager(new YoutubeAudioSourceManager(true, new MusicWithThumbnail(), new WebWithThumbnail(), new AndroidWithThumbnail(), new TvHtml5EmbeddedWithThumbnail()));
-        this.audioPlayerManager.registerSourceManager(new SpotifySourceManager(null, Config.get("SPOTIFY_CLIENT_ID"), Config.get("SPOTIFY_CLIENT_SECRET"), "US", audioPlayerManager));
+        this.audioPlayerManager.registerSourceManager(spotifySourceManager);
         this.audioPlayerManager.registerSourceManager(new FloweryTTSSourceManager("Eric"));
         AudioSourceManagers.registerRemoteSources(this.audioPlayerManager, com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager.class); // Need to exclude the deprecated YoutubeAudioSourceManager
         AudioSourceManagers.registerLocalSource(this.audioPlayerManager);
+
+        this.lyricsManager = new LyricsManager();
+        this.lyricsManager.registerLyricsManager(spotifySourceManager);
     }
 
     /**
@@ -122,6 +131,10 @@ public class PlayerManager {
                 hook.editOriginal("Could not load: **" + e.getMessage() + "**").queue();
             }
         });
+    }
+
+    public LyricsManager getLyricsManager() {
+        return this.lyricsManager;
     }
 
     private String markdownLink(String text, String url) {
