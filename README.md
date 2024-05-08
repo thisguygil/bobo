@@ -6,20 +6,25 @@ The greatest Discord bot on the planet (don't fact-check that).
 * Playing music in voice channels from supported sources (see below)
 * Clipping audio from voice channels
 * Text-to-speech with [Flowery TTS](https://flowery.pw/) in voice channels
-* OpenAI integration
+* OpenAI integration with the [OpenAI API](https://github.com/TheoKanning/openai-java)
   * Chat with AI with [ChatGPT](https://chat.openai.com/)
   * AI-generate images with [DALL-E 3](https://openai.com/dall-e-3)
-* Last.fm integration
+* Last.fm integration with the [Last.fm API](https://www.last.fm/api)
   * Get currently playing Spotify track information
-* Search Google for images
-* Get Fortnite stats, daily shop updates, and map information
+* Search Google for images with [Google Images](https://developers.google.com/custom-search/v1/overview)
+* Get Fortnite stats, daily shop updates, and map information with the [Fortnite API](https://fortniteapi.io/)
 
-### Supported sources and formats for music
-Bobo supports all the web sources and file formats supported by [Lavaplayer](https://github.com/lavalink-devs/lavaplayer), as well as Spotify supported by [LavaSrc](https://github.com/topi314/LavaSrc) and the [Spotify API](https://developer.spotify.com/documentation/web-api/).
+## Supported audio sources and formats
+Bobo supports all the web sources and file formats supported by the [lavalink-devs fork](https://github.com/lavalink-devs/lavaplayer) of [Lavaplayer](https://github.com/sedmelluq/lavaplayer), as well as Spotify supported by [LavaSrc](https://github.com/topi314/LavaSrc) and the [Spotify API](https://developer.spotify.com/documentation/web-api/).
+
+## Hosting
+Bobo isn't currently publicly available to be invited to your server, but you can host your own instance by building the bot with Gradle and running it with your own environment variables.
+<br>
+An example file including all the required variables can be found in the repository's `.env.example` file.
 
 ## Commands
 ### Bot Owner commands
-Can be used by the bot owner only - configured with the owner's Discord user ID in the .env file
+Can be used by the bot owner only - configured with the owner's [Discord user ID](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID) in the `.env` file
 * `/restart` - Restarts Bobo
 * `/set-activity` - Sets Bobo's activity/status
     * Subcommands:
@@ -45,7 +50,7 @@ Can be used by server admins only
 ### General commands
 * `/help` - Shows the list of commands or gets info on a specific command
 * `/google <query>` - Searches Google for `<query>` and returns the first 10 results
-* `/random` - Gets a random quote/clip from the configured channel
+* `/random` - Gets a random quote/clip from the respective configured channel
   * Subcommands:
   * `quote` - Gets a random quote
   * `clip` - Gets a random clip
@@ -57,8 +62,9 @@ Can be used by server admins only
   * `map` - Gets the current Fortnite map
 
 ### Last.fm commands
+Requires the user to be logged into Last.fm
 * `/fmlogin` - Logs into Last.fm
-* `/fmlogout` - Logs out of Last.fm
+* `/fmlogout` - Logs out of Last.fm - to be used normally, or if the login becomes invalid/outdated (e.g. the user changes their username)
 * `/track <track>` - Gets information about a given track on Last.fm. No input defaults to last played track
 * `/album <album>` - Gets information about a given album on Last.fm. No input defaults to last played album
 * `/artist <artist>` - Gets information about a given artist on Last.fm. No input defaults to last played artist
@@ -73,7 +79,7 @@ Can be used in voice channels only
 * `/leave` - Leaves the voice channel
 * `/mute` - Mutes/unmutes Bobo in the voice channel
 * `/deafen` - Deafens/undeafens Bobo in the voice channel (Bobo will not be able to clip you)
-* `/clip` - Clips the last 30 seconds of audio from the voice channel you are in
+* `/clip` - Clips the last 30 seconds of audio from the voice channel you are in. The clip will also be sent to the configured clips channel, if one is set
 
 ### Music commands
 Subset of voice commands
@@ -98,6 +104,7 @@ Subset of voice commands
       * `track <query>` - Search SoundCloud for a track
       * `playlist <query>` - Search SoundCloud for a playlist
       * `album <query>` - Search SoundCloud for an album
+* `/lyrics` - Get the lyrics of the currently playing track
 * `/pause` - Pauses the current track
 * `/resume` - Resumes the current track
 * `/skip` - Skips the current track
@@ -118,3 +125,4 @@ Subset of voice commands
   * `clear` - Clears the current queue
   * `remove <index>` - Removes the track at `<index>` from the queue
   * `shuffle` - Shuffles the queue
+  * `loop` - Loops the queue
