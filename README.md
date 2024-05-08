@@ -12,7 +12,7 @@ The greatest Discord bot on the planet (don't fact-check that).
 * Last.fm integration with the [Last.fm API](https://www.last.fm/api)
   * Get currently playing Spotify track information
 * Search Google for images with [Google Images](https://developers.google.com/custom-search/v1/overview)
-* Get Fortnite stats, daily shop updates, and map information with the [Fortnite API](https://fortniteapi.io/)
+* Get Fortnite stats, daily shop updates, and map information with the [Fortnite API](https://fortnite-api.com/)
 
 ## Supported audio sources and formats
 Bobo supports all the web sources and file formats supported by the [lavalink-devs fork](https://github.com/lavalink-devs/lavaplayer) of [Lavaplayer](https://github.com/sedmelluq/lavaplayer), as well as Spotify supported by [LavaSrc](https://github.com/topi314/LavaSrc) and the [Spotify API](https://developer.spotify.com/documentation/web-api/).
