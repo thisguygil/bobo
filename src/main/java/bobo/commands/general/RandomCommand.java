@@ -258,7 +258,7 @@ public class RandomCommand extends AbstractGeneral {
      */
     @Nonnull
     private static String spoileredQuote(String quote) {
-        String regex = "(\".*?\")\\s*-\\s*(.*)";
+        String regex = "(\".*?\"\\s*.*?)\\s*-\\s*(.*)";
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(quote);
         StringBuilder formattedQuote = new StringBuilder();
