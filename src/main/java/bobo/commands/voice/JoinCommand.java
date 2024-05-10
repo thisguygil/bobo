@@ -1,6 +1,5 @@
 package bobo.commands.voice;
 
-import bobo.utils.AudioReceiveListener;
 import net.dv8tion.jda.api.entities.GuildVoiceState;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
@@ -50,21 +49,16 @@ public class JoinCommand extends AbstractVoice {
             return false;
         }
 
-        try {
-            AudioManager audioManager = event.getGuildChannel().getGuild().getAudioManager();
-            audioManager.openAudioConnection(voiceChannel);
-        } catch (Exception e) {
-            event.getHook().editOriginal("Failed to join voice channel.").queue();
-            e.printStackTrace();
+        if (join(voiceChannel.asVoiceChannel())) {
+            return true;
+        } else {
+            event.getHook().editOriginal("Failed to join the voice channel.").queue();
             return false;
         }
-
-        return true;
     }
 
     /**
      * Joins the voice channel given.
-     * Overloaded method for {@link #join(SlashCommandInteractionEvent)}.
      *
      * @param voiceChannel The voice channel to join.
      * @return Whether the bot successfully joined the voice channel.
@@ -73,7 +67,6 @@ public class JoinCommand extends AbstractVoice {
         try {
             AudioManager audioManager = voiceChannel.getGuild().getAudioManager();
             audioManager.openAudioConnection(voiceChannel);
-            audioManager.setReceivingHandler(new AudioReceiveListener(1));
         } catch (Exception e) {
             e.printStackTrace();
             return false;
