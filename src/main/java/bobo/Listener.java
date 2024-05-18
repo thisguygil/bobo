@@ -15,6 +15,8 @@ import bobo.lavaplayer.TrackScheduler;
 import bobo.utils.TrackType;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
@@ -34,6 +36,7 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 
 import javax.annotation.Nonnull;
 import java.sql.*;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 import static bobo.commands.admin.ConfigCommand.*;
@@ -62,12 +65,24 @@ public class Listener extends ListenerAdapter {
     public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
         if (event.isFromType(ChannelType.PRIVATE)) {
             GuildChannel channel = Bobo.getJDA().getGuildChannelById(Long.parseLong(Config.get("DM_LOG_CHANNEL_ID")));
-            MessageCreateData message = new MessageCreateBuilder()
-                    .addContent("**" + event.getAuthor().getGlobalName() + "**\n" + event.getMessage().getContentDisplay())
-                    .addEmbeds(event.getMessage().getEmbeds())
-                    .build();
+            Message originalMessage = event.getMessage();
+            MessageCreateBuilder message = new MessageCreateBuilder()
+                    .addContent("@silent **Message from " + event.getAuthor().getAsMention() + "**\n");
+
+            String messageContent = originalMessage.getContentDisplay();
+            if (!messageContent.isEmpty()) {
+                message.addContent(messageContent + "\n");
+            }
+
+            originalMessage.getAttachments().forEach(attachment -> message.addContent(attachment.getUrl() + "\n"));
+
+            List<MessageEmbed> embeds = originalMessage.getEmbeds();
+            if (!embeds.isEmpty()) {
+                message.setEmbeds(embeds);
+            }
+
             assert channel != null;
-            ((GuildMessageChannel) channel).sendMessage(message).queue();
+            ((GuildMessageChannel) channel).sendMessage(message.build()).queue();
         } else if (event.isFromType(ChannelType.GUILD_PRIVATE_THREAD)) {
             ChatCommand.handleThreadMessage(event);
         }
