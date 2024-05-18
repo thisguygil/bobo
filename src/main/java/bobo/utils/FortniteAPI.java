@@ -159,6 +159,9 @@ public final class FortniteAPI {
                 int countImages = 1;
                 for (int i = 0; i < numItems; i++) {
                     BufferedImage itemImage = images.get(i);
+                    if (itemImage == null) {
+                        continue;
+                    }
 
                     int itemImageHeight = itemImage.getHeight();
                     int itemImageWidth = itemImage.getWidth();
@@ -252,8 +255,8 @@ public final class FortniteAPI {
                 return Thumbnails.of(ImageIO.read((new URI(imageUrl)).toURL()))
                         .width(targetWidth)
                         .asBufferedImage();
-            } catch (IOException | URISyntaxException e) {
-                e.printStackTrace();
+            } catch (IOException | URISyntaxException | ArrayIndexOutOfBoundsException e) {
+                System.err.println("Failed to load image: " + imageUrl + ". Error: " + e.getMessage());
                 return null;
             }
         });
