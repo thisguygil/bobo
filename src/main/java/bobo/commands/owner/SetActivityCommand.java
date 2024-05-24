@@ -112,7 +112,7 @@ public class SetActivityCommand extends AbstractOwner {
                 return;
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("An error occurred while setting the activity: " + e.getMessage());
         }
 
         Bobo.getJDA().getPresence().setActivity(activity);

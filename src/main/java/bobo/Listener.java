@@ -167,7 +167,7 @@ public class Listener extends ListenerAdapter {
             statement3.setString(1, guildId);
             statement3.executeUpdate();
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.out.println("Error deleting guild from tables: " + e.getMessage());
         }
     }
 
