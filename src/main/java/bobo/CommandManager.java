@@ -44,6 +44,7 @@ public class CommandManager {
         commands.add(new ArtistCommand());
 
         // AI commands
+        commands.add(new TLDRCommand());
         commands.add(new ChatCommand());
         commands.add(new ImageCommand());
         commands.add(new TTSCommand());
