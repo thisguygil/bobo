@@ -70,7 +70,7 @@ Requires the user to be logged into Last.fm
 * `/artist <artist>` - Gets information about a given artist on Last.fm. No input defaults to last played artist
 
 ### AI commands
-* `/tldr` - Summarizes the recent conversation in the channel.
+* `/tldr <minutes>` - Summarizes the recent conversation in the channel. `<minutes>` is the number of minutes to look back in the channel, if not provided, searches until a 5-minute gap is found
 * `/chat` - Opens a thread to chat with ChatGPT
 * `/image` - Generates an image with DALL-E 3
 

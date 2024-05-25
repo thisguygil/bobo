@@ -6,9 +6,12 @@ import com.theokanning.openai.completion.chat.ChatMessageRole;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.time.Duration;
+import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,52 +23,98 @@ public class TLDRCommand extends AbstractAI {
      * Creates a new tldr command.
      */
     public TLDRCommand() {
-        super(Commands.slash("tldr", "Summarizes the recent conversation in the channel, until a 5-minute gap is found."));
+        super(Commands.slash("tldr", "Summarizes the recent conversation in the channel, until a 5-minute gap is found.")
+                .addOption(OptionType.INTEGER, "minutes", "The number of minutes to summarize", false));
     }
 
     @Override
     protected void handleAICommand() {
         event.deferReply().queue();
 
-        MessageChannelUnion channel = event.getChannel();
-        List<Message> messages = new ArrayList<>();
-
-        // Get the last messages in the channel
-        for (Message message : channel.getIterableHistory()) {
-            // Skip bot and system messages
-            User author = message.getAuthor();
-            if (author.isBot() || author.isSystem()) {
-                continue;
-            }
-
-            // Break if the time gap between messages is greater than 5 minutes
-            if (!messages.isEmpty()) {
-                Message previousMessage = messages.get(0);
-                Duration timeGap = Duration.between(previousMessage.getTimeCreated(), message.getTimeCreated()).abs();
-                if (timeGap.toMinutes() > 5) {
-                    break;
-                }
-            }
-
-            messages.add(0, message);
+        OptionMapping minutesOption = event.getOption("minutes");
+        int minutes = minutesOption != null ? minutesOption.getAsInt() : 0;
+        if (minutes <= 0) {
+            hook.editOriginal("The number of minutes must be positive.").queue();
+            return;
         }
 
-        // Only summarize 10 or more messages
+        List<Message> messages = fetchMessages(event.getChannel(), minutes);
         if (messages.size() < 10) {
             hook.editOriginal("Not enough messages to summarize.").queue();
             return;
         }
 
-        // Format the conversation and summarize it
-        String formattedConversation = formatMessages(messages);
-        String summary;
-        try { // An exception can be thrown for various reasons
-            summary = summarizeConversation(formattedConversation);
-        } catch (Exception e) {
-            summary = "Failed to summarize the conversation: " + e.getMessage();
+        String summary = summarizeMessages(messages);
+        hook.editOriginal(summary).queue();
+    }
+
+    /**
+     * Fetches the messages from the given channel.
+     *
+     * @param channel the channel to fetch messages from
+     * @param minutes the number of minutes to fetch messages for
+     * @return the fetched messages
+     */
+    private List<Message> fetchMessages(MessageChannelUnion channel, int minutes) {
+        List<Message> messages = new ArrayList<>();
+
+        for (Message message : channel.getIterableHistory()) {
+            if (isMessageSkippable(message)) {
+                continue;
+            }
+
+            if (!messages.isEmpty() && shouldBreakLoop(messages.get(0), message, minutes)) {
+                break;
+            }
+
+            messages.add(0, message);
         }
 
-        hook.editOriginal(summary).queue();
+        return messages.size() > 100 ? messages.subList(0, 100) : messages;
+    }
+
+    /**
+     * Checks if the given message is skippable.
+     *
+     * @param message the message to check
+     * @return true if the message is skippable, false otherwise
+     */
+    private boolean isMessageSkippable(Message message) {
+        User author = message.getAuthor();
+        return author.isBot() || author.isSystem() || message.getContentDisplay().isBlank();
+    }
+
+    /**
+     * Checks if the loop should be broken.
+     *
+     * @param firstMessage the first message in the conversation
+     * @param currentMessage the current message
+     * @param minutes the number of minutes to summarize
+     * @return true if the loop should be broken, false otherwise
+     */
+    private boolean shouldBreakLoop(Message firstMessage, Message currentMessage, int minutes) {
+        if (minutes > 0) {
+            Duration timeFromNow = Duration.between(currentMessage.getTimeCreated(), OffsetDateTime.now()).abs();
+            return timeFromNow.toMinutes() > minutes;
+        } else {
+            Duration timeGap = Duration.between(currentMessage.getTimeCreated(), firstMessage.getTimeCreated()).abs();
+            return timeGap.toMinutes() > 5;
+        }
+    }
+
+    /**
+     * Summarizes the given messages.
+     *
+     * @param messages the messages to summarize
+     * @return the summarized messages
+     */
+    private String summarizeMessages(List<Message> messages) {
+        String prompt = "Conversation:\n" + formatMessages(messages) + "\n";
+        try {
+            return callOpenAI(prompt);
+        } catch (Exception e) {
+            return "Failed to summarize the conversation: " + e.getMessage();
+        }
     }
 
     /**
@@ -77,17 +126,12 @@ public class TLDRCommand extends AbstractAI {
     public String formatMessages(List<Message> messages) {
         StringBuilder formattedConversation = new StringBuilder();
         for (Message message : messages) {
-            String content = message.getContentDisplay();
-            if (content.isBlank()) {
-                continue;
-            }
-
             String timestamp = message.getTimeCreated().format(FORMATTER);
             formattedConversation.append(message.getAuthor().getEffectiveName())
                     .append(" [")
                     .append(timestamp)
                     .append("]: ")
-                    .append(content)
+                    .append(message.getContentDisplay())
                     .append("\n");
         }
 
@@ -95,23 +139,26 @@ public class TLDRCommand extends AbstractAI {
     }
 
     /**
-     * Summarizes the given conversation using OpenAI
+     * Calls the OpenAI API with the given prompt.
      *
-     * @param conversation the formatted conversation to summarize
-     * @return the summary of the messages
+     * @param prompt the prompt to call the API with
+     * @return the response from the API
+     * @throws Exception if an error occurs
      */
-    public String summarizeConversation(String conversation) {
-        String prompt = "Summarize the following Discord conversation, highlighting the key points and main topics discussed. Provide a concise summary.\n\n" +
-                "Conversation:\n" + conversation + "\n";
-
+    private String callOpenAI(String prompt) throws Exception {
         ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest.builder()
-                .model("gpt-4o")
-                .messages(List.of(new ChatMessage(ChatMessageRole.USER.value(), prompt)))
+                .model("gpt-3.5-turbo")
+                .messages(List.of(
+                        new ChatMessage(ChatMessageRole.SYSTEM.value(), "You are an assistant that summarizes Discord conversations. You will be given a conversation and are to provide a concise summary, highlighting key points and main topics discussed."),
+                        new ChatMessage(ChatMessageRole.USER.value(), prompt)
+                ))
                 .build();
 
         return service.createChatCompletion(chatCompletionRequest)
                 .getChoices()
-                .get(0)
+                .stream()
+                .findFirst()
+                .orElseThrow(() -> new Exception("No response from OpenAI"))
                 .getMessage()
                 .getContent();
     }
@@ -124,7 +171,9 @@ public class TLDRCommand extends AbstractAI {
     @Override
     public String getHelp() {
         return super.getHelp() + " " + """
-                Summarizes the recent conversation in the channel.
-                Usage: `/tldr`""";
+                Summarizes the recent conversation in the channel, up to 100 messages.
+                Optionally, you can specify the number of minutes to summarize.
+                If not specified, the command will take messages until a 5-minute gap is found.
+                Usage: `/tldr <minutes>`""";
     }
 }
