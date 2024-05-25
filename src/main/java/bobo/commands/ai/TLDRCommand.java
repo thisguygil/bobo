@@ -23,8 +23,8 @@ public class TLDRCommand extends AbstractAI {
      * Creates a new tldr command.
      */
     public TLDRCommand() {
-        super(Commands.slash("tldr", "Summarizes the recent conversation in the channel, until a 5-minute gap is found.")
-                .addOption(OptionType.INTEGER, "minutes", "The number of minutes to summarize", false));
+        super(Commands.slash("tldr", "Summarizes the recent conversation in the channel.")
+                .addOption(OptionType.INTEGER, "minutes", "How many minutes to summarize. No input searches until a 5-minute gap is found.", false));
     }
 
     @Override
@@ -32,10 +32,13 @@ public class TLDRCommand extends AbstractAI {
         event.deferReply().queue();
 
         OptionMapping minutesOption = event.getOption("minutes");
-        int minutes = minutesOption != null ? minutesOption.getAsInt() : 0;
-        if (minutes <= 0) {
-            hook.editOriginal("The number of minutes must be positive.").queue();
-            return;
+        Integer minutes = null;
+        if (minutesOption != null) {
+            minutes = minutesOption.getAsInt();
+            if (minutes <= 0) {
+                event.getHook().editOriginal("The number of minutes must be greater than zero.").queue();
+                return;
+            }
         }
 
         List<Message> messages = fetchMessages(event.getChannel(), minutes);
@@ -55,7 +58,7 @@ public class TLDRCommand extends AbstractAI {
      * @param minutes the number of minutes to fetch messages for
      * @return the fetched messages
      */
-    private List<Message> fetchMessages(MessageChannelUnion channel, int minutes) {
+    private List<Message> fetchMessages(MessageChannelUnion channel, Integer minutes) {
         List<Message> messages = new ArrayList<>();
 
         for (Message message : channel.getIterableHistory()) {
@@ -92,8 +95,8 @@ public class TLDRCommand extends AbstractAI {
      * @param minutes the number of minutes to summarize
      * @return true if the loop should be broken, false otherwise
      */
-    private boolean shouldBreakLoop(Message firstMessage, Message currentMessage, int minutes) {
-        if (minutes > 0) {
+    private boolean shouldBreakLoop(Message firstMessage, Message currentMessage, Integer minutes) {
+        if (minutes != null) {
             Duration timeFromNow = Duration.between(currentMessage.getTimeCreated(), OffsetDateTime.now()).abs();
             return timeFromNow.toMinutes() > minutes;
         } else {
