@@ -73,7 +73,8 @@ public class TLDRCommand extends AbstractAI {
             messages.add(0, message);
         }
 
-        return messages.size() > 100 ? messages.subList(0, 100) : messages;
+        int size = messages.size();
+        return size > 100 ? messages.subList(size - 100, size) : messages;
     }
 
     /**
