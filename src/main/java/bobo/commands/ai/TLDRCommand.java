@@ -151,7 +151,7 @@ public class TLDRCommand extends AbstractAI {
      */
     private String callOpenAI(String prompt) throws Exception {
         ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest.builder()
-                .model("gpt-3.5-turbo")
+                .model("gpt-4o")
                 .messages(List.of(
                         new ChatMessage(ChatMessageRole.SYSTEM.value(), "You are an assistant that summarizes Discord conversations. You will be given a conversation and are to provide a concise summary, highlighting key points and main topics discussed."),
                         new ChatMessage(ChatMessageRole.USER.value(), prompt)
