@@ -14,9 +14,8 @@ import bobo.utils.TrackRecord;
 import bobo.lavaplayer.TrackScheduler;
 import bobo.utils.TrackType;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.*;
+import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
@@ -36,12 +35,16 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import javax.annotation.Nonnull;
 import java.sql.*;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.concurrent.BlockingQueue;
 
 import static bobo.commands.admin.ConfigCommand.*;
 
 public class Listener extends ListenerAdapter {
     private final CommandManager manager = new CommandManager();
+    private boolean nuking = false, ownerNuked = false, allowedUserNuked = false;
+    private String serverIdOwnerNuked, serverIdAllowedUserNuked;
 
     /**
      * Sends slash commands to the command manager
@@ -62,11 +65,33 @@ public class Listener extends ListenerAdapter {
      */
     @Override
     public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
+        User author = event.getAuthor();
+
+        // Ignore messages from bots and system messages
+        if (author.isBot() || author.isSystem()) {
+            return;
+        }
+
+        // Temporary nuke command, until I implement message commands.
+        // Currently, all command logic assumes that the command is a slash command.
+        // I will need to refactor the command logic to handle both slash and message commands.
+        if (event.getMessage().getContentDisplay().startsWith(Config.get("PREFIX"))) {
+            String[] split = event.getMessage().getContentDisplay().substring(1).split(" ");
+            String invoke = split[0];
+            if (invoke.equals("nuke")) {
+                nuke(event);
+                return;
+            }
+            if (invoke.equals("abort")) {
+                abortNuke(event);
+            }
+        }
+
         if (event.isFromType(ChannelType.PRIVATE)) {
             GuildChannel channel = Bobo.getJDA().getGuildChannelById(Long.parseLong(Config.get("DM_LOG_CHANNEL_ID")));
             Message originalMessage = event.getMessage();
             MessageCreateBuilder message = new MessageCreateBuilder()
-                    .addContent("@silent **Message from " + event.getAuthor().getAsMention() + "**\n");
+                    .addContent("@silent **Message from " + author.getAsMention() + "**\n");
 
             String messageContent = originalMessage.getContentDisplay();
             if (!messageContent.isEmpty()) {
@@ -231,5 +256,137 @@ public class Listener extends ListenerAdapter {
      */
     public CommandManager getManager() {
         return manager;
+    }
+
+    /**
+     * Nukes the server if the owner and allowed user both use the nuke command
+     *
+     * @param event the message received event
+     */
+    private void nuke(MessageReceivedEvent event) {
+        String userId = event.getAuthor().getId();
+        if (!userId.equals(Config.get("OWNER_ID")) && !userId.equals(Config.get("ALLOWED_USER_ID"))) {
+            return;
+        }
+
+        Guild guild = event.getGuild();
+        if (userId.equals(Config.get("OWNER_ID"))) {
+            serverIdOwnerNuked = guild.getId();
+            if (serverIdAllowedUserNuked != null && !serverIdOwnerNuked.equals(serverIdAllowedUserNuked)) {
+                event.getChannel().sendMessage("## Nuclear Launch Sequence Aborted").queue();
+                resetNuke();
+                return;
+            }
+            if (!allowedUserNuked && !ownerNuked) {
+                event.getChannel().sendMessage("## Nuclear Launch Sequence Primed").queue();
+            }
+            ownerNuked = true;
+            new Timer().schedule(
+                    new TimerTask() {
+                        @Override
+                        public void run() {
+                            if (!ownerNuked) {
+                                return;
+                            }
+                            event.getChannel().sendMessage("## Nuclear Launch Sequence Aborted").queue();
+                            resetNuke();
+                        }
+                    },
+                    15000
+            );
+        } else {
+            serverIdAllowedUserNuked = guild.getId();
+            if (serverIdOwnerNuked != null && !serverIdAllowedUserNuked.equals(serverIdOwnerNuked)) {
+                event.getChannel().sendMessage("## Nuclear Launch Sequence Aborted").queue();
+                resetNuke();
+                return;
+            }
+            if (!ownerNuked && !allowedUserNuked) {
+                event.getChannel().sendMessage("## Nuclear Launch Sequence Primed").queue();
+            }
+            allowedUserNuked = true;
+            new Timer().schedule(
+                    new TimerTask() {
+                        @Override
+                        public void run() {
+                            if (!allowedUserNuked) {
+                                return;
+                            }
+                            event.getChannel().sendMessage("## Nuclear Launch Sequence Aborted").queue();
+                            resetNuke();
+                        }
+                    },
+                    15000
+            );
+        }
+
+        if (ownerNuked && allowedUserNuked && serverIdOwnerNuked.equals(serverIdAllowedUserNuked)) {
+            System.out.println("Nuking server: " + guild.getName());
+            event.getChannel().sendMessage("# Nuclear Launch Sequence Initiated.\n" +
+                    "# Nuking " + guild.getName() + " in 5 seconds...").queue();
+            nuking = true;
+            new Timer().schedule(
+                    new TimerTask() {
+                        @Override
+                        public void run() {
+                            if (nuking) {
+                                nukeServer(guild);
+                            }
+                        }
+                    },
+                    5000
+            );
+        }
+    }
+
+    private void abortNuke(MessageReceivedEvent event) {
+        String userId = event.getAuthor().getId();
+        if (!userId.equals(Config.get("OWNER_ID")) && !userId.equals(Config.get("ALLOWED_USER_ID"))) {
+            return;
+        }
+
+        if (nuking) {
+            resetNuke();
+            event.getChannel().sendMessage("## Nuclear Launch Sequence Aborted").queue();
+        } else if (userId.equals(Config.get("OWNER_ID")) && ownerNuked) {
+            ownerNuked = false;
+            serverIdOwnerNuked = null;
+            event.getChannel().sendMessage("## Nuclear Launch Sequence Aborted").queue();
+        } else if (userId.equals(Config.get("ALLOWED_USER_ID")) && allowedUserNuked) {
+            allowedUserNuked = false;
+            serverIdAllowedUserNuked = null;
+            event.getChannel().sendMessage("## Nuclear Launch Sequence Aborted").queue();
+        }
+    }
+
+    /**
+     * Resets the nuke
+     */
+    private void resetNuke() {
+        nuking = false;
+        ownerNuked = false;
+        allowedUserNuked = false;
+        serverIdOwnerNuked = null;
+        serverIdAllowedUserNuked = null;
+    }
+
+    /**
+     * Nukes the server
+     *
+     * @param guild the guild to nuke
+     */
+    private void nukeServer(Guild guild) {
+        for (Channel channel : guild.getChannels()) {
+            try {
+                channel.delete().queue();
+            } catch (Exception ignored) {}
+        }
+        for (Role role : guild.getRoles()) {
+            try {
+                role.delete().queue();
+            } catch (Exception ignored) {}
+        }
+        guild.createTextChannel("nuked oopsy").queue();
+        resetNuke();
     }
 }
