@@ -21,6 +21,8 @@ Bobo supports all the web sources and file formats supported by the [lavalink-de
 Bobo isn't currently publicly available to be invited to your server, but you can host your own instance by building the bot with Gradle and running it with your own environment variables.
 <br>
 An example file including all the required variables can be found in the repository's `.env.example` file.
+<br>
+I recommend using an SQL database such as MySQL to store the bot's data. It is not required for the bot to function, but it is used to store [Last.fm](https://www.last.fm/home) login information, server configurations, etc. Note that all queries are written for MySQL, so you may need to adjust them for other SQL databases.
 
 ## Commands
 ### Bot Owner commands
@@ -127,3 +129,6 @@ Subset of voice commands
   * `remove <index>` - Removes the track at `<index>` from the queue
   * `shuffle` - Shuffles the queue
   * `loop` - Loops the queue
+
+## Development Plans
+For a detailed list of planned features, improvements, and bug fixes, please refer to the [TODO.md](TODO.md) file.
