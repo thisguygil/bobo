@@ -57,8 +57,7 @@ public class NowPlayingCommand extends AbstractMusic {
                         .setThumbnail(info.artworkUrl);
 
                 if (!info.isStream) { // Only show duration or time left for non-streams
-                    long position = currentAudioTrack.getPosition();
-                    embed.setFooter(TimeFormat.formatTime(info.length - position) + (position == 0 ? "" : " left"));
+                    embed.setFooter(footerText(info, currentAudioTrack));
                 }
 
                 // Add album name if available
@@ -67,14 +66,28 @@ public class NowPlayingCommand extends AbstractMusic {
                     embed.addField("Album", albumName, true);
                 }
             }
-            case FILE -> embed.setTitle(title, uri)
-                    .addField("Author", info.author, true)
-                    .setFooter(TimeFormat.formatTime(currentAudioTrack.getDuration() - currentAudioTrack.getPosition()) + " left");
+            case FILE -> {
+                embed.setTitle(title, uri)
+                        .addField("Author", info.author, true)
+                        .setFooter(footerText(info, currentAudioTrack));
+            }
             case TTS -> embed.setTitle("TTS Message")
                     .setDescription(TTSCommand.getTTSMessage(currentAudioTrack));
         }
 
         return embed.build();
+    }
+
+    /**
+     * Gets the footer text for the currently playing track.
+     *
+     * @param info The track info.
+     * @param currentAudioTrack The currently playing track.
+     * @return The footer text.
+     */
+    private static String footerText(AudioTrackInfo info, AudioTrack currentAudioTrack) {
+        long position = currentAudioTrack.getPosition();
+        return TimeFormat.formatTime(info.length - position) + (position == 0 ? "" : " left");
     }
 
     @Override
