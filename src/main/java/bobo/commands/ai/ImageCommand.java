@@ -1,5 +1,6 @@
 package bobo.commands.ai;
 
+import bobo.Config;
 import com.theokanning.openai.OpenAiHttpException;
 import com.theokanning.openai.image.CreateImageRequest;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -13,6 +14,8 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 public class ImageCommand extends AbstractAI {
+    private static final String IMAGE_MODEL = Config.get("IMAGE_MODEL");
+
     /**
      * Creates a new image command.
      */
@@ -28,7 +31,7 @@ public class ImageCommand extends AbstractAI {
         String prompt = Objects.requireNonNull(event.getOption("prompt")).getAsString();
 
         CreateImageRequest createImageRequest = CreateImageRequest.builder()
-                .model("dall-e-3")
+                .model(IMAGE_MODEL)
                 .prompt(prompt)
                 .build();
 

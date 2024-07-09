@@ -1,5 +1,6 @@
 package bobo.commands.ai;
 
+import bobo.Config;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.completion.chat.ChatMessageRole;
@@ -17,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TLDRCommand extends AbstractAI {
+    private static final String TLDR_MODEL = Config.get("TLDR_MODEL");
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     /**
@@ -151,7 +153,7 @@ public class TLDRCommand extends AbstractAI {
      */
     private String callOpenAI(String prompt) throws Exception {
         ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest.builder()
-                .model("gpt-4o")
+                .model(TLDR_MODEL)
                 .messages(List.of(
                         new ChatMessage(ChatMessageRole.SYSTEM.value(), "You are an assistant that summarizes Discord conversations. You will be given a conversation and are to provide a concise summary, highlighting key points and main topics discussed."),
                         new ChatMessage(ChatMessageRole.USER.value(), prompt)

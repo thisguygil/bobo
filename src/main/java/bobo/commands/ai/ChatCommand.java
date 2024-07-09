@@ -1,5 +1,6 @@
 package bobo.commands.ai;
 
+import bobo.Config;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.completion.chat.ChatMessageRole;
@@ -13,6 +14,7 @@ import javax.annotation.Nonnull;
 import java.util.*;
 
 public class ChatCommand extends AbstractAI {
+    private static final String CHAT_MODEL = Config.get("CHAT_MODEL");
     private static final Map<ThreadChannel, List<ChatMessage>> CHANNEL_MESSAGE_MAP = new HashMap<>();
 
     /**
@@ -71,7 +73,7 @@ public class ChatCommand extends AbstractAI {
         messages.add(userMessage);
 
         ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest.builder()
-                .model("gpt-3.5-turbo")
+                .model(CHAT_MODEL)
                 .messages(messages)
                 .build();
 
