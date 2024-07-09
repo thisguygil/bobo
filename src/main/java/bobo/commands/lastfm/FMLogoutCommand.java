@@ -1,11 +1,14 @@
 package bobo.commands.lastfm;
 
 import bobo.utils.SQLConnection;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
 public class FMLogoutCommand extends AbstractLastFM {
     private static final String deleteTokenSQL = "DELETE FROM lastfmtokens WHERE user_id = ?";
@@ -48,5 +51,10 @@ public class FMLogoutCommand extends AbstractLastFM {
                 Log out of Last.fm.
                 Usage: `/fmlogout`
                 Note: You'll need to use this and then log in again if you deauthorize the bot or change your username.""";
+    }
+
+    @Override
+    protected List<Permission> getLastFMCommandPermissions() {
+        return new ArrayList<>();
     }
 }

@@ -5,10 +5,12 @@ import bobo.Config;
 import bobo.Listener;
 import bobo.commands.AbstractCommand;
 import bobo.commands.owner.AbstractOwner;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class HelpCommand extends AbstractGeneral {
@@ -69,5 +71,10 @@ public class HelpCommand extends AbstractGeneral {
     @Override
     public String getHelp() {
         return "You just think you're so smart, don't you?";
+    }
+
+    @Override
+    protected List<Permission> getGeneralCommandPermissions() {
+        return new ArrayList<>();
     }
 }

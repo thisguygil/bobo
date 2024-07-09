@@ -5,6 +5,7 @@ import bobo.lavaplayer.PlayerManager;
 import bobo.utils.*;
 import com.google.api.services.youtube.model.SearchResult;
 import com.google.api.services.youtube.model.SearchResultSnippet;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -512,5 +513,10 @@ public class SearchCommand extends AbstractMusic {
                 * `youtube track/playlist <query>`: Search YouTube for a track/playlist with <query>
                 * `spotify track/playlist/album <query>`: Search Spotify for a track/playlist/album with <query>
                 * `soundcloud track/playlist/album <query>`: Search SoundCloud for a track/playlist/album with <query>""";
+    }
+
+    @Override
+    protected List<Permission> getMusicCommandPermissions() {
+        return new ArrayList<>(List.of(Permission.MESSAGE_ADD_REACTION, Permission.MESSAGE_EMBED_LINKS));
     }
 }

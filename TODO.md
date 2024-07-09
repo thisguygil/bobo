@@ -7,9 +7,8 @@
 ## Rewrites
 * Add [GPT-4o](https://platform.openai.com/docs/models/gpt-4o) to the chat command (it can be used with no rewrite, but won't have vision capabilities, the main reason to switch)
   * Not available in the [OpenAI Java API Wrapper](https://github.com/TheoKanning/openai-java/), and since it's now archived, it will never be added, so I'll have to switch to another wrapper or directly use the API with the HTTP client
-* Add permission checks
-  * For users: to ensure a user has the proper permissions to use a certain command
-  * For the bot: to ensure it has the proper permissions to execute a certain command
+* Add permission checks to the bot
+  * This is only in case the bot is not granted administrator privileges. Will allow the bot to still function on unprivileged commands by telling the user that it can't perform the action
 * Redo search command to not have so many subcommands, and possibly rename command
   * With YouTube, Spotify, SoundCloud all having subcommands for tracks, playlists, and albums, it's gotten to be too much
   * Adding more music sources would make it even worse, so it's bad for extensibility

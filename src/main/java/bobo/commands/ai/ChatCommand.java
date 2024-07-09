@@ -4,6 +4,7 @@ import bobo.Config;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.completion.chat.ChatMessageRole;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
@@ -119,5 +120,10 @@ public class ChatCommand extends AbstractAI {
         return super.getHelp() + " " + """
                 Starts an OpenAI chat conversation in a new thread.
                 Usage: `/chat`""";
+    }
+
+    @Override
+    protected List<Permission> getAICommandPermissions() {
+        return new ArrayList<>(List.of(Permission.CREATE_PUBLIC_THREADS, Permission.MESSAGE_SEND_IN_THREADS));
     }
 }

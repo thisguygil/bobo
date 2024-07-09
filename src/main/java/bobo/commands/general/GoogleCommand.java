@@ -8,6 +8,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -100,5 +101,10 @@ public class GoogleCommand extends AbstractGeneral {
         return """
                 Searches given query on Google.
                 Usage: `/google <query>""";
+    }
+
+    @Override
+    protected List<Permission> getGeneralCommandPermissions() {
+        return new ArrayList<>();
     }
 }

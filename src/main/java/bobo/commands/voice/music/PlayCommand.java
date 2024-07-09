@@ -4,6 +4,7 @@ import bobo.commands.voice.JoinCommand;
 import bobo.utils.TrackType;
 import bobo.utils.YouTubeUtil;
 import com.google.api.services.youtube.model.SearchResult;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -13,6 +14,7 @@ import net.dv8tion.jda.api.managers.AudioManager;
 import org.apache.commons.validator.routines.UrlValidator;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -127,5 +129,10 @@ public class PlayCommand extends AbstractMusic {
                 Subcommands:
                 * `track <track>`: Plays <track> (or searches YouTube for it and plays the first result, use /search otherwise).
                 * `file <file>`: Plays audio from attached audio/video file.""";
+    }
+
+    @Override
+    protected List<Permission> getMusicCommandPermissions() {
+        return new ArrayList<>();
     }
 }

@@ -1,6 +1,7 @@
 package bobo.commands.general;
 
 import bobo.utils.FortniteAPI;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
@@ -15,6 +16,8 @@ import java.io.IOException;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -160,5 +163,10 @@ public class FortniteCommand extends AbstractGeneral {
                 * `news` - Get the current Fortnite (Battle Royale) news.
                 * `stats` - Get stats for a Fortnite player.
                 * `map` - Get the current Fortnite Map.""";
+    }
+
+    @Override
+    protected List<Permission> getGeneralCommandPermissions() {
+        return new ArrayList<>(List.of(Permission.MESSAGE_ATTACH_FILES));
     }
 }

@@ -3,6 +3,7 @@ package bobo.commands.lastfm;
 import bobo.utils.LastfmAPI;
 import bobo.utils.MusicBrainzAPI;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -12,6 +13,8 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -145,5 +148,10 @@ public class AlbumCommand extends AbstractLastFM {
                 Get information about a given album or the last played album on Last.fm.
                 Usage: `/album <album>`
                 No input defaults to last played album.""";
+    }
+
+    @Override
+    protected List<Permission> getLastFMCommandPermissions() {
+        return new ArrayList<>(List.of(Permission.MESSAGE_ATTACH_FILES));
     }
 }

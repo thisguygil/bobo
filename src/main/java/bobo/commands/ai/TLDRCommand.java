@@ -4,6 +4,7 @@ import bobo.Config;
 import com.theokanning.openai.completion.chat.ChatCompletionRequest;
 import com.theokanning.openai.completion.chat.ChatMessage;
 import com.theokanning.openai.completion.chat.ChatMessageRole;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
@@ -181,5 +182,10 @@ public class TLDRCommand extends AbstractAI {
                 Optionally, you can specify the number of minutes to summarize.
                 If not specified, the command will take messages until a 5-minute gap is found.
                 Usage: `/tldr <minutes>`""";
+    }
+
+    @Override
+    protected List<Permission> getAICommandPermissions() {
+        return new ArrayList<>(List.of(Permission.MESSAGE_HISTORY));
     }
 }

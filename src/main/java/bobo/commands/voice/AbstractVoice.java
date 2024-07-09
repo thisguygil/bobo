@@ -1,7 +1,11 @@
 package bobo.commands.voice;
 
 import bobo.commands.AbstractCommand;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class AbstractVoice extends AbstractCommand {
     /**
@@ -22,4 +26,18 @@ public abstract class AbstractVoice extends AbstractCommand {
      * Handles the voice command.
      */
     protected abstract void handleVoiceCommand();
+
+    @Override
+    protected List<Permission> getCommandPermissions() {
+        List<Permission> permissions = getVoiceCommandPermissions();
+        permissions.add(Permission.VOICE_CONNECT);
+        return permissions;
+    }
+
+    /**
+     * Gets the permissions required for the voice command.
+     *
+     * @return The permissions required for the voice command.
+     */
+    protected abstract List<Permission> getVoiceCommandPermissions();
 }

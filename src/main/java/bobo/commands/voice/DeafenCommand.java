@@ -1,8 +1,11 @@
 package bobo.commands.voice;
 
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class DeafenCommand extends AbstractVoice {
@@ -38,5 +41,10 @@ public class DeafenCommand extends AbstractVoice {
         return """
                 Toggles the deafen state of the bot.
                 Usage: `/deafen`""";
+    }
+
+    @Override
+    protected List<Permission> getVoiceCommandPermissions() {
+        return new ArrayList<>();
     }
 }

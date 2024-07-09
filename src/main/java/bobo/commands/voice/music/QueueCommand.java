@@ -9,6 +9,7 @@ import com.github.ygimenez.model.Page;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -241,5 +242,10 @@ public class QueueCommand extends AbstractMusic {
                 * `loop`: Loop the queue.
                 * `clear`: Clears the queue and stops current track.
                 * `remove <position>`: Removes track at position <position> in the queue.""";
+    }
+
+    @Override
+    protected List<Permission> getMusicCommandPermissions() {
+        return new ArrayList<>();
     }
 }

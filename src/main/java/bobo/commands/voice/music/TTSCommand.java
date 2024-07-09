@@ -3,14 +3,13 @@ package bobo.commands.voice.music;
 import bobo.commands.voice.JoinCommand;
 import bobo.utils.TrackType;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.managers.AudioManager;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 // NOTE: This classifies as a music command only due to the fact that it must use lavaplayer to play tts.
 // It should be a voice command, but it is not possible to play the tts without lavaplayer.
@@ -90,5 +89,10 @@ public class TTSCommand extends AbstractMusic {
         return """
                 Generates a message for the voice channel.
                 Usage: `/tts <message>`""";
+    }
+
+    @Override
+    protected List<Permission> getMusicCommandPermissions() {
+        return new ArrayList<>();
     }
 }

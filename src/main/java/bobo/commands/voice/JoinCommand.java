@@ -1,5 +1,6 @@
 package bobo.commands.voice;
 
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.GuildVoiceState;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
@@ -8,6 +9,8 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.managers.AudioManager;
 
 import javax.annotation.Nonnull;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class JoinCommand extends AbstractVoice {
@@ -85,5 +88,10 @@ public class JoinCommand extends AbstractVoice {
         return """
                 Joins the voice channel that the user is connected to. If the bot is already connected to a different voice channel, it will join the new one.
                 Usage: `/join`""";
+    }
+
+    @Override
+    protected List<Permission> getVoiceCommandPermissions() {
+        return new ArrayList<>();
     }
 }

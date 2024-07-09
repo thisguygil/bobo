@@ -2,7 +2,11 @@ package bobo.commands.owner;
 
 import bobo.Config;
 import bobo.commands.AbstractCommand;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class AbstractOwner extends AbstractCommand {
     /**
@@ -27,4 +31,9 @@ public abstract class AbstractOwner extends AbstractCommand {
      * Handles the owner command.
      */
     protected abstract void handleOwnerCommand();
+
+    @Override
+    protected List<Permission> getCommandPermissions() {
+        return new ArrayList<>();
+    }
 }

@@ -3,6 +3,7 @@ package bobo.commands.voice;
 import bobo.Bobo;
 import bobo.utils.AudioReceiveListener;
 import bobo.utils.SQLConnection;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.audio.AudioReceiveHandler;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
@@ -19,6 +20,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 public class ClipCommand extends AbstractVoice {
@@ -93,5 +96,10 @@ public class ClipCommand extends AbstractVoice {
                 Clips the most recent 30 seconds of the voice channel with an optional given name.
                 No name defaults to the current date and time.
                 Usage: `/clip <name>`""";
+    }
+
+    @Override
+    protected List<Permission> getVoiceCommandPermissions() {
+        return new ArrayList<>(List.of(Permission.MESSAGE_ATTACH_FILES));
     }
 }

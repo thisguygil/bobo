@@ -4,12 +4,15 @@ import bobo.Config;
 import com.theokanning.openai.OpenAiHttpException;
 import com.theokanning.openai.image.CreateImageRequest;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
@@ -81,5 +84,10 @@ public class ImageCommand extends AbstractAI {
         return super.getHelp() + " " + """
                 Generates an image of the given prompt.
                 Usage: `/image <prompt>`""";
+    }
+
+    @Override
+    protected List<Permission> getAICommandPermissions() {
+        return new ArrayList<>(List.of(Permission.MESSAGE_ATTACH_FILES));
     }
 }

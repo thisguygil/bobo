@@ -7,10 +7,13 @@ import bobo.utils.TrackRecord;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.awt.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class NowPlayingCommand extends AbstractMusic {
     /**
@@ -100,5 +103,10 @@ public class NowPlayingCommand extends AbstractMusic {
         return """
                 Shows the currently playing track.
                 Usage: `/now-playing`""";
+    }
+
+    @Override
+    protected List<Permission> getMusicCommandPermissions() {
+        return new ArrayList<>(List.of(Permission.MESSAGE_ATTACH_FILES, Permission.MESSAGE_EMBED_LINKS));
     }
 }

@@ -3,6 +3,7 @@ package bobo.commands.lastfm;
 import bobo.Config;
 import bobo.commands.AbstractCommand;
 import bobo.utils.SQLConnection;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import org.jetbrains.annotations.Nullable;
 
@@ -10,6 +11,7 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 import java.util.Map;
 
 public abstract class AbstractLastFM extends AbstractCommand {
@@ -154,4 +156,18 @@ public abstract class AbstractLastFM extends AbstractCommand {
     protected String backQuotes(String string) {
         return "`" + string + "`";
     }
+
+    @Override
+    protected List<Permission> getCommandPermissions() {
+        List<Permission> permissions = getLastFMCommandPermissions();
+        permissions.add(Permission.MESSAGE_EMBED_LINKS);
+        return permissions;
+    }
+
+    /**
+     * Gets the permissions required for the Last.fm command.
+     *
+     * @return The permissions required for the Last.fm command.
+     */
+    protected abstract List<Permission> getLastFMCommandPermissions();
 }

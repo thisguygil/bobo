@@ -3,9 +3,11 @@ package bobo.commands.ai;
 import bobo.Config;
 import bobo.commands.AbstractCommand;
 import com.theokanning.openai.service.OpenAiService;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
 import java.time.Duration;
+import java.util.List;
 
 public abstract class AbstractAI extends AbstractCommand {
     protected static final OpenAiService service = new OpenAiService(Config.get("OPENAI_API_KEY"), Duration.ZERO);
@@ -33,4 +35,18 @@ public abstract class AbstractAI extends AbstractCommand {
     public String getHelp() {
         return "AI command.";
     }
+
+    @Override
+    protected List<Permission> getCommandPermissions() {
+        List<Permission> permissions = getAICommandPermissions();
+        permissions.add(Permission.MESSAGE_EMBED_LINKS);
+        return permissions;
+    }
+
+    /**
+     * Gets the permissions required for the AI command.
+     *
+     * @return The permissions required for the AI command.
+     */
+    protected abstract List<Permission> getAICommandPermissions();
 }

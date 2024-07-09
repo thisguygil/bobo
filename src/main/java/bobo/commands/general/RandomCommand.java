@@ -3,6 +3,7 @@ package bobo.commands.general;
 import bobo.Bobo;
 import bobo.utils.SQLConnection;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
@@ -284,5 +285,10 @@ public class RandomCommand extends AbstractGeneral {
                 Subcommands:
                 * quote: Gets a random quote from the configured quotes channel.
                 * clip: Gets a random clip from the configured clips channel.""";
+    }
+
+    @Override
+    protected List<Permission> getGeneralCommandPermissions() {
+        return new ArrayList<>(List.of(Permission.MESSAGE_HISTORY, Permission.MESSAGE_ATTACH_FILES));
     }
 }

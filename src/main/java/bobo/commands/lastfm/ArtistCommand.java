@@ -3,6 +3,7 @@ package bobo.commands.lastfm;
 import bobo.utils.LastfmAPI;
 import bobo.utils.MusicBrainzAPI;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -12,7 +13,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.awt.*;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class ArtistCommand extends AbstractLastFM {
@@ -164,5 +167,10 @@ public class ArtistCommand extends AbstractLastFM {
                 Get information about a given artist or the last played artist on Last.fm.
                 Usage: `/artist <artist>`
                 No input defaults to last played artist.""";
+    }
+
+    @Override
+    protected List<Permission> getLastFMCommandPermissions() {
+        return new ArrayList<>(List.of(Permission.MESSAGE_ATTACH_FILES));
     }
 }

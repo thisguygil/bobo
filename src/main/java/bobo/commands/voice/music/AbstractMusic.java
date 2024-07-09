@@ -6,8 +6,11 @@ import bobo.lavaplayer.PlayerManager;
 import bobo.utils.TrackRecord;
 import bobo.lavaplayer.TrackScheduler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.BlockingQueue;
 
 public abstract class AbstractMusic extends AbstractVoice {
@@ -43,4 +46,16 @@ public abstract class AbstractMusic extends AbstractVoice {
      * Handles the music command.
      */
     protected abstract void handleMusicCommand();
+
+    @Override
+    protected List<Permission> getVoiceCommandPermissions() {
+        return getMusicCommandPermissions();
+    }
+
+    /**
+     * Gets the permissions required for the music command.
+     *
+     * @return The permissions required for the music command.
+     */
+    protected abstract List<Permission> getMusicCommandPermissions();
 }
