@@ -62,13 +62,9 @@ public class Listener extends ListenerAdapter {
     public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
         User author = event.getAuthor();
 
-        // Ignore messages from bots and system messages
-        if (author.isBot() || author.isSystem()) {
+        // Ignore bot, system, and webhook messages
+        if (author.isBot() || author.isSystem() || event.getMessage().isWebhookMessage()) {
             return;
-        }
-
-        if (event.getMessage().getContentDisplay().startsWith(Config.get("PREFIX"))) {
-            // Handle message commands, not implemented yet
         }
 
         if (event.isFromType(ChannelType.PRIVATE)) {
