@@ -49,10 +49,6 @@ tasks.jar {
     }
 }
 
-tasks.register("stage") {
-    dependsOn("build", "clean")
-}
-
 tasks.withType<JavaCompile> {
     options.encoding = "UTF-8"
 }
