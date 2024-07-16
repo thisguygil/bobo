@@ -20,7 +20,7 @@ dependencies {
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
     implementation("javax.annotation:javax.annotation-api:1.3.2")
     implementation("org.apache.commons:commons-text:1.12.0")
-    implementation("net.dv8tion:JDA:5.0.0")
+    implementation("net.dv8tion:JDA:5.0.1")
     implementation("com.github.ygimenez:Pagination-Utils:4.0.6")
     implementation("com.theokanning.openai-gpt3-java:service:0.18.2")
     implementation("dev.arbjerg:lavaplayer:2.2.1")
