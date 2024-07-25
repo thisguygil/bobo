@@ -2,8 +2,6 @@ package bobo.commands.voice.music;
 
 import bobo.commands.voice.JoinCommand;
 import bobo.utils.TrackType;
-import bobo.utils.YouTubeUtil;
-import com.google.api.services.youtube.model.SearchResult;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
@@ -25,7 +23,7 @@ public class PlayCommand extends AbstractMusic {
     public PlayCommand() {
         super(Commands.slash("play", "Joins the voice channel and plays given track.")
                 .addSubcommands(
-                        new SubcommandData("track", "Plays given track (or searches YouTube tracks and plays first result, use /search otherwise).")
+                        new SubcommandData("track", "Plays given track url or searches SoundCloud and plays first result.")
                                 .addOption(OptionType.STRING, "track", "URL to play or query to search", true),
                         new SubcommandData("file", "Plays audio from attached audio/video file.")
                                 .addOption(OptionType.ATTACHMENT, "file", "Audio/video file to play", true)
@@ -72,13 +70,7 @@ public class PlayCommand extends AbstractMusic {
             playerManager.loadAndPlay(event, track, TrackType.TRACK);
         } else {
             try {
-                List<SearchResult> videoSearch = YouTubeUtil.searchForVideos(track);
-                if (videoSearch == null) {
-                    hook.editOriginal("Nothing found by **" + track + "**.").queue();
-                    return;
-                }
-
-                playerManager.loadAndPlay(event, "https://www.youtube.com/watch?v=" + videoSearch.get(0).getId().getVideoId(), TrackType.TRACK);
+                playerManager.loadAndPlay(event, "scsearch:" + track, TrackType.TRACK);
             } catch (Exception e) {
                 hook.editOriginal("Nothing found by **" + track + "**.").queue();
                 e.printStackTrace();

@@ -11,6 +11,7 @@ import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
+import com.sedmelluq.discord.lavaplayer.source.soundcloud.SoundCloudAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
@@ -44,6 +45,7 @@ public class PlayerManager {
         SpotifySourceManager spotifySourceManager = new SpotifySourceManager(Config.get("SPOTIFY_CLIENT_ID"), Config.get("SPOTIFY_CLIENT_SECRET"), Config.get("SP_DC"), "US", (v) -> audioPlayerManager, new DefaultMirroringAudioTrackResolver(null));
 
         this.audioPlayerManager.registerSourceManager(new YoutubeAudioSourceManager(true, new MusicWithThumbnail(), new WebWithThumbnail(), new AndroidWithThumbnail(), new TvHtml5EmbeddedWithThumbnail()));
+        this.audioPlayerManager.registerSourceManager(SoundCloudAudioSourceManager.createDefault());
         this.audioPlayerManager.registerSourceManager(spotifySourceManager);
         this.audioPlayerManager.registerSourceManager(new FloweryTTSSourceManager("Eric"));
         AudioSourceManagers.registerRemoteSources(this.audioPlayerManager, com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager.class); // Need to exclude the deprecated YoutubeAudioSourceManager
@@ -112,6 +114,12 @@ public class PlayerManager {
 
             @Override
             public void playlistLoaded(AudioPlaylist playlist) {
+                // If the playlist is a search result, play the first track in the search results
+                if (playlist.isSearchResult()) {
+                    trackLoaded(playlist.getTracks().get(0));
+                    return;
+                }
+
                 final List<AudioTrack> tracks = playlist.getTracks();
                 String regex = "^(https://open.spotify.com/album/|spotify:album:)([a-zA-Z0-9]+)(.*)";
                 hook.editOriginal("Adding to queue **" + tracks.size() + "** tracks from " + (trackURL.matches(regex) ? "album" : "playlist") + " " + markdownLink(playlist.getName(), trackURL)).queue(success -> {
