@@ -8,8 +8,6 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.Nullable;
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.Map;
@@ -55,26 +53,5 @@ public final class SoundCloudAPI {
      */
     public static String search(String query, String type, int limit) {
         return sendGetRequest("search/" + type, Map.of("q", query, "limit", String.valueOf(limit)));
-    }
-
-    /**
-     * Gets the artwork URL for a SoundCloud track.
-     *
-     * @param trackUrl The URL of the track.
-     * @return The artwork URL, or null if the track does not have an artwork URL.
-     */
-    @Nullable
-    public static String getArtworkUrl(String trackUrl) {
-        String response = sendGetRequest("resolve", Map.of("url", trackUrl));
-        if (response == null) {
-            return null;
-        }
-
-        JSONObject jsonResponse = new JSONObject(response);
-        try {
-            return jsonResponse.getString("artwork_url");
-        } catch (JSONException ignored) {}
-
-        return null;
     }
 }
