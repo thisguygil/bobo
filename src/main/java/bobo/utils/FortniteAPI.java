@@ -397,8 +397,12 @@ public final class FortniteAPI {
             JSONObject images = newDisplayAsset.getJSONArray("materialInstances").getJSONObject(0).getJSONObject("images");
             if (images.has("Background")) {
                 imageUrl = images.getString("Background");
-            } else {
+            } else if (images.has("OfferImage")) {
                 imageUrl = images.getString("OfferImage");
+            } else if (images.has("CarTexture")) {
+                imageUrl = images.getString("CarTexture");
+            } else {
+                continue;
             }
 
             // Get the shop item type, name, and item type. For all except bundles and tracks, we'll also get the rarity and set if it exists
