@@ -50,19 +50,71 @@ public final class FortniteAPI {
     private static final double shopFontSizePercentage = 0.12; // Percentage of the length per square that the font size should be
 
     /**
-     * Gets the current Fortnite shop image.
+     * Gets the current Fortnite shop images.
      *
-     * @return The current Fortnite shop image.
+     * @return The current Fortnite shop images.
      */
     @Nullable
-    public static BufferedImage getShopImage() {
+    public static List<BufferedImage> getShopImages() {
         // Get the shop items and vbuck icon URL
         String jsonResponse = sendGetRequest("/v2/shop");
         List<ShopItem> shopItems = parseShopItems(jsonResponse);
-        int numItems = shopItems.size();
         String vbuckIconUrl = parseVbuckIconUrl(jsonResponse);
 
-        // Load the background image and font
+        return createShopImages(shopItems, vbuckIconUrl);
+    }
+
+    /**
+     * Creates the shop images.
+     *
+     * @param shopItems The shop items.
+     * @param vbuckIconUrl The vbuck icon URL.
+     * @return The shop images.
+     */
+    private static List<BufferedImage> createShopImages(List<ShopItem> shopItems, String vbuckIconUrl) {
+        try (InputStream backgroundInputStream = FortniteAPI.class.getResourceAsStream("/images/shop_background.jpg")) {
+            // Check if the input stream is null
+            if (backgroundInputStream == null) {
+                return null;
+            }
+
+            BufferedImage background = ImageIO.read(backgroundInputStream);
+            int contentWidth = background.getWidth() - (2 * shopMargin);
+            int contentHeight = background.getHeight() - (2 * shopMargin);
+
+            // Separate shop items into two lists: one with tracks and one without tracks
+            List<ShopItem> nonTrackItems = shopItems.stream()
+                    .filter(item -> item.shopItemType != ShopItemType.TRACK)
+                    .toList();
+
+            List<ShopItem> trackItems = shopItems.stream()
+                    .filter(item -> item.shopItemType == ShopItemType.TRACK)
+                    .toList();
+
+            // Create images for both categories
+            BufferedImage imageWithoutTracks = drawItems(nonTrackItems, vbuckIconUrl, contentWidth, contentHeight);
+            BufferedImage imageOnlyTracks = drawItems(trackItems, vbuckIconUrl, contentWidth, contentHeight);
+            if (imageWithoutTracks == null || imageOnlyTracks == null) {
+                return null;
+            }
+
+            return List.of(imageWithoutTracks, imageOnlyTracks);
+        } catch (IOException | URISyntaxException | FontFormatException e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * Draws the shop items on the background image.
+     *
+     * @param shopItems The shop items.
+     * @param vbuckIconUrl The vbuck icon URL.
+     * @param contentWidth The width of the content.
+     * @param contentHeight The height of the content.
+     * @return The image with the shop items drawn on it.
+     */
+    private static BufferedImage drawItems(List<ShopItem> shopItems, String vbuckIconUrl, int contentWidth, int contentHeight) throws IOException, FontFormatException, URISyntaxException {
         try (InputStream backgroundInputStream = FortniteAPI.class.getResourceAsStream("/images/shop_background.jpg");
              InputStream fontInputStream = FortniteAPI.class.getResourceAsStream("/fonts/FortniteFont.otf")) {
             // Check if the input streams are null
@@ -70,24 +122,17 @@ public final class FortniteAPI {
                 return null;
             }
 
-            // Load the background image and get its dimensions
             BufferedImage background = ImageIO.read(backgroundInputStream);
-            int backgroundWidth = background.getWidth();
-            int backgroundHeight = background.getHeight();
-            int contentWidth = backgroundWidth - (2 * shopMargin);
-            int contentHeight = backgroundHeight - (2 * shopMargin);
             Graphics2D g2d = background.createGraphics();
             Color opaqueGray = new Color(128, 128, 128, 128); // RGBA: Gray with 50% opacity for the background behind the text
 
             // Initialize the variables to hold the optimal configuration
+            int numItems = shopItems.size();
             int maxSquareLength = 0;
             int bestImagesPerRow = 1;
             int bestNumRows = numItems;
 
-            /*
-            Loop to find the optimal configuration of images per row and number of rows
-            Goes until (numItems / 2) because we can assume that the number of images per row shouldn't exceed half of the total number of items
-             */
+            // Loop to find the optimal configuration of images per row and number of rows
             for (int imagesPerRow = 1; imagesPerRow <= numItems / 2; imagesPerRow++) {
                 int numRows = (int) Math.ceil((double) numItems / imagesPerRow);
 
@@ -236,11 +281,10 @@ public final class FortniteAPI {
                 e.printStackTrace();
                 return null;
             }).join();
-        } catch (IOException | URISyntaxException | FontFormatException e) {
+        } catch (IOException e) {
             e.printStackTrace();
             return null;
         }
-
     }
 
     /**

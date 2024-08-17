@@ -28,7 +28,7 @@ public class FortniteCommand extends AbstractGeneral {
     public FortniteCommand() {
         super(Commands.slash("fortnite", "Get info about Fortnite.")
                 .addSubcommands(
-                        new SubcommandData("shop", "Get the current Fortnite Item Shop."),
+                        new SubcommandData("shop", "Get the current Fortnite Shop."),
                         new SubcommandData("news", "Get the current Fortnite (Battle Royale) news."),
                         new SubcommandData("stats", "Get stats for a Fortnite player.")
                                 .addOption(OptionType.STRING, "username", "The Epic Games username of the player.", true),
@@ -64,11 +64,16 @@ public class FortniteCommand extends AbstractGeneral {
         // Attach the current date as a header.
         ZonedDateTime nowInUTC = ZonedDateTime.now(ZoneId.of("UTC"));
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy");
-        final String message = "# Fortnite Item Shop" + "\n" + "## " + nowInUTC.format(formatter);
+        final String message = "# Fortnite Shop" + "\n" + "## " + nowInUTC.format(formatter);
 
-        // Get the shop image and send it.
-        CompletableFuture.supplyAsync(() -> convertBufferedImageToFile(FortniteAPI.getShopImage(), "shop"))
-                .thenAccept(file -> handleFileResponse(file, message, "Failed to get shop image.", currentHook))
+        // Get the shop images and send them.
+        CompletableFuture.supplyAsync(() -> {
+                    List<BufferedImage> images = FortniteAPI.getShopImages();
+                    return images.stream()
+                            .map(image -> convertBufferedImageToFile(image, "shop"))
+                            .filter(Objects::nonNull)
+                            .toList();
+                }).thenAccept(files -> handleFilesResponse(files, message, "Failed to get shop images.", currentHook))
                 .exceptionally(throwable -> {
                     throwable.printStackTrace();
                     currentHook.editOriginal("Error processing shop command.").queue();
@@ -130,6 +135,30 @@ public class FortniteCommand extends AbstractGeneral {
                     System.err.println("Failed to delete file: " + file.getAbsolutePath());
                 }
             });
+        } else {
+            currentHook.editOriginal(errorMessage).queue();
+        }
+    }
+
+    /**
+     * Handles the response for a list of files.
+     * @param files The files to send.
+     * @param errorMessage The error message to send if the file list is null or empty.
+     * @param currentHook The current interaction hook.
+     */
+    private void handleFilesResponse(List<File> files, String message, String errorMessage, InteractionHook currentHook) {
+        if (files != null && !files.isEmpty()) {
+            currentHook.editOriginal(message)
+                    .setAttachments(files.stream()
+                            .map(FileUpload::fromData)
+                            .toArray(FileUpload[]::new))
+                    .queue(success -> {
+                        for (File file : files) {
+                            if (!file.delete()) {
+                                System.err.println("Failed to delete file: " + file.getAbsolutePath());
+                            }
+                        }
+                    });
         } else {
             currentHook.editOriginal(errorMessage).queue();
         }
