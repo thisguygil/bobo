@@ -45,6 +45,8 @@ public class PlayerManager {
         SpotifySourceManager spotifySourceManager = new SpotifySourceManager(Config.get("SPOTIFY_CLIENT_ID"), Config.get("SPOTIFY_CLIENT_SECRET"), Config.get("SP_DC"), "US", (v) -> audioPlayerManager, new DefaultMirroringAudioTrackResolver(null));
 
         this.audioPlayerManager.registerSourceManager(new YoutubeAudioSourceManager(true, new MusicWithThumbnail(), new WebWithThumbnail(), new AndroidTestsuiteWithThumbnail(), new AndroidMusicWithThumbnail(), new TvHtml5EmbeddedWithThumbnail()));
+        Web.setPoTokenAndVisitorData(Config.get("PO_TOKEN"), Config.get("PO_VISITOR_DATA"));
+
         this.audioPlayerManager.registerSourceManager(SoundCloudAudioSourceManager.createDefault());
         this.audioPlayerManager.registerSourceManager(spotifySourceManager);
         this.audioPlayerManager.registerSourceManager(new FloweryTTSSourceManager("Eric"));

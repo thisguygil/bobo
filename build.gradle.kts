@@ -24,7 +24,7 @@ dependencies {
     implementation("com.github.ygimenez:Pagination-Utils:4.0.6")
     implementation("com.theokanning.openai-gpt3-java:service:0.18.2")
     implementation("dev.arbjerg:lavaplayer:2.2.1")
-    implementation("dev.lavalink.youtube:v2:1.5.2")
+    implementation("dev.lavalink.youtube:v2:1.6.0")
     implementation("com.github.topi314.lavasrc:lavasrc:4.2.0")
     implementation("com.github.topi314.lavalyrics:lavalyrics:1.0.0")
     implementation("com.google.api-client:google-api-client:2.6.0")
