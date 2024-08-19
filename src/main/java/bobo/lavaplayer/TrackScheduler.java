@@ -13,17 +13,17 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
 import javax.annotation.Nonnull;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
 
 /**
  * This class schedules tracks for the audio player. It contains the queue of tracks.
  */
 public class TrackScheduler extends AudioEventAdapter {
-
     public final AudioPlayer player;
-    public BlockingQueue<TrackRecord> queue;
+    public BlockingDeque<TrackRecord> queue;
     public TrackRecord currentTrack;
+    public TrackRecord previousTrack;
     public LoopCommand.looping looping;
 
     /**
@@ -31,7 +31,7 @@ public class TrackScheduler extends AudioEventAdapter {
      */
     public TrackScheduler(AudioPlayer player) {
         this.player = player;
-        this.queue = new LinkedBlockingQueue<>();
+        this.queue = new LinkedBlockingDeque<>();
         this.looping = LoopCommand.looping.NONE;
     }
 
@@ -55,6 +55,7 @@ public class TrackScheduler extends AudioEventAdapter {
      * Start the next track, stopping the current one if it is playing.
      */
     public void nextTrack() {
+        this.previousTrack = this.currentTrack;
         switch (this.looping) {
             case NONE -> this.currentTrack = this.queue.poll();
             case TRACK -> this.currentTrack = new TrackRecord(currentTrack.track().makeClone(), currentTrack.member(), currentTrack.channel(), currentTrack.trackType());

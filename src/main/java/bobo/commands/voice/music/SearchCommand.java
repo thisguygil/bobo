@@ -1,6 +1,5 @@
 package bobo.commands.voice.music;
 
-import bobo.commands.voice.JoinCommand;
 import bobo.lavaplayer.PlayerManager;
 import bobo.utils.*;
 import com.google.api.services.youtube.model.SearchResult;
@@ -14,7 +13,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
-import net.dv8tion.jda.api.managers.AudioManager;
 import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -26,6 +24,8 @@ import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
+
+import static bobo.utils.StringUtils.*;
 
 public class SearchCommand extends AbstractMusic {
     private static final ScheduledExecutorService scheduledService = Executors.newScheduledThreadPool(1);
@@ -75,13 +75,6 @@ public class SearchCommand extends AbstractMusic {
     @Override
     protected void handleMusicCommand() {
         event.deferReply().queue();
-
-        if (event.getGuildChannel().getGuild().getAudioManager().isConnected()) {
-            if (Objects.requireNonNull(Objects.requireNonNull(event.getMember()).getVoiceState()).getChannel() == null) {
-                event.getHook().editOriginal("You must be connected to a voice channel to use this command.").queue();
-                return;
-            }
-        }
 
         String subcommandGroupName = event.getSubcommandGroup();
         String subcommandName = event.getSubcommandName();
@@ -174,15 +167,14 @@ public class SearchCommand extends AbstractMusic {
     private void handleYoutubeSearch(List<SearchResult> searchResults, String[] links, String query, String type) {
         EVENT_LINKS_MAP.put(event, links);
 
-        StringBuilder message = new StringBuilder("Found " + type + "s from search: **" + query + "**\n");
+        StringBuilder message = new StringBuilder("Found " + type + "s from search: " + markdownBold(query) + "\n");
         for (int i = 0; i < links.length; i++) {
             SearchResultSnippet snippet = searchResults.get(i).getSnippet();
-            message.append("**")
-                    .append(i + 1)
-                    .append(":** ")
-                    .append(markdownLink(snippet.getTitle(), links[i]))
+            message.append(markdownBold((i + 1) + ":"))
+                    .append(" ")
+                    .append(markdownLinkNoEmbed(snippet.getTitle(), links[i]))
                     .append(" by ")
-                    .append(markdownLink(snippet.getChannelTitle(), "https://www.youtube.com/channel/" + snippet.getChannelId()))
+                    .append(markdownLinkNoEmbed(snippet.getChannelTitle(), "https://www.youtube.com/channel/" + snippet.getChannelId()))
                     .append("\n");
         }
 
@@ -215,7 +207,7 @@ public class SearchCommand extends AbstractMusic {
 
             // Build the message
             String[] trackLinks = new String[tracks.length];
-            StringBuilder message = new StringBuilder("Found tracks from search: **" + query + "**\n");
+            StringBuilder message = new StringBuilder("Found tracks from search: " + markdownBold(query) + "\n");
             for (int i = 0; i < tracks.length; i++) {
                 Track track = tracks[i];
                 String trackUrl = track.getExternalUrls().get("spotify");
@@ -224,16 +216,15 @@ public class SearchCommand extends AbstractMusic {
                 // Build a string for the artists
                 StringBuilder artistString = new StringBuilder();
                 for (int j = 0; j < artists[i].length; j++) {
-                    artistString.append(markdownLink(artists[i][j].getName(), artists[i][j].getExternalUrls().get("spotify")));
+                    artistString.append(markdownLinkNoEmbed(artists[i][j].getName(), artists[i][j].getExternalUrls().get("spotify")));
                     if (j < artists[i].length - 1) {
                         artistString.append(", ");
                     }
                 }
 
-                message.append("**")
-                        .append(i + 1)
-                        .append(":** ")
-                        .append(markdownLink(track.getName(), trackUrl))
+                message.append(markdownBold((i + 1) + ":"))
+                        .append(" ")
+                        .append(markdownLinkNoEmbed(track.getName(), trackUrl))
                         .append(" by ")
                         .append(artistString)
                         .append("\n");
@@ -264,18 +255,17 @@ public class SearchCommand extends AbstractMusic {
             }
 
             String[] playlistLinks = new String[playlists.length];
-            StringBuilder message = new StringBuilder("Found playlists from search: **" + query + "**\n");
+            StringBuilder message = new StringBuilder("Found playlists from search: " + markdownBold(query) + "\n");
             for (int i = 0; i < playlistLinks.length; i++) {
                 PlaylistSimplified playlist = playlists[i];
                 String playlistUrl = playlist.getExternalUrls().get("spotify");
                 User owner = playlist.getOwner();
                 playlistLinks[i] = playlistUrl;
-                message.append("**")
-                        .append(i + 1)
-                        .append(":** ")
-                        .append(markdownLink(playlist.getName(), playlistUrl))
+                message.append(markdownBold((i + 1) + ":"))
+                        .append(" ")
+                        .append(markdownLinkNoEmbed(playlist.getName(), playlistUrl))
                         .append(" by ")
-                        .append(markdownLink(owner.getDisplayName(), owner.getExternalUrls().get("spotify")))
+                        .append(markdownLinkNoEmbed(owner.getDisplayName(), owner.getExternalUrls().get("spotify")))
                         .append("\n");
             }
 
@@ -311,7 +301,7 @@ public class SearchCommand extends AbstractMusic {
             }
 
             String[] albumLinks = new String[albums.length];
-            StringBuilder message = new StringBuilder("Found albums from search: **" + query + "**\n");
+            StringBuilder message = new StringBuilder("Found albums from search: " + markdownBold(query) + "\n");
             for (int i = 0; i < albumLinks.length; i++) {
                 AlbumSimplified album = albums[i];
                 String albumUrl = album.getExternalUrls().get("spotify");
@@ -319,16 +309,15 @@ public class SearchCommand extends AbstractMusic {
 
                 StringBuilder artistString = new StringBuilder();
                 for (int j = 0; j < artists[i].length; j++) {
-                    artistString.append(markdownLink(artists[i][j].getName(), artists[i][j].getExternalUrls().get("spotify")));
+                    artistString.append(markdownLinkNoEmbed(artists[i][j].getName(), artists[i][j].getExternalUrls().get("spotify")));
                     if (j < artists[i].length - 1) {
                         artistString.append(", ");
                     }
                 }
 
-                message.append("**")
-                        .append(i + 1)
-                        .append(":** ")
-                        .append(markdownLink(album.getName(), albumUrl))
+                message.append(markdownBold((i + 1) + ":"))
+                        .append(" ")
+                        .append(markdownLinkNoEmbed(album.getName(), albumUrl))
                         .append(" by ")
                         .append(artistString)
                         .append("\n");
@@ -375,12 +364,11 @@ public class SearchCommand extends AbstractMusic {
 
         EVENT_LINKS_MAP.put(event, links);
 
-        StringBuilder message = new StringBuilder("Found " + type + "s from search: **" + query + "**\n");
+        StringBuilder message = new StringBuilder("Found " + type + "s from search: " + markdownBold(query) + "\n");
         for (int i = 0; i < links.length; i++) {
-            message.append("**")
-                    .append(i + 1)
-                    .append(":** ")
-                    .append(markdownLink(titles[i], links[i]))
+            message.append(markdownBold((i + 1) + ":"))
+                    .append(" ")
+                    .append(markdownLinkNoEmbed(titles[i], links[i]))
                     .append(" by ")
                     .append(artists[i])
                     .append("\n");
@@ -397,7 +385,7 @@ public class SearchCommand extends AbstractMusic {
      * @param numLinks The number of links.
      */
     private void handleResult(String message, String type, int numLinks) {
-        message += "\nPlease select a " + type + " to play by selecting the proper reaction, or the :x: reaction to cancel.";
+        message += "\nPlease select a " + type + " to play by selecting the proper reaction, or the " + EmojiType.X + " reaction to cancel.";
         hook.editOriginal(StringEscapeUtils.unescapeHtml4(message)).queue(success -> addReactions(success, numLinks));
         MESSAGE_EVENT_MAP.put(event.getHook().retrieveOriginal().complete().getIdLong(), event);
     }
@@ -449,17 +437,8 @@ public class SearchCommand extends AbstractMusic {
             return;
         }
 
-        AudioManager manager = commandEvent.getGuildChannel().getGuild().getAudioManager();
-        if (!manager.isConnected()) {
-            if (!JoinCommand.join(commandEvent)) {
-                return;
-            }
-        } else {
-            if (Objects.requireNonNull(Objects.requireNonNull(commandEvent.getMember()).getVoiceState()).getChannel() != manager.getConnectedChannel()) {
-                if (!JoinCommand.join(commandEvent)) {
-                    return;
-                }
-            }
+        if (!ensureConnected(commandEvent)) {
+            return;
         }
 
         PlayerManager.getInstance().loadAndPlay(commandEvent, links[index], TrackType.TRACK);
@@ -491,17 +470,6 @@ public class SearchCommand extends AbstractMusic {
         event.getHook().retrieveOriginal().queue(message -> message.clearReactions().queue());
         MESSAGE_EVENT_MAP.remove(messageId);
         EVENT_LINKS_MAP.remove(event);
-    }
-
-    /**
-     * Creates a Markdown link for Discord.
-     *
-     * @param text The text to display.
-     * @param url The URL to link to. Uses <> to stop the URL from embedding on Discord.
-     * @return The Markdown link.
-     */
-    private static String markdownLink(String text, String url) {
-        return "[" + text + "](<" + url + ">)";
     }
 
     @Override

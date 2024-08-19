@@ -1,13 +1,11 @@
 package bobo.commands.voice.music;
 
-import bobo.commands.voice.JoinCommand;
+import bobo.utils.StringUtils;
 import bobo.utils.TrackType;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
-import net.dv8tion.jda.api.managers.AudioManager;
 
 import java.util.*;
 
@@ -33,26 +31,12 @@ public class TTSCommand extends AbstractMusic {
     protected void handleMusicCommand() {
         event.deferReply().queue();
 
-        AudioManager audioManager = event.getGuildChannel().getGuild().getAudioManager();
-        if (!audioManager.isConnected()) {
-            if (!JoinCommand.join(event)) {
-                return;
-            }
-        } else {
-            AudioChannelUnion memberChannel = Objects.requireNonNull(Objects.requireNonNull(event.getMember()).getVoiceState()).getChannel();
-            if (memberChannel == null) {
-                event.getHook().editOriginal("You must be connected to a voice channel to use this command.").queue();
-                return;
-            } else if (memberChannel != audioManager.getConnectedChannel()) {
-                if (!JoinCommand.join(event)) {
-                    return;
-                }
-            }
+        if (!ensureConnected(event)) {
+            return;
         }
 
-        String message = Objects.requireNonNull(event.getOption("message")).getAsString();
-        message = message.replaceAll(" ", "%20");
-        message = message.replaceAll("\"", "%22");
+        String message = event.getOption("message").getAsString();
+        message = StringUtils.encodeUrl(message);
 
         playerManager.loadAndPlay(event, "ftts://" + message, TrackType.TTS);
     }

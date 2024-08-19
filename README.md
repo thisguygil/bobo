@@ -15,7 +15,7 @@ The greatest Discord bot on the planet (don't fact-check that).
 * Get Fortnite stats, daily shop updates, and map information with the [Fortnite API](https://fortnite-api.com/)
 
 ## Supported audio sources and formats
-Bobo supports all the web sources and file formats supported by the [lavalink-devs fork](https://github.com/lavalink-devs/lavaplayer) of [Lavaplayer](https://github.com/sedmelluq/lavaplayer), as well as Spotify supported by [LavaSrc](https://github.com/topi314/LavaSrc) and the [Spotify API](https://developer.spotify.com/documentation/web-api/).
+Bobo supports all the web sources and file formats supported by [Lavaplayer](https://github.com/lavalink-devs/lavaplayer), as well as Spotify and Deezer supported by [LavaSrc](https://github.com/topi314/LavaSrc), with extra functionality from API integrations.
 
 ## Hosting
 Bobo isn't currently publicly available to be invited to your server, but you can host your own instance by building the bot with Gradle and running it with your own environment variables.
@@ -116,6 +116,7 @@ Subset of voice commands
   * `track` - Loops the currently playing track
   * `queue` - Loops the entire queue
   * `off` - Turns looping off
+* `/repeat` - Repeats the current/last-played track
 * `/now-playing` - Shows the current track
 * `/seek` - Seeks to specified position in the current track
   * Subcommands:
@@ -128,7 +129,6 @@ Subset of voice commands
   * `clear` - Clears the current queue
   * `remove <index>` - Removes the track at `<index>` from the queue
   * `shuffle` - Shuffles the queue
-  * `loop` - Loops the queue
 
 ## Development Plans
 For a detailed list of planned features, improvements, and bug fixes, please refer to the [TODO.md](TODO.md) file.

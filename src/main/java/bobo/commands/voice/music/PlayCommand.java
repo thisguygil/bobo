@@ -1,16 +1,14 @@
 package bobo.commands.voice.music;
 
-import bobo.commands.voice.JoinCommand;
+import bobo.utils.StringUtils;
 import bobo.utils.TrackType;
 import bobo.utils.YouTubeUtil;
 import com.google.api.services.youtube.model.SearchResult;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
-import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
-import net.dv8tion.jda.api.managers.AudioManager;
 import org.apache.commons.validator.routines.UrlValidator;
 
 import javax.annotation.Nonnull;
@@ -25,8 +23,8 @@ public class PlayCommand extends AbstractMusic {
     public PlayCommand() {
         super(Commands.slash("play", "Joins the voice channel and plays given track.")
                 .addSubcommands(
-                        new SubcommandData("track", "Plays given track url or searches SoundCloud and plays first result.")
-                                .addOption(OptionType.STRING, "track", "URL to play or query to search", true),
+                        new SubcommandData("track", "Plays given track url or searches YouTube and plays first result.")
+                                .addOption(OptionType.STRING, "track", "Url to play or query to search", true),
                         new SubcommandData("file", "Plays audio from attached audio/video file.")
                                 .addOption(OptionType.ATTACHMENT, "file", "Audio/video file to play", true)
                 )
@@ -37,21 +35,8 @@ public class PlayCommand extends AbstractMusic {
     protected void handleMusicCommand() {
         event.deferReply().queue();
 
-        AudioManager audioManager = event.getGuildChannel().getGuild().getAudioManager();
-        if (!audioManager.isConnected()) {
-            if (!JoinCommand.join(event)) {
-                return;
-            }
-        } else {
-            AudioChannelUnion memberChannel = Objects.requireNonNull(Objects.requireNonNull(event.getMember()).getVoiceState()).getChannel();
-            if (memberChannel == null) {
-                event.getHook().editOriginal("You must be connected to a voice channel to use this command.").queue();
-                return;
-            } else if (memberChannel != audioManager.getConnectedChannel()) {
-                if (!JoinCommand.join(event)) {
-                    return;
-                }
-            }
+        if (!ensureConnected(event)) {
+            return;
         }
 
         String subcommandName = event.getSubcommandName();
@@ -74,13 +59,13 @@ public class PlayCommand extends AbstractMusic {
             try {
                 List<SearchResult> videoSearch = YouTubeUtil.searchForVideos(track);
                 if (videoSearch == null) {
-                    hook.editOriginal("Nothing found by **" + track + "**.").queue();
+                    hook.editOriginal("Nothing found by " + StringUtils.markdownBold(track) + ".").queue();
                     return;
                 }
 
                 playerManager.loadAndPlay(event, "https://www.youtube.com/watch?v=" + videoSearch.get(0).getId().getVideoId(), TrackType.TRACK);
             } catch (Exception e) {
-                hook.editOriginal("Nothing found by **" + track + "**.").queue();
+                hook.editOriginal("Nothing found by " + StringUtils.markdownBold(track) + ".").queue();
                 e.printStackTrace();
             }
         }

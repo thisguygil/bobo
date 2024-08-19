@@ -4,6 +4,7 @@ import bobo.Config;
 import bobo.commands.voice.music.TTSCommand;
 import bobo.utils.TrackType;
 import com.github.topi314.lavalyrics.LyricsManager;
+import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
 import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
@@ -11,7 +12,6 @@ import com.sedmelluq.discord.lavaplayer.player.AudioLoadResultHandler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.DefaultAudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.source.AudioSourceManagers;
-import com.sedmelluq.discord.lavaplayer.source.soundcloud.SoundCloudAudioSourceManager;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioPlaylist;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
@@ -29,6 +29,8 @@ import net.dv8tion.jda.api.interactions.InteractionHook;
 import javax.annotation.Nonnull;
 import java.util.*;
 
+import static bobo.utils.StringUtils.*;
+
 public class PlayerManager {
     private static PlayerManager INSTANCE;
     private final Map<Long, GuildMusicManager> musicManagers;
@@ -38,20 +40,47 @@ public class PlayerManager {
     /**
      * Creates a new player manager.
      */
+    @SuppressWarnings("deprecation")
     public PlayerManager() {
         this.musicManagers = new HashMap<>();
         this.audioPlayerManager = new DefaultAudioPlayerManager();
 
-        SpotifySourceManager spotifySourceManager = new SpotifySourceManager(Config.get("SPOTIFY_CLIENT_ID"), Config.get("SPOTIFY_CLIENT_SECRET"), Config.get("SP_DC"), "US", (v) -> audioPlayerManager, new DefaultMirroringAudioTrackResolver(null));
-
-        this.audioPlayerManager.registerSourceManager(new YoutubeAudioSourceManager(true, new MusicWithThumbnail(), new WebWithThumbnail(), new AndroidTestsuiteWithThumbnail(), new AndroidMusicWithThumbnail(), new TvHtml5EmbeddedWithThumbnail()));
+        YoutubeAudioSourceManager youtubeAudioSourceManager = new YoutubeAudioSourceManager(
+                new MusicWithThumbnail(),
+                new WebWithThumbnail(),
+                new WebEmbeddedWithThumbnail(),
+                new AndroidTestsuiteWithThumbnail(),
+                new AndroidLiteWithThumbnail(),
+                new AndroidMusicWithThumbnail(),
+                new MediaConnectWithThumbnail(),
+                new TvHtml5EmbeddedWithThumbnail()
+        );
         Web.setPoTokenAndVisitorData(Config.get("PO_TOKEN"), Config.get("PO_VISITOR_DATA"));
 
-        this.audioPlayerManager.registerSourceManager(SoundCloudAudioSourceManager.createDefault());
-        this.audioPlayerManager.registerSourceManager(spotifySourceManager);
-        this.audioPlayerManager.registerSourceManager(new FloweryTTSSourceManager("Eric"));
-        AudioSourceManagers.registerRemoteSources(this.audioPlayerManager, com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager.class); // Need to exclude the deprecated YoutubeAudioSourceManager
+        SpotifySourceManager spotifySourceManager = new SpotifySourceManager(
+                Config.get("SPOTIFY_CLIENT_ID"),
+                Config.get("SPOTIFY_CLIENT_SECRET"),
+                Config.get("SP_DC"),
+                "US",
+                (v) -> audioPlayerManager,
+                new DefaultMirroringAudioTrackResolver(null)
+        );
+
+        DeezerAudioSourceManager deezerAudioSourceManager = new DeezerAudioSourceManager(Config.get("DEEZER_MASTER_DECRYPTION_KEY"));
+        FloweryTTSSourceManager floweryTTSSourceManager = new FloweryTTSSourceManager("Eric");
+
+        this.audioPlayerManager.registerSourceManagers(
+                youtubeAudioSourceManager,
+                spotifySourceManager,
+                deezerAudioSourceManager,
+                floweryTTSSourceManager
+        );
+
         AudioSourceManagers.registerLocalSource(this.audioPlayerManager);
+        AudioSourceManagers.registerRemoteSources(
+                this.audioPlayerManager,
+                com.sedmelluq.discord.lavaplayer.source.youtube.YoutubeAudioSourceManager.class // Exclude deprecated YoutubeAudioSourceManager
+        );
 
         this.lyricsManager = new LyricsManager();
         this.lyricsManager.registerLyricsManager(spotifySourceManager);
@@ -97,14 +126,13 @@ public class PlayerManager {
                 switch (trackType) {
                     case TRACK, FILE -> {
                         AudioTrackInfo info = track.getInfo();
-                        message.append(markdownLink(info.title, info.uri))
-                                .append(" by **")
-                                .append(info.author)
-                                .append("**");
+                        message.append(markdownLinkNoEmbed(info.title, info.uri))
+                                .append(" by ")
+                                .append(markdownBold(info.author));
                     }
                     case TTS -> {
-                        message.append("**TTS**");
-                        TTSCommand.addTTSMessage(track, trackURL.replace("ftts://", "").replace("%20", " ").replace("%22", "\""));
+                        message.append(markdownBold("TTS Message"));
+                        TTSCommand.addTTSMessage(track, decodeUrl(trackURL.replace("ftts://", "")));
                     }
                 }
 
@@ -124,7 +152,7 @@ public class PlayerManager {
 
                 final List<AudioTrack> tracks = playlist.getTracks();
                 String regex = "^(https://open.spotify.com/album/|spotify:album:)([a-zA-Z0-9]+)(.*)";
-                hook.editOriginal("Adding to queue **" + tracks.size() + "** tracks from " + (trackURL.matches(regex) ? "album" : "playlist") + " " + markdownLink(playlist.getName(), trackURL)).queue(success -> {
+                hook.editOriginal("Adding to queue " + markdownBold(tracks.size()) + " tracks from " + (trackURL.matches(regex) ? "album" : "playlist") + " " + markdownLinkNoEmbed(playlist.getName(), trackURL)).queue(success -> {
                     for (final AudioTrack track : tracks) {
                         scheduler.queue(track, member, channel, TrackType.TRACK);
                     }
@@ -133,22 +161,18 @@ public class PlayerManager {
 
             @Override
             public void noMatches() {
-                hook.editOriginal(trackType == TrackType.TTS ? "No speakable text found" : "Nothing found by **" + trackURL + "**").queue();
+                hook.editOriginal(trackType == TrackType.TTS ? "No speakable text found" : "Nothing found by " + markdownBold(trackURL)).queue();
             }
 
             @Override
             public void loadFailed(FriendlyException e) {
-                hook.editOriginal("Could not load: **" + e.getMessage() + "**").queue();
+                hook.editOriginal("Could not load: " + markdownBold(e.getMessage())).queue();
             }
         });
     }
 
     public LyricsManager getLyricsManager() {
         return this.lyricsManager;
-    }
-
-    private String markdownLink(String text, String url) {
-        return "[" + text + "](<" + url + ">)";
     }
 
     /**

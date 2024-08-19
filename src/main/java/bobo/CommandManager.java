@@ -64,6 +64,7 @@ public class CommandManager {
         commands.add(new NowPlayingCommand());
         commands.add(new QueueCommand());
         commands.add(new LoopCommand());
+        commands.add(new RepeatCommand());
         commands.add(new SkipCommand());
         commands.add(new SeekCommand());
     }

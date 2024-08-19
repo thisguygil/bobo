@@ -29,7 +29,6 @@ public class QueueCommand extends AbstractMusic {
                 .addSubcommands(
                         new SubcommandData("show", "Shows the currently queued tracks."),
                         new SubcommandData("shuffle", "Shuffles the queue."),
-                        new SubcommandData("loop", "Loop the queue."),
                         new SubcommandData("clear", "Clears the queue and stops current track."),
                         new SubcommandData("remove", "Removes track at given position in the queue.")
                                 .addOption(OptionType.INTEGER, "position", "What position in the queue to remove the track from", true)
@@ -49,7 +48,6 @@ public class QueueCommand extends AbstractMusic {
         switch (Objects.requireNonNull(event.getSubcommandName())) {
             case "show" -> show();
             case "shuffle" -> shuffle();
-            case "loop" -> loop();
             case "clear" -> clear();
             case "remove" -> remove();
         }
@@ -126,22 +124,6 @@ public class QueueCommand extends AbstractMusic {
         queue.clear();
         queue.addAll(trackList);
         hook.editOriginal("Shuffled.").queue();
-    }
-
-    /**
-     * Loops the queue.
-     */
-    private void loop() {
-        switch (scheduler.looping) {
-            case NONE, TRACK -> {
-                scheduler.looping = LoopCommand.looping.QUEUE;
-                hook.editOriginal("The queue has been set to loop.").queue();
-            }
-            case QUEUE -> {
-                scheduler.looping = LoopCommand.looping.NONE;
-                hook.editOriginal("Looping has been turned off.").queue();
-            }
-        }
     }
 
     /**

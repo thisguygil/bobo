@@ -16,6 +16,7 @@ import bobo.utils.TrackType;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
+import net.dv8tion.jda.api.entities.channel.concrete.StageChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
@@ -215,11 +216,20 @@ public class Listener extends ListenerAdapter {
 
                 while (resultSet.next()) {
                     String channelId = resultSet.getString("channel_id");
-                    VoiceChannel channel = Bobo.getJDA().getVoiceChannelById(channelId);
 
-                    if (channel != null) {
-                        JoinCommand.join(channel);
+                    AudioChannelUnion channel;
+
+                    VoiceChannel voiceChannel = Bobo.getJDA().getVoiceChannelById(channelId);
+                    StageChannel stageChannel = Bobo.getJDA().getStageChannelById(channelId);
+                    if (voiceChannel != null) {
+                        channel = (AudioChannelUnion) voiceChannel;
+                    } else if (stageChannel != null) {
+                        channel = (AudioChannelUnion) stageChannel;
+                    } else {
+                        continue;
                     }
+
+                    JoinCommand.join(channel);
                 }
             }
         } catch (SQLException e) {

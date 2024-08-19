@@ -35,6 +35,7 @@ dependencies {
     implementation("com.twelvemonkeys.imageio:imageio-webp:3.11.0")
     implementation("org.apache.httpcomponents:httpclient:4.5.14")
     implementation("org.json:json:20240303")
+    implementation("com.google.guava:guava:33.3.0-jre")
     implementation("mysql:mysql-connector-java:8.0.33")
     implementation("commons-validator:commons-validator:1.9.0")
     implementation("ch.qos.logback:logback-classic:1.5.6")

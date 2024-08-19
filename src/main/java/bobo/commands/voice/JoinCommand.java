@@ -1,8 +1,6 @@
 package bobo.commands.voice;
 
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.GuildVoiceState;
-import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
@@ -45,31 +43,25 @@ public class JoinCommand extends AbstractVoice {
      * @return Whether the bot successfully joined the voice channel.
      */
     public static boolean join(@Nonnull SlashCommandInteractionEvent event) {
-        GuildVoiceState voiceState = Objects.requireNonNull(Objects.requireNonNull(event.getMember()).getVoiceState());
-        AudioChannelUnion voiceChannel = voiceState.getChannel();
+        AudioChannelUnion voiceChannel = event.getMember().getVoiceState().getChannel();
         if (voiceChannel == null) {
             event.getHook().editOriginal("You must be connected to a voice channel to use this command.").queue();
             return false;
         }
 
-        if (join(voiceChannel.asVoiceChannel())) {
-            return true;
-        } else {
-            event.getHook().editOriginal("Failed to join the voice channel.").queue();
-            return false;
-        }
+        return join(voiceChannel);
     }
 
     /**
-     * Joins the voice channel given.
+     * Joins the audio channel given.
      *
-     * @param voiceChannel The voice channel to join.
+     * @param audioChannel The audio channel to join.
      * @return Whether the bot successfully joined the voice channel.
      */
-    public static boolean join(@Nonnull VoiceChannel voiceChannel) {
+    public static boolean join(@Nonnull AudioChannelUnion audioChannel) {
         try {
-            AudioManager audioManager = voiceChannel.getGuild().getAudioManager();
-            audioManager.openAudioConnection(voiceChannel);
+            AudioManager audioManager = audioChannel.getGuild().getAudioManager();
+            audioManager.openAudioConnection(audioChannel);
         } catch (Exception e) {
             e.printStackTrace();
             return false;
