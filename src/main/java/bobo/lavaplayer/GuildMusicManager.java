@@ -5,6 +5,7 @@ import bobo.utils.*;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayerManager;
 import com.sedmelluq.discord.lavaplayer.player.event.TrackStartEvent;
+import net.dv8tion.jda.api.entities.Guild;
 
 import javax.annotation.Nonnull;
 
@@ -12,6 +13,7 @@ import javax.annotation.Nonnull;
  * This class contains instances of AudioPlayer, TrackScheduler and AudioPlayerSendHandler, to manage them all in one place
  */
 public class GuildMusicManager {
+    public final Guild guild;
     public final AudioPlayer player;
     public final TrackScheduler scheduler;
     public final AudioPlayerSendHandler sendHandler;
@@ -21,10 +23,12 @@ public class GuildMusicManager {
      * It also contains a listener for the AudioPlayer, which sends a message with info about the track when it starts.
      *
      * @param manager Audio player manager to use for creating the player.
+     * @param guild The guild this manager is for.
      */
-    public GuildMusicManager(@Nonnull AudioPlayerManager manager) {
+    public GuildMusicManager(@Nonnull AudioPlayerManager manager, @Nonnull Guild guild) {
+        this.guild = guild;
         this.player = manager.createPlayer();
-        this.scheduler = new TrackScheduler(this.player);
+        this.scheduler = new TrackScheduler(this.player, guild);
         this.player.addListener(this.scheduler);
         this.sendHandler = new AudioPlayerSendHandler(this.player);
 

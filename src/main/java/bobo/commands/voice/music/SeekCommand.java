@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+import static bobo.utils.StringUtils.markdownBold;
+
 public class SeekCommand extends AbstractMusic {
     /**
      * Creates a new seek command.
@@ -63,7 +65,7 @@ public class SeekCommand extends AbstractMusic {
 
         AudioTrack currentAudioTrack = currentTrack.track();
         currentAudioTrack.setPosition(currentAudioTrack.getPosition() + seconds * 1000L);
-        hook.editOriginal("Seeked forward by **" + seconds + "** seconds.").queue();
+        hook.editOriginal("Seeked forward by " + markdownBold(seconds) + " seconds.").queue();
     }
 
     /**
@@ -78,7 +80,7 @@ public class SeekCommand extends AbstractMusic {
 
         AudioTrack currentAudioTrack = currentTrack.track();
         currentAudioTrack.setPosition(currentAudioTrack.getPosition() - seconds * 1000L);
-        hook.editOriginal("Seeked backward by **" + seconds + "** seconds.").queue();
+        hook.editOriginal("Seeked backward by " + markdownBold(seconds) + " seconds.").queue();
     }
 
     /**
@@ -94,7 +96,7 @@ public class SeekCommand extends AbstractMusic {
 
         AudioTrack currentAudioTrack = currentTrack.track();
         currentAudioTrack.setPosition(time);
-        hook.editOriginal("Seeked to **" + position + "**").queue();
+        hook.editOriginal("Seeked to " + markdownBold(position)).queue();
     }
 
     @Override

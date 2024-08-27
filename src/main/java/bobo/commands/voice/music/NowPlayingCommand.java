@@ -75,7 +75,7 @@ public class NowPlayingCommand extends AbstractMusic {
                         .setFooter(footerText(info, currentAudioTrack));
             }
             case TTS -> embed.setTitle("TTS Message")
-                    .setDescription(TTSCommand.getTTSMessage(currentAudioTrack));
+                    .setDescription(TTSCommand.getTTSMessage(musicManager.guild, currentAudioTrack));
         }
 
         return embed.build();

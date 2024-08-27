@@ -1,7 +1,10 @@
 package bobo.commands.voice.music;
 
 import bobo.utils.TrackRecord;
+import bobo.utils.TrackType;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.util.ArrayList;
@@ -23,11 +26,12 @@ public class RepeatCommand extends AbstractMusic {
             return;
         }
 
-        if (reAddTrackToQueue(currentTrack, "The current track has been re-added to the queue.")) {
+        Member member = event.getMember();
+        if (reAddTrackToQueue(member, currentTrack, "The current track has been re-added to the queue.")) {
             return;
         }
 
-        if (reAddTrackToQueue(previousTrack, "The previous track has been re-added to the queue.")) {
+        if (reAddTrackToQueue(member, previousTrack, "The previous track has been re-added to the queue.")) {
             scheduler.nextTrack(); // If the previous track was re-added, it means the player is stopped and needs to be started again.
             return;
         }
@@ -42,16 +46,27 @@ public class RepeatCommand extends AbstractMusic {
      * @param successMessage The message to send if the track was re-added.
      * @return {@code true} if the track was re-added, {@code false} otherwise.
      */
-    private boolean reAddTrackToQueue(TrackRecord trackRecord, String successMessage) {
+    private boolean reAddTrackToQueue(Member member, TrackRecord trackRecord, String successMessage) {
         if (trackRecord != null) {
             TrackRecord toRepeat = new TrackRecord(
                     trackRecord.track().makeClone(),
-                    trackRecord.member(),
+                    member, // Use the member that requested the track to be repeated rather than the member that originally requested the track.
                     trackRecord.channel(),
                     trackRecord.trackType()
             );
-            queue.offerFirst(toRepeat);
             hook.editOriginal(successMessage).queue();
+            queue.offerFirst(toRepeat);
+            if (trackRecord.trackType() == TrackType.TTS) {
+                Guild guild = event.getGuild();
+                TTSCommand.addTTSMessage(
+                        guild,
+                        toRepeat.track(),
+                        TTSCommand.getPreviousTTSMessage(
+                                event.getGuild(),
+                                trackRecord.track()
+                        )
+                );
+            }
             return true;
         }
         return false;

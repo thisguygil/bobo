@@ -3,17 +3,12 @@ package bobo;
 import bobo.commands.ai.ChatCommand;
 import bobo.commands.general.RandomCommand;
 import bobo.commands.voice.JoinCommand;
-import bobo.commands.voice.music.LoopCommand;
+import bobo.commands.voice.music.QueueCommand;
 import bobo.commands.voice.music.SearchCommand;
 import bobo.commands.voice.music.TTSCommand;
-import bobo.lavaplayer.GuildMusicManager;
 import bobo.lavaplayer.PlayerManager;
 import bobo.utils.AudioReceiveListener;
 import bobo.utils.SQLConnection;
-import bobo.utils.TrackRecord;
-import bobo.lavaplayer.TrackScheduler;
-import bobo.utils.TrackType;
-import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.concrete.StageChannel;
@@ -29,13 +24,11 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.managers.AudioManager;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 
 import javax.annotation.Nonnull;
 import java.sql.*;
 import java.util.List;
-import java.util.concurrent.BlockingQueue;
 
 import static bobo.commands.admin.ConfigCommand.*;
 
@@ -116,37 +109,29 @@ public class Listener extends ListenerAdapter {
         AudioChannelUnion channelJoined = event.getChannelJoined();
         AudioChannelUnion channelLeft = event.getChannelLeft();
 
-        if (event.getEntity().equals(guild.getSelfMember())) {
-            // Bot is the one who joined or left a voice channel
-            if (channelJoined != null) {
-                // Bot joined a voice channel
-                if (channelLeft != null) {
-                    // Moved to a different voice channel, so don't do anything
+        if (event.getEntity().equals(guild.getSelfMember())) { // Verify that the bot is the one that the event is about
+            if (channelJoined != null) { // Joined an audio channel
+                if (channelLeft != null) { // Moved to a different audio channel, so don't do anything
                     return;
                 }
 
-                guild.getAudioManager().setReceivingHandler(new AudioReceiveListener(1));
+                guild.getAudioManager()
+                        .setReceivingHandler(
+                                new AudioReceiveListener(1)
+                        );
             }
 
-            if (channelLeft != null) {
-                // Bot left a voice channel
-                final GuildMusicManager musicManager = PlayerManager.getInstance().getMusicManager(guild);
-                final AudioPlayer player = musicManager.player;
-                final TrackScheduler scheduler = musicManager.scheduler;
-                final AudioManager audioManager = guild.getAudioManager();
-                final BlockingQueue<TrackRecord> queue = scheduler.queue;
+            if (channelLeft != null) { // Left an audio channel
+                QueueCommand.clearQueue(
+                        guild,
+                        PlayerManager.getInstance()
+                                .getMusicManager(guild).scheduler
+                );
 
-                for (TrackRecord record : queue) {
-                    if (record.trackType() == TrackType.TTS) {
-                        TTSCommand.removeTTSMessage(record.track());
-                    }
-                }
-                audioManager.setReceivingHandler(null);
-                queue.clear();
-                scheduler.looping = LoopCommand.looping.NONE;
-                scheduler.currentTrack = null;
-                player.stopTrack();
-                player.setPaused(false);
+                TTSCommand.removeGuild(guild);
+
+                guild.getAudioManager()
+                        .setReceivingHandler(null);
             }
         }
     }

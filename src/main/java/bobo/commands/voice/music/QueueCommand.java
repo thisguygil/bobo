@@ -1,5 +1,6 @@
 package bobo.commands.voice.music;
 
+import bobo.lavaplayer.TrackScheduler;
 import bobo.utils.TrackRecord;
 import bobo.utils.TimeFormat;
 import bobo.utils.TrackType;
@@ -10,6 +11,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -19,6 +21,8 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import java.awt.*;
 import java.util.*;
 import java.util.List;
+
+import static bobo.utils.StringUtils.markdownBold;
 
 public class QueueCommand extends AbstractMusic {
     /**
@@ -130,17 +134,26 @@ public class QueueCommand extends AbstractMusic {
      * Clears the queue.
      */
     private void clear() {
-        for (TrackRecord record : queue) {
+        clearQueue(event.getGuild(), scheduler);
+        hook.editOriginal("Queue cleared.").queue();
+    }
+
+    /**
+     * Clears the queue.
+     * @param guild the guild
+     * @param scheduler the track scheduler
+     */
+    public static void clearQueue(Guild guild, TrackScheduler scheduler) {
+        for (TrackRecord record : scheduler.queue) {
             if (record.trackType() == TrackType.TTS) {
-                TTSCommand.removeTTSMessage(record.track());
+                TTSCommand.nextTTSMessage(guild, record.track());
             }
         }
-        queue.clear();
+        scheduler.queue.clear();
         scheduler.looping = LoopCommand.looping.NONE;
         scheduler.currentTrack = null;
-        player.stopTrack();
-        player.setPaused(false);
-        hook.editOriginal("Queue cleared.").queue();
+        scheduler.player.stopTrack();
+        scheduler.player.setPaused(false);
     }
 
     /**
@@ -162,32 +175,44 @@ public class QueueCommand extends AbstractMusic {
                 scheduler.looping = LoopCommand.looping.NONE;
             }
             scheduler.nextTrack();
-            if (currentTrack.trackType() == TrackType.TTS) {
-                TTSCommand.removeTTSMessage(currentTrack.track());
-            }
+            tryNextTTSMessage(currentTrack);
         } else {
             int count = 1;
             Iterator<TrackRecord> iterator = queue.iterator();
             TrackRecord currentTrack = null;
             while (iterator.hasNext()) {
-                if (count == position) {
-                    if (currentTrack.trackType() == TrackType.TTS) {
-                        TTSCommand.removeTTSMessage(currentTrack.track());
-                    }
-                    iterator.remove();
-                }
+                checkCountPosition(count, position, currentTrack, iterator);
                 count++;
                 currentTrack = iterator.next();
             }
-            if (count == position) {
-                if (currentTrack.trackType() == TrackType.TTS) {
-                    TTSCommand.removeTTSMessage(currentTrack.track());
-                }
-                iterator.remove();
-            }
+            checkCountPosition(count, position, currentTrack, iterator);
         }
 
-        hook.editOriginal("Removed track at position **" + position + "**.").queue();
+        hook.editOriginal("Removed track at position " + markdownBold(position)).queue();
+    }
+
+    /**
+     * Tries to go to the next TTS message.
+     * @param track the track
+     */
+    private void tryNextTTSMessage(TrackRecord track) {
+        if (track.trackType() == TrackType.TTS) {
+            TTSCommand.nextTTSMessage(event.getGuild(), track.track());
+        }
+    }
+
+    /**
+     * Checks the count position.
+     * @param count the count
+     * @param position the position
+     * @param track the track
+     * @param iterator the iterator
+     */
+    private void checkCountPosition(int count, int position, TrackRecord track, Iterator<TrackRecord> iterator) {
+        if (count == position) {
+            tryNextTTSMessage(track);
+            iterator.remove();
+        }
     }
 
     /**

@@ -2,6 +2,7 @@ package bobo.lavaplayer;
 
 import bobo.Config;
 import bobo.commands.voice.music.TTSCommand;
+import bobo.utils.SpotifyLink;
 import bobo.utils.TrackType;
 import com.github.topi314.lavalyrics.LyricsManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
@@ -94,7 +95,7 @@ public class PlayerManager {
      */
     public GuildMusicManager getMusicManager(@Nonnull Guild guild) {
         return this.musicManagers.computeIfAbsent(guild.getIdLong(), (guildId) -> {
-            final GuildMusicManager guildMusicManager = new GuildMusicManager(this.audioPlayerManager);
+            final GuildMusicManager guildMusicManager = new GuildMusicManager(this.audioPlayerManager, guild);
             guild.getAudioManager().setSendingHandler(guildMusicManager.sendHandler);
             return guildMusicManager;
         });
@@ -132,7 +133,8 @@ public class PlayerManager {
                     }
                     case TTS -> {
                         message.append(markdownBold("TTS Message"));
-                        TTSCommand.addTTSMessage(track, decodeUrl(trackURL.replace("ftts://", "")));
+                        TTSCommand.addGuild(guild);
+                        TTSCommand.addTTSMessage(event.getGuild(), track, decodeUrl(trackURL.replace("ftts://", "")));
                     }
                 }
 

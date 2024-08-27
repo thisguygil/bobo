@@ -28,7 +28,7 @@ public class SkipCommand extends AbstractMusic {
                 scheduler.looping = LoopCommand.looping.NONE;
             }
             if (currentTrack.trackType() == TrackType.TTS) {
-                TTSCommand.removeTTSMessage(currentTrack.track());
+                TTSCommand.nextTTSMessage(event.getGuild(), currentTrack.track());
             }
         }
     }

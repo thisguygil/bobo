@@ -1,6 +1,5 @@
 package bobo.utils;
 
-import com.google.common.net.UrlEscapers;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,7 +27,8 @@ public final class StringUtils {
      * @return The encoded URL.
      */
     public static String encodeUrl(@NotNull String url) {
-        return UrlEscapers.urlFragmentEscaper().escape(url);
+        return URLEncoder.encode(url, StandardCharsets.UTF_8)
+                .replace("+", "%20");
     }
 
     /**

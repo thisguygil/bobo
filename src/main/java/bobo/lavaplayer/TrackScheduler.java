@@ -9,12 +9,15 @@ import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
+
+import static bobo.utils.StringUtils.markdownBold;
 
 /**
  * This class schedules tracks for the audio player. It contains the queue of tracks.
@@ -25,14 +28,19 @@ public class TrackScheduler extends AudioEventAdapter {
     public TrackRecord currentTrack;
     public TrackRecord previousTrack;
     public LoopCommand.looping looping;
+    public Guild guild;
 
     /**
+     * Creates a new TrackScheduler for the given audio player and guild.
+     *
      * @param player The audio player this scheduler uses
+     * @param guild The guild this scheduler is for
      */
-    public TrackScheduler(AudioPlayer player) {
+    public TrackScheduler(AudioPlayer player, Guild guild) {
         this.player = player;
         this.queue = new LinkedBlockingDeque<>();
         this.looping = LoopCommand.looping.NONE;
+        this.guild = guild;
     }
 
     /**
@@ -83,7 +91,7 @@ public class TrackScheduler extends AudioEventAdapter {
                         case TRACK, FILE -> nextTrack();
                         case TTS -> {
                             nextTrack();
-                            TTSCommand.removeTTSMessage(track);
+                            TTSCommand.nextTTSMessage(this.guild, track);
                         }
                     }
                 }
@@ -101,12 +109,12 @@ public class TrackScheduler extends AudioEventAdapter {
      */
     @Override
     public void onTrackException(AudioPlayer player, AudioTrack track, @Nonnull FriendlyException exception) {
-        currentTrack.channel().sendMessage("Failed to start track: **" + exception.getMessage() + "**").queue();
+        currentTrack.channel().sendMessage("Failed to start track: " + markdownBold(exception.getMessage())).queue();
         if (this.looping != LoopCommand.looping.NONE) {
             this.looping = LoopCommand.looping.NONE;
         }
         if (currentTrack.trackType() == TrackType.TTS) {
-            TTSCommand.removeTTSMessage(track);
+            TTSCommand.nextTTSMessage(this.guild, track);
         }
     }
 }

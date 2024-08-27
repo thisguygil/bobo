@@ -25,7 +25,7 @@ public class ResumeCommand extends AbstractMusic {
 
         if (player.isPaused()) {
             player.setPaused(false);
-            hook.editOriginal("Resumed").queue();
+            hook.editOriginal("Resumed.").queue();
         } else {
             hook.editOriginal("The player is already playing. Use `/pause` to pause.").queue();
         }
