@@ -9,10 +9,14 @@ import se.michaelthelin.spotify.model_objects.credentials.ClientCredentials;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.io.IOException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public final class SpotifyLink {
     private static final String CLIENT_ID = Config.get("SPOTIFY_CLIENT_ID");
     private static final String CLIENT_SECRET = Config.get("SPOTIFY_CLIENT_SECRET");
+
+    public static final Pattern URL_PATTERN = Pattern.compile("(https?://)(www\\.)?open\\.spotify\\.com/((?<region>[a-zA-Z-]+)/)?(user/(?<user>[a-zA-Z0-9-_]+)/)?(?<type>track|album|playlist|artist)/(?<identifier>[a-zA-Z0-9-_]+)");
 
     private SpotifyLink() {} // Prevent instantiation
 
@@ -49,10 +53,10 @@ public final class SpotifyLink {
     @Nullable
     public static String getAlbumName(String url) {
         try {
-            String spotifyRegex = "^(https?://)?open.spotify.com/.*";
-            if (url.matches(spotifyRegex)) {
+            Matcher matcher = URL_PATTERN.matcher(url);
+            if (matcher.matches()) {
                 SpotifyApi spotifyApi = SpotifyLink.getSpotifyApi();
-                String id = url.split("/")[url.split("/").length - 1];
+                String id = matcher.group("identifier");
                 return spotifyApi.getTrack(id)
                         .build()
                         .execute()

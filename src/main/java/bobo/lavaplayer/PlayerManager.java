@@ -151,8 +151,11 @@ public class PlayerManager {
                 }
 
                 final List<AudioTrack> tracks = playlist.getTracks();
-                String regex = "^(https://open.spotify.com/album/|spotify:album:)([a-zA-Z0-9]+)(.*)";
-                hook.editOriginal("Adding to queue " + markdownBold(tracks.size()) + " tracks from " + (trackURL.matches(regex) ? "album" : "playlist") + " " + markdownLinkNoEmbed(playlist.getName(), trackURL)).queue(success -> {
+                boolean isAlbum = SpotifyLink.URL_PATTERN
+                        .matcher(trackURL)
+                        .group("type")
+                        .equals("album");
+                hook.editOriginal("Adding to queue " + markdownBold(tracks.size()) + " tracks from " + (isAlbum ? "album" : "playlist") + " " + markdownLinkNoEmbed(playlist.getName(), trackURL)).queue(success -> {
                     for (final AudioTrack track : tracks) {
                         scheduler.queue(track, member, channel, TrackType.TRACK);
                     }
