@@ -1,7 +1,7 @@
 package bobo.commands.ai;
 
 import bobo.Config;
-import bobo.commands.AbstractCommand;
+import bobo.commands.AbstractSlashCommand;
 import com.theokanning.openai.service.OpenAiService;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
@@ -9,7 +9,7 @@ import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import java.time.Duration;
 import java.util.List;
 
-public abstract class AbstractAI extends AbstractCommand {
+public abstract class AbstractAI extends AbstractSlashCommand {
     protected static final OpenAiService service = new OpenAiService(Config.get("OPENAI_API_KEY"), Duration.ZERO);
 
     /**

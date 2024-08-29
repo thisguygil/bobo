@@ -9,6 +9,7 @@ import bobo.commands.general.*;
 import bobo.commands.voice.*;
 import bobo.commands.voice.music.*;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -16,68 +17,69 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CommandManager {
-    private final List<AbstractCommand> commands = new ArrayList<>();
+    private final List<AbstractSlashCommand> slashCommands = new ArrayList<>();
+    private final List<AbstractMessageCommand> messageCommands = new ArrayList<>();
 
     /**
-     * Adds all commands to the list.
+     * Adds all commands to the lists.
      */
     public CommandManager() {
         // Bot Owner commands
-        commands.add(new RestartCommand());
-        commands.add(new SetActivityCommand());
+        messageCommands.add(new RestartCommand());
+        messageCommands.add(new SetActivityCommand());
 
         // Server Admin commands
-        commands.add(new ConfigCommand());
-        commands.add(new SayCommand());
+        slashCommands.add(new ConfigCommand());
+        slashCommands.add(new SayCommand());
 
         // General commands
-        commands.add(new HelpCommand());
-        commands.add(new GoogleCommand());
-        commands.add(new RandomCommand());
-        commands.add(new FortniteCommand());
+        slashCommands.add(new HelpCommand());
+        slashCommands.add(new GoogleCommand());
+        slashCommands.add(new RandomCommand());
+        slashCommands.add(new FortniteCommand());
 
         // Last.fm commands
-        commands.add(new FMLoginCommand());
-        commands.add(new FMLogoutCommand());
-        commands.add(new TrackCommand());
-        commands.add(new AlbumCommand());
-        commands.add(new ArtistCommand());
+        slashCommands.add(new FMLoginCommand());
+        slashCommands.add(new FMLogoutCommand());
+        slashCommands.add(new TrackCommand());
+        slashCommands.add(new AlbumCommand());
+        slashCommands.add(new ArtistCommand());
 
         // AI commands
-        commands.add(new TLDRCommand());
-        commands.add(new ChatCommand());
-        commands.add(new ImageCommand());
-        commands.add(new TTSCommand());
+        slashCommands.add(new TLDRCommand());
+        slashCommands.add(new ChatCommand());
+        slashCommands.add(new ImageCommand());
+        slashCommands.add(new TTSCommand());
 
         // Voice commands
-        commands.add(new JoinCommand());
-        commands.add(new LeaveCommand());
-        commands.add(new ClipCommand());
-        commands.add(new DeafenCommand());
-        commands.add(new MuteCommand());
+        slashCommands.add(new JoinCommand());
+        slashCommands.add(new LeaveCommand());
+        slashCommands.add(new ClipCommand());
+        slashCommands.add(new DeafenCommand());
+        slashCommands.add(new MuteCommand());
         // Music commands
-        commands.add(new PlayCommand());
-        commands.add(new SearchCommand());
-        commands.add(new LyricsCommand());
-        commands.add(new PauseCommand());
-        commands.add(new ResumeCommand());
-        commands.add(new NowPlayingCommand());
-        commands.add(new QueueCommand());
-        commands.add(new LoopCommand());
-        commands.add(new RepeatCommand());
-        commands.add(new SkipCommand());
-        commands.add(new SeekCommand());
+        slashCommands.add(new PlayCommand());
+        slashCommands.add(new SearchCommand());
+        slashCommands.add(new LyricsCommand());
+        slashCommands.add(new PauseCommand());
+        slashCommands.add(new ResumeCommand());
+        slashCommands.add(new NowPlayingCommand());
+        slashCommands.add(new QueueCommand());
+        slashCommands.add(new LoopCommand());
+        slashCommands.add(new RepeatCommand());
+        slashCommands.add(new SkipCommand());
+        slashCommands.add(new SeekCommand());
     }
 
     /**
-     * Gets a command by name.
+     * Gets a slash command by name.
      *
-     * @param search The name of the command.
+     * @param search The name of the slash command.
      * @return The command.
      */
     @Nullable
-    public AbstractCommand getCommand(String search) {
-        for (AbstractCommand command : this.commands) {
+    public AbstractSlashCommand getSlashCommand(String search) {
+        for (AbstractSlashCommand command : this.slashCommands) {
             if (command.getName().equals(search)) {
                 return command;
             }
@@ -86,11 +88,35 @@ public class CommandManager {
     }
 
     /**
-     * Gets the list of commands.
-     * @return The list of commands.
+     * Gets a message command by name.
+     *
+     * @param search The name of the message command.
+     * @return The command.
      */
-    public List<AbstractCommand> getCommands() {
-        return this.commands;
+    @Nullable
+    public AbstractMessageCommand getMessageCommand(String search) {
+        for (AbstractMessageCommand command : this.messageCommands) {
+            if (command.getName().equals(search)) {
+                return command;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Gets the list of slash commands.
+     * @return The list of slash commands.
+     */
+    public List<AbstractSlashCommand> getSlashCommands() {
+        return this.slashCommands;
+    }
+
+    /**
+     * Gets the list of message commands.
+     * @return The list of message commands.
+     */
+    public List<AbstractMessageCommand> getMessageCommands() {
+        return this.messageCommands;
     }
 
     /**
@@ -99,11 +125,24 @@ public class CommandManager {
      * @param event The event that triggered this action.
      */
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
-        AbstractCommand command = getCommand(event.getName());
+        AbstractSlashCommand command = getSlashCommand(event.getName());
         if (command != null) {
             command.handle(event);
         } else {
             event.reply("Error retrieving command.").queue();
         }
+    }
+
+    /**
+     * Handles a message command.
+     *
+     * @param event The event that triggered this action.
+     */
+    public void handle(@Nonnull MessageReceivedEvent event) {
+        String[] args = event.getMessage().getContentRaw().split("\\s+");
+        AbstractMessageCommand command = getMessageCommand(args[0].substring(1));
+        if (command != null) {
+            command.handle(event);
+        } // Do nothing if command is not found, as it may be a regular message or a different bot's command
     }
 }

@@ -30,6 +30,7 @@ import javax.annotation.Nonnull;
 import java.sql.*;
 import java.util.List;
 
+import static bobo.commands.AbstractMessageCommand.PREFIX;
 import static bobo.commands.admin.ConfigCommand.*;
 
 public class Listener extends ListenerAdapter {
@@ -83,6 +84,10 @@ public class Listener extends ListenerAdapter {
             ((GuildMessageChannel) channel).sendMessage(message.build()).queue();
         } else if (event.isFromType(ChannelType.GUILD_PRIVATE_THREAD)) {
             ChatCommand.handleThreadMessage(event);
+        }
+
+        if (event.getMessage().getContentRaw().startsWith(PREFIX)) {
+            manager.handle(event);
         }
     }
 

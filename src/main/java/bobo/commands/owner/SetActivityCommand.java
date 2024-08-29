@@ -3,13 +3,8 @@ package bobo.commands.owner;
 import bobo.Bobo;
 import bobo.utils.SQLConnection;
 import net.dv8tion.jda.api.entities.Activity;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
-import net.dv8tion.jda.api.interactions.commands.OptionType;
-import net.dv8tion.jda.api.interactions.commands.build.Commands;
-import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 
 import java.sql.*;
-import java.util.Objects;
 
 public class SetActivityCommand extends AbstractOwner {
     private static final String createTableSQL = "CREATE TABLE IF NOT EXISTS activity (activity_type VARCHAR(255), activity_name VARCHAR(255), stream_url VARCHAR(255))";
@@ -20,41 +15,35 @@ public class SetActivityCommand extends AbstractOwner {
     /**
      * Creates a new set-activity command.
      */
-    public SetActivityCommand() {
-        super(Commands.slash("set-activity", "Sets Bobo's activity.")
-                .addSubcommands(new SubcommandData("custom", "Sets Bobo's activity to a custom status.")
-                                .addOption(OptionType.STRING, "status", "Status to set.", true),
-                        new SubcommandData("playing", "Sets Bobo's activity to playing.")
-                                .addOption(OptionType.STRING, "activity", "Activity to set.", true),
-                        new SubcommandData("streaming", "Sets Bobo's activity to streaming.")
-                                .addOption(OptionType.STRING, "activity", "Activity to set.", true)
-                                .addOption(OptionType.STRING, "url", "URL to stream.", true),
-                        new SubcommandData("listening", "Sets Bobo's activity to listening.")
-                                .addOption(OptionType.STRING, "activity", "Activity to set.", true),
-                        new SubcommandData("watching", "Sets Bobo's activity to watching.")
-                                .addOption(OptionType.STRING, "activity", "Activity to set.", true),
-                        new SubcommandData("competing", "Sets Bobo's activity to competing.")
-                                .addOption(OptionType.STRING, "activity", "Activity to set.", true))
-        );
-    }
+    public SetActivityCommand() {}
 
     @Override
     protected void handleOwnerCommand() {
-        event.deferReply().queue();
+        if (args.length < 2) {
+            event.getChannel().sendMessage("Invalid usage. Use `/help set-activity` for more information.").queue();
+            return;
+        }
 
-        String activityType = event.getSubcommandName();
-        assert activityType != null;
-        OptionMapping nameOption = activityType.equals("custom") ? event.getOption("status") : event.getOption("activity");
-        assert nameOption != null;
-        String activityName = nameOption.getAsString();
-
+        String activityType = args[0];
+        String activityName;
         String streamURL = null;
+
         if (activityType.equals("streaming")) {
-            streamURL = Objects.requireNonNull(event.getOption("url")).getAsString();
-            if (!Activity.isValidStreamingUrl(streamURL)) {
-                hook.editOriginal("Invalid stream URL: " + streamURL).queue();
+            if (args.length < 3) {
+                event.getChannel().sendMessage("Invalid usage. Use `/help set-activity` for more information.").queue();
                 return;
             }
+
+            streamURL = args[args.length - 1];
+
+            if (!Activity.isValidStreamingUrl(streamURL)) {
+                event.getChannel().sendMessage("Invalid stream URL: " + streamURL).queue();
+                return;
+            }
+
+            activityName = String.join(" ", args).substring(activityType.length() + 1, args.length - streamURL.length() - 1);
+        } else {
+            activityName = String.join(" ", args).substring(activityType.length() + 1);
         }
 
         try (Connection connection = SQLConnection.getConnection()) {
@@ -71,7 +60,7 @@ public class SetActivityCommand extends AbstractOwner {
             }
         } catch (SQLException e) {
             e.printStackTrace();
-            hook.editOriginal("An error occurred while setting the activity.").queue();
+            event.getChannel().sendMessage("An error occurred while setting the activity.").queue();
             return;
         }
 
@@ -85,7 +74,7 @@ public class SetActivityCommand extends AbstractOwner {
             case "competing" -> "Activity set to **Competing in " + activityName + "**";
             default -> "Status set to **" + activityName + "**";
         };
-        hook.editOriginal(message).queue();
+        event.getChannel().sendMessage(message).queue();
     }
 
     /**
@@ -127,7 +116,7 @@ public class SetActivityCommand extends AbstractOwner {
     public String getHelp() {
         return """
                 Sets Bobo's activity.
-                Usage: `/set-activity <subcommand>`
+                Usage: `""" + PREFIX + "set-activity <subcommand>`\n" + """
                 Subcommands:
                 * `custom <status>`: Sets Bobo's status to <status>.
                 * `playing <activity>`: Sets Bobo's activity to "Playing <activity>".

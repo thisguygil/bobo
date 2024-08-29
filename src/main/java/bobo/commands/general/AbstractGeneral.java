@@ -1,12 +1,12 @@
 package bobo.commands.general;
 
-import bobo.commands.AbstractCommand;
+import bobo.commands.AbstractSlashCommand;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
 import java.util.List;
 
-public abstract class AbstractGeneral extends AbstractCommand {
+public abstract class AbstractGeneral extends AbstractSlashCommand {
     /**
      * Creates a new general command.
      *

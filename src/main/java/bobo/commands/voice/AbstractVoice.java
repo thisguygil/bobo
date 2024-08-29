@@ -1,13 +1,12 @@
 package bobo.commands.voice;
 
-import bobo.commands.AbstractCommand;
+import bobo.commands.AbstractSlashCommand;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
-import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractVoice extends AbstractCommand {
+public abstract class AbstractVoice extends AbstractSlashCommand {
     /**
      * Creates a new voice command.
      *

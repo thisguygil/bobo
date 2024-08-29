@@ -1,7 +1,7 @@
 package bobo.commands.lastfm;
 
 import bobo.Config;
-import bobo.commands.AbstractCommand;
+import bobo.commands.AbstractSlashCommand;
 import bobo.utils.SQLConnection;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
@@ -14,7 +14,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractLastFM extends AbstractCommand {
+public abstract class AbstractLastFM extends AbstractSlashCommand {
     protected static final String API_KEY = Config.get("LASTFM_API_KEY");
 
     private static final String createSQL = "CREATE TABLE IF NOT EXISTS lastfmlogins (user_id VARCHAR(255) PRIMARY KEY, session_key VARCHAR(255) NOT NULL, lastfm_username VARCHAR(255) NOT NULL)";

@@ -11,16 +11,16 @@ import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractCommand {
+public abstract class AbstractSlashCommand {
     protected SlashCommandInteractionEvent event;
     protected InteractionHook hook;
 
     /**
-     * Creates a new command.
+     * Creates a new slash command.
      *
      * @param commandData The command data.
      */
-    public AbstractCommand(@Nonnull CommandData commandData) {
+    public AbstractSlashCommand(@Nonnull CommandData commandData) {
         Bobo.getJDA()
                 .upsertCommand(
                         commandData.setGuildOnly(true)
@@ -70,5 +70,10 @@ public abstract class AbstractCommand {
         return permissions;
     }
 
+    /**
+     * Gets the command permissions.
+     *
+     * @return The command permissions.
+     */
     protected abstract List<Permission> getCommandPermissions();
 }

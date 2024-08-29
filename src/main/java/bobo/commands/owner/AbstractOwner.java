@@ -1,30 +1,23 @@
 package bobo.commands.owner;
 
 import bobo.Config;
-import bobo.commands.AbstractCommand;
+import bobo.commands.AbstractMessageCommand;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractOwner extends AbstractCommand {
+public abstract class AbstractOwner extends AbstractMessageCommand {
     /**
      * Creates a new owner command.
-     *
-     * @param commandData The command data.
      */
-    public AbstractOwner(CommandData commandData) {
-        super(commandData);
-    }
+    public AbstractOwner() {}
 
     @Override
     protected void handleCommand() {
-        if (event.getUser().getId().equals(Config.get("OWNER_ID"))) {
+        if (event.getAuthor().getId().equals(Config.get("OWNER_ID"))) {
             handleOwnerCommand();
-        } else {
-            event.reply("You do not have permission to use this command.").setEphemeral(true).queue();
-        }
+        } // Else do nothing
     }
 
     /**
@@ -34,6 +27,6 @@ public abstract class AbstractOwner extends AbstractCommand {
 
     @Override
     protected List<Permission> getCommandPermissions() {
-        return new ArrayList<>();
+        return new ArrayList<>(); // Empty because the owner should be able to use these commands anywhere
     }
 }
