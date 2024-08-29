@@ -2,10 +2,10 @@ package bobo.commands.general;
 
 import bobo.utils.FortniteAPI;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.interactions.InteractionHook;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
-import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.utils.FileUpload;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,12 +27,14 @@ public class FortniteCommand extends AbstractGeneral {
      */
     public FortniteCommand() {
         super(Commands.slash("fortnite", "Get info about Fortnite.")
-                .addSubcommands(
-                        new SubcommandData("shop", "Get the current Fortnite Shop."),
-                        new SubcommandData("news", "Get the current Fortnite (Battle Royale) news."),
-                        new SubcommandData("stats", "Get stats for a Fortnite player.")
-                                .addOption(OptionType.STRING, "username", "The Epic Games username of the player.", true),
-                        new SubcommandData("map", "Get the current Fortnite Map.")
+                .addOptions(
+                        new OptionData(OptionType.STRING, "info", "The Fortnite info to get", true)
+                                .addChoices(
+                                        new Command.Choice("shop", "shop"),
+                                        new Command.Choice("news", "news"),
+                                        new Command.Choice("stats", "stats"),
+                                        new Command.Choice("map", "map")
+                                )
                 )
         );
     }
@@ -45,22 +47,19 @@ public class FortniteCommand extends AbstractGeneral {
     @Override
     protected void handleGeneralCommand() {
         event.deferReply().queue();
-        var currentHook = hook;
-        String subcommandName = Objects.requireNonNull(event.getSubcommandName());
-
-        switch (subcommandName) {
-            case "shop" -> processShopCommand(currentHook);
-            case "news" -> processNewsCommand(currentHook);
-            case "stats" -> processStatsCommand(currentHook);
-            case "map" -> processMapCommand(currentHook);
+        String info = event.getOption("info").getAsString();
+        switch (info) {
+            case "shop" -> processShopCommand();
+            case "news" -> processNewsCommand();
+            case "stats" -> processStatsCommand();
+            case "map" -> processMapCommand();
         }
     }
 
     /**
      * Processes the shop command.
-     * @param currentHook The current interaction hook.
      */
-    private void processShopCommand(InteractionHook currentHook) {
+    private void processShopCommand() {
         // Attach the current date as a header.
         ZonedDateTime nowInUTC = ZonedDateTime.now(ZoneId.of("UTC"));
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy");
@@ -73,70 +72,66 @@ public class FortniteCommand extends AbstractGeneral {
                             .map(image -> convertBufferedImageToFile(image, "shop"))
                             .filter(Objects::nonNull)
                             .toList();
-                }).thenAccept(files -> handleFilesResponse(files, message, "Failed to get shop images.", currentHook))
+                }).thenAccept(files -> handleFilesResponse(files, message, "Failed to get shop images."))
                 .exceptionally(throwable -> {
                     throwable.printStackTrace();
-                    currentHook.editOriginal("Error processing shop command.").queue();
+                    hook.editOriginal("Error processing shop command.").queue();
                     return null;
                 });
     }
 
     /**
      * Processes the map command.
-     * @param currentHook The current interaction hook.
      */
-    private void processMapCommand(InteractionHook currentHook) {
+    private void processMapCommand() {
         final String message = "# Fortnite Map";
 
         // Get the map image and send it.
         CompletableFuture.supplyAsync(() -> convertBufferedImageToFile(FortniteAPI.getMapImage(), "map"))
-                .thenAccept(file -> handleFileResponse(file, message, "Failed to get map image.", currentHook))
+                .thenAccept(file -> handleFileResponse(file, message, "Failed to get map image."))
                 .exceptionally(throwable -> {
                     throwable.printStackTrace();
-                    currentHook.editOriginal("Error processing map command.").queue();
+                    hook.editOriginal("Error processing map command.").queue();
                     return null;
                 });
     }
 
     /**
      * Processes the stats command.
-     * @param currentHook The current interaction hook.
      */
-    private void processStatsCommand(InteractionHook currentHook) {
+    private void processStatsCommand() {
         String username = Objects.requireNonNull(event.getOption("username")).getAsString();
 
         // Get the stats image and send it.
         // Note the output is always a non-null string, so even if the command fails, the user will get a response.
         String imageUrl = FortniteAPI.getStatsImage(username);
-        currentHook.editOriginal(imageUrl).queue();
+        hook.editOriginal(imageUrl).queue();
     }
 
     /**
      * Processes the news command.
-     * @param currentHook The current interaction hook.
      */
-    private void processNewsCommand(InteractionHook currentHook) {
+    private void processNewsCommand() {
         // Get the stats image and send it.
         // Note the output is always a non-null string, so even if the command fails, the user will get a response.
         String imageUrl = FortniteAPI.getNewsImage();
-        currentHook.editOriginal(imageUrl).queue();
+        hook.editOriginal(imageUrl).queue();
     }
 
     /**
      * Handles the response for a file.
      * @param file The file to send.
      * @param errorMessage The error message to send if the file is null.
-     * @param currentHook The current interaction hook.
      */
-    private void handleFileResponse(File file, String message, String errorMessage, InteractionHook currentHook) {
+    private void handleFileResponse(File file, String message, String errorMessage) {
         if (file != null) {
-            currentHook.editOriginal(message).setAttachments(FileUpload.fromData(file)).queue(success -> {
+            hook.editOriginal(message).setAttachments(FileUpload.fromData(file)).queue(success -> {
                 if (!file.delete()) {
                     System.err.println("Failed to delete file: " + file.getAbsolutePath());
                 }
             });
         } else {
-            currentHook.editOriginal(errorMessage).queue();
+            hook.editOriginal(errorMessage).queue();
         }
     }
 
@@ -144,11 +139,10 @@ public class FortniteCommand extends AbstractGeneral {
      * Handles the response for a list of files.
      * @param files The files to send.
      * @param errorMessage The error message to send if the file list is null or empty.
-     * @param currentHook The current interaction hook.
      */
-    private void handleFilesResponse(List<File> files, String message, String errorMessage, InteractionHook currentHook) {
+    private void handleFilesResponse(List<File> files, String message, String errorMessage) {
         if (files != null && !files.isEmpty()) {
-            currentHook.editOriginal(message)
+            hook.editOriginal(message)
                     .setAttachments(files.stream()
                             .map(FileUpload::fromData)
                             .toArray(FileUpload[]::new))
@@ -160,7 +154,7 @@ public class FortniteCommand extends AbstractGeneral {
                         }
                     });
         } else {
-            currentHook.editOriginal(errorMessage).queue();
+            hook.editOriginal(errorMessage).queue();
         }
     }
 

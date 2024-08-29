@@ -9,10 +9,10 @@ import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
-import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
-import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -36,33 +36,21 @@ public class SearchCommand extends AbstractMusic {
      * Creates a new search command.
      */
     public SearchCommand() {
-        super(Commands.slash("search", "Searches YouTube/Spotify/SoundCloud, and plays the requested result.")
-                .addSubcommandGroups(
-                        new SubcommandGroupData("youtube", "Search YouTube.")
-                                .addSubcommands(
-                                        new SubcommandData("track", "Searches YouTube for a track.")
-                                                .addOption(OptionType.STRING, "query", "What to search", true),
-                                        new SubcommandData("playlist", "Searches YouTube for a playlist.")
-                                                .addOption(OptionType.STRING, "query", "What to search", true)
+        super(Commands.slash("search", "Searches a platform, and plays the requested result.")
+                .addOptions(
+                        new OptionData(OptionType.STRING, "platform", "The platform to search on", true)
+                                .addChoices(
+                                        new Command.Choice("YouTube", "youtube"),
+                                        new Command.Choice("Spotify", "spotify"),
+                                        new Command.Choice("SoundCloud", "soundcloud")
                                 ),
-                        new SubcommandGroupData("spotify", "Search Spotify.")
-                                .addSubcommands(
-                                        new SubcommandData("track", "Search Spotify for a track.")
-                                                .addOption(OptionType.STRING, "query", "What to search", true),
-                                        new SubcommandData("playlist", "Search Spotify for a playlist.")
-                                                .addOption(OptionType.STRING, "query", "What to search", true),
-                                        new SubcommandData("album", "Search Spotify for an album.")
-                                                .addOption(OptionType.STRING, "query", "What to search", true)
+                        new OptionData(OptionType.STRING, "type", "The type of search", true)
+                                .addChoices(
+                                        new Command.Choice("track", "track"),
+                                        new Command.Choice("playlist", "playlist"),
+                                        new Command.Choice("album", "album")
                                 ),
-                        new SubcommandGroupData("soundcloud", "Search SoundCloud.")
-                                .addSubcommands(
-                                        new SubcommandData("track", "Search SoundCloud for a track.")
-                                                .addOption(OptionType.STRING, "query", "What to search", true),
-                                        new SubcommandData("playlist", "Search SoundCloud for a playlist.")
-                                                .addOption(OptionType.STRING, "query", "What to search", true),
-                                        new SubcommandData("album", "Search SoundCloud for an album.")
-                                                .addOption(OptionType.STRING, "query", "What to search", true)
-                                )
+                        new OptionData(OptionType.STRING, "query", "What to search", true)
                 )
         );
     }
@@ -76,37 +64,36 @@ public class SearchCommand extends AbstractMusic {
     protected void handleMusicCommand() {
         event.deferReply().queue();
 
-        String subcommandGroupName = event.getSubcommandGroup();
-        String subcommandName = event.getSubcommandName();
-        String query = Objects.requireNonNull(event.getOption("query")).getAsString();
-        assert subcommandGroupName != null;
-        assert subcommandName != null;
+        String platform = event.getOption("platform").getAsString();
+        String searchType = event.getOption("type").getAsString();
+        String query = event.getOption("query").getAsString();
 
-        switch (subcommandGroupName) {
+        switch (platform) {
             case "youtube" -> {
-                switch (subcommandName) {
+                switch (searchType) {
                     case "track" -> searchYoutubeTrack(query);
                     case "playlist" -> searchYoutubePlaylist(query);
-                    default -> throw new IllegalStateException("Unexpected value: " + subcommandName);
+                    case "album" -> event.reply("Searching albums is not supported on YouTube.").queue();
+                    default -> throw new IllegalStateException("Unexpected value: " + searchType);
                 }
             }
             case "spotify" -> {
-                switch (subcommandName) {
+                switch (searchType) {
                     case "track" -> searchSpotifyTrack(query);
                     case "playlist" -> searchSpotifyPlaylist(query);
                     case "album" -> searchSpotifyAlbum(query);
-                    default -> throw new IllegalStateException("Unexpected value: " + subcommandName);
+                    default -> throw new IllegalStateException("Unexpected value: " + searchType);
                 }
             }
             case "soundcloud" -> {
-                switch (subcommandName) {
+                switch (searchType) {
                     case "track" -> searchSoundcloud(query, "track");
                     case "playlist" -> searchSoundcloud(query, "playlist");
                     case "album" -> searchSoundcloud(query, "album");
-                    default -> throw new IllegalStateException("Unexpected value: " + subcommandName);
+                    default -> throw new IllegalStateException("Unexpected value: " + searchType);
                 }
             }
-            default -> throw new IllegalStateException("Unexpected value: " + subcommandGroupName);
+            default -> throw new IllegalStateException("Unexpected value: " + platform);
         }
     }
 
@@ -476,8 +463,8 @@ public class SearchCommand extends AbstractMusic {
     public String getHelp() {
         return """
                 Searches YouTube, Spotify, or SoundCloud, and plays the requested result.
-                Usage: `/search <subcommand>`
-                Subcommands:
+                Usage: `/search <option>`
+                Options:
                 * `youtube track/playlist <query>`: Search YouTube for a track/playlist with <query>
                 * `spotify track/playlist/album <query>`: Search Spotify for a track/playlist/album with <query>
                 * `soundcloud track/playlist/album <query>`: Search SoundCloud for a track/playlist/album with <query>""";

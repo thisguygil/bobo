@@ -1,8 +1,10 @@
 package bobo.commands.voice.music;
 
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.interactions.commands.Command;
+import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
-import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,10 +25,13 @@ public class LoopCommand extends AbstractMusic {
      */
     public LoopCommand() {
         super(Commands.slash("loop", "Loop the currently playing track or queue.")
-                .addSubcommands(
-                        new SubcommandData("track", "Loop the currently playing track."),
-                        new SubcommandData("queue", "Loop the entire queue."),
-                        new SubcommandData("off", "Turn off looping.")
+                .addOptions(
+                        new OptionData(OptionType.STRING, "value", "What to set to loop", true)
+                                .addChoices(
+                                        new Command.Choice("track", "track"),
+                                        new Command.Choice("queue", "queue"),
+                                        new Command.Choice("off", "off")
+                                )
                 )
         );
     }
