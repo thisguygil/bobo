@@ -2,10 +2,12 @@ package bobo.commands.general;
 
 import bobo.utils.FortniteAPI;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.utils.FileUpload;
 import org.jetbrains.annotations.Nullable;
 
@@ -27,13 +29,19 @@ public class FortniteCommand extends AbstractGeneral {
      */
     public FortniteCommand() {
         super(Commands.slash("fortnite", "Get info about Fortnite.")
-                .addOptions(
-                        new OptionData(OptionType.STRING, "info", "The Fortnite info to get", true)
-                                .addChoices(
-                                        new Command.Choice("shop", "shop"),
-                                        new Command.Choice("news", "news"),
-                                        new Command.Choice("stats", "stats"),
-                                        new Command.Choice("map", "map")
+                .addSubcommands( // Make two subcommands because stats requires an input and the other commands don't.
+                        new SubcommandData("stats", "Get stats for a Fortnite player.")
+                                .addOptions(
+                                        new OptionData(OptionType.STRING, "username", "The username of the player", true)
+                                ),
+                        new SubcommandData("info", "Get info about Fortnite.")
+                                .addOptions(
+                                        new OptionData(OptionType.STRING, "info", "The info to get", true)
+                                                .addChoices(
+                                                        new Command.Choice("shop", "shop"),
+                                                        new Command.Choice("news", "news."),
+                                                        new Command.Choice("map", "map")
+                                                )
                                 )
                 )
         );
@@ -47,19 +55,31 @@ public class FortniteCommand extends AbstractGeneral {
     @Override
     protected void handleGeneralCommand() {
         event.deferReply().queue();
-        String info = event.getOption("info").getAsString();
-        switch (info) {
-            case "shop" -> processShopCommand();
-            case "news" -> processNewsCommand();
-            case "stats" -> processStatsCommand();
-            case "map" -> processMapCommand();
+
+        var currentHook = hook;
+        String subcommand = event.getSubcommandName();
+        switch (subcommand) {
+            case "info" -> {
+                String info = event.getOption("info").getAsString();
+                switch (info) {
+                    case "shop" -> processShopCommand(currentHook);
+                    case "news" -> processNewsCommand(currentHook);
+                    case "map" -> processMapCommand(currentHook);
+                }
+            }
+            case "stats" -> {
+                String username = event.getOption("username").getAsString();
+                processStatsCommand(currentHook, username);
+            }
+            default -> throw new IllegalStateException("Unexpected value: " + subcommand);
         }
+
     }
 
     /**
      * Processes the shop command.
      */
-    private void processShopCommand() {
+    private void processShopCommand(InteractionHook currentHook) {
         // Attach the current date as a header.
         ZonedDateTime nowInUTC = ZonedDateTime.now(ZoneId.of("UTC"));
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy");
@@ -72,10 +92,10 @@ public class FortniteCommand extends AbstractGeneral {
                             .map(image -> convertBufferedImageToFile(image, "shop"))
                             .filter(Objects::nonNull)
                             .toList();
-                }).thenAccept(files -> handleFilesResponse(files, message, "Failed to get shop images."))
+                }).thenAccept(files -> handleFilesResponse(files, message, "Failed to get shop images.", currentHook))
                 .exceptionally(throwable -> {
                     throwable.printStackTrace();
-                    hook.editOriginal("Error processing shop command.").queue();
+                    currentHook.editOriginal("Error processing shop command.").queue();
                     return null;
                 });
     }
@@ -83,15 +103,15 @@ public class FortniteCommand extends AbstractGeneral {
     /**
      * Processes the map command.
      */
-    private void processMapCommand() {
+    private void processMapCommand(InteractionHook currentHook) {
         final String message = "# Fortnite Map";
 
         // Get the map image and send it.
         CompletableFuture.supplyAsync(() -> convertBufferedImageToFile(FortniteAPI.getMapImage(), "map"))
-                .thenAccept(file -> handleFileResponse(file, message, "Failed to get map image."))
+                .thenAccept(file -> handleFileResponse(file, message, "Failed to get map image.", currentHook))
                 .exceptionally(throwable -> {
                     throwable.printStackTrace();
-                    hook.editOriginal("Error processing map command.").queue();
+                    currentHook.editOriginal("Error processing map command.").queue();
                     return null;
                 });
     }
@@ -99,23 +119,21 @@ public class FortniteCommand extends AbstractGeneral {
     /**
      * Processes the stats command.
      */
-    private void processStatsCommand() {
-        String username = Objects.requireNonNull(event.getOption("username")).getAsString();
-
+    private void processStatsCommand(InteractionHook currentHook, String username) {
         // Get the stats image and send it.
         // Note the output is always a non-null string, so even if the command fails, the user will get a response.
         String imageUrl = FortniteAPI.getStatsImage(username);
-        hook.editOriginal(imageUrl).queue();
+        currentHook.editOriginal(imageUrl).queue();
     }
 
     /**
      * Processes the news command.
      */
-    private void processNewsCommand() {
+    private void processNewsCommand(InteractionHook currentHook) {
         // Get the stats image and send it.
         // Note the output is always a non-null string, so even if the command fails, the user will get a response.
         String imageUrl = FortniteAPI.getNewsImage();
-        hook.editOriginal(imageUrl).queue();
+        currentHook.editOriginal(imageUrl).queue();
     }
 
     /**
@@ -123,15 +141,15 @@ public class FortniteCommand extends AbstractGeneral {
      * @param file The file to send.
      * @param errorMessage The error message to send if the file is null.
      */
-    private void handleFileResponse(File file, String message, String errorMessage) {
+    private void handleFileResponse(File file, String message, String errorMessage, InteractionHook currentHook) {
         if (file != null) {
-            hook.editOriginal(message).setAttachments(FileUpload.fromData(file)).queue(success -> {
+            currentHook.editOriginal(message).setAttachments(FileUpload.fromData(file)).queue(_ -> {
                 if (!file.delete()) {
                     System.err.println("Failed to delete file: " + file.getAbsolutePath());
                 }
             });
         } else {
-            hook.editOriginal(errorMessage).queue();
+            currentHook.editOriginal(errorMessage).queue();
         }
     }
 
@@ -140,13 +158,13 @@ public class FortniteCommand extends AbstractGeneral {
      * @param files The files to send.
      * @param errorMessage The error message to send if the file list is null or empty.
      */
-    private void handleFilesResponse(List<File> files, String message, String errorMessage) {
+    private void handleFilesResponse(List<File> files, String message, String errorMessage, InteractionHook currentHook) {
         if (files != null && !files.isEmpty()) {
-            hook.editOriginal(message)
+            currentHook.editOriginal(message)
                     .setAttachments(files.stream()
                             .map(FileUpload::fromData)
                             .toArray(FileUpload[]::new))
-                    .queue(success -> {
+                    .queue(_ -> {
                         for (File file : files) {
                             if (!file.delete()) {
                                 System.err.println("Failed to delete file: " + file.getAbsolutePath());
@@ -154,7 +172,7 @@ public class FortniteCommand extends AbstractGeneral {
                         }
                     });
         } else {
-            hook.editOriginal(errorMessage).queue();
+            currentHook.editOriginal(errorMessage).queue();
         }
     }
 

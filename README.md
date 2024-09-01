@@ -58,10 +58,12 @@ Can be used by server admins only
   * `clip` - Gets a random clip
 * `/fortnite` - Get info about Fortnite
   * Subcommands:
-  * `shop` - Gets the current Fortnite shop
-  * `news` - Gets the current Fortnite (Battle Royale) news
   * `stats <username>` - Gets the stats of `<username>` in Fortnite
-  * `map` - Gets the current Fortnite map
+  * `info` - Get info about Fortnite
+    * Choices:
+    * `shop` - Gets the current Fortnite shop
+    * `news` - Gets the current Fortnite (Battle Royale) news
+    * `map` - Gets the current Fortnite map
 
 ### Last.fm commands
 Requires the user to be logged into Last.fm
@@ -91,22 +93,10 @@ Subset of voice commands
     * `track <url/query>` - Plays given YouTube `<url>` or the first track result from `<query>`
     * `file <file>` - Plays the given `<file>` (must be a valid audio file as detailed above)
 * `/tts <message>` - Plays `<message>` as text-to-speech for the voice channel.
-* `/search` - Searches YouTube/Spotify/SoundCloud, and plays the requested result
-    * Subcommand Groups:
-    * `youtube` - Search YouTube
-      * Subcommands:
-      * `track <query>` - Search YouTube for a track
-      * `playlist <query>` - Search YouTube for a playlist
-    * `spotify` - Search Spotify
-      * Subcommands:
-      * `track <query>` - Search Spotify for a track
-      * `playlist <query>` - Search Spotify for a playlist
-      * `album <query>` - Search Spotify for an album
-    * `soundcloud` - Search SoundCloud
-      * Subcommands:
-      * `track <query>` - Search SoundCloud for a track
-      * `playlist <query>` - Search SoundCloud for a playlist
-      * `album <query>` - Search SoundCloud for an album
+* `/search` - Searches a platform, and plays the requested result
+    * Choices:
+    * `youtube/spotify/soundcloud` - Search YouTube/Spotify/SoundCloud
+    * `track/playlist/album` - Search for a track/playlist/album
 * `/lyrics` - Get the lyrics of the currently playing track
 * `/pause` - Pauses the current track
 * `/resume` - Resumes the current track
