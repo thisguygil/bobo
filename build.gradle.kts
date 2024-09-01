@@ -1,12 +1,17 @@
 plugins {
     id("java")
-    id("com.github.johnrengelman.shadow") version "8.1.1"
+    id("com.gradleup.shadow") version "8.3.0"
 }
 
 group = "com.thisguygil"
 version = "1.0"
 
 val mainClassName = "bobo.Bobo"
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_22
+    targetCompatibility = JavaVersion.VERSION_22
+}
 
 repositories {
     mavenCentral() // Most of the dependencies are in Maven Central
