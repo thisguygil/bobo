@@ -2,6 +2,7 @@ package bobo;
 
 import bobo.commands.ai.ChatCommand;
 import bobo.commands.general.RandomCommand;
+import bobo.commands.owner.SetActivityCommand;
 import bobo.commands.voice.JoinCommand;
 import bobo.commands.voice.music.QueueCommand;
 import bobo.commands.voice.music.SearchCommand;
@@ -11,8 +12,6 @@ import bobo.utils.AudioReceiveListener;
 import bobo.utils.SQLConnection;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
-import net.dv8tion.jda.api.entities.channel.concrete.StageChannel;
-import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
@@ -182,49 +181,23 @@ public class Listener extends ListenerAdapter {
     }
 
     /**
-     * Loads quotes on bot startup
+     * Sets the bot's activity, loads quotes and clips, and joins voice channels that the bot was in before it was previously shut down
      * <br>
-     * Prints "Bobo is ready!" to console when finally ready
+     * Prints to console when all tasks are complete
      *
      * @param event the ready event
      */
     @Override
     public void onReady(@Nonnull ReadyEvent event) {
+        System.out.println("Setting activity...");
+        SetActivityCommand.setActivity();
+
+        System.out.println("Loading quotes and clips...");
         RandomCommand.loadQuotesMap();
         RandomCommand.loadClipsMap();
 
-        // Join voice channels that the bot was in before shutdown
-        String createTableSQL = "CREATE TABLE IF NOT EXISTS voice_channels_shutdown (channel_id VARCHAR(255) NOT NULL)";
-        String selectSQL = "SELECT channel_id FROM voice_channels_shutdown";
-        try (Connection connection = SQLConnection.getConnection()) {
-            try (Statement createStatement = connection.createStatement()) {
-                createStatement.execute(createTableSQL);
-            }
-
-            try (PreparedStatement selectStatement = connection.prepareStatement(selectSQL);
-                 ResultSet resultSet = selectStatement.executeQuery()) {
-
-                while (resultSet.next()) {
-                    String channelId = resultSet.getString("channel_id");
-
-                    AudioChannelUnion channel;
-
-                    VoiceChannel voiceChannel = Bobo.getJDA().getVoiceChannelById(channelId);
-                    StageChannel stageChannel = Bobo.getJDA().getStageChannelById(channelId);
-                    if (voiceChannel != null) {
-                        channel = (AudioChannelUnion) voiceChannel;
-                    } else if (stageChannel != null) {
-                        channel = (AudioChannelUnion) stageChannel;
-                    } else {
-                        continue;
-                    }
-
-                    JoinCommand.join(channel);
-                }
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+        System.out.println("Joining voice channels...");
+        JoinCommand.joinShutdown();
 
         System.out.println("Bobo is ready!");
     }

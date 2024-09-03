@@ -37,8 +37,6 @@ public class Bobo {
 
         jda.addEventListener(new Listener());
 
-        SetActivityCommand.setActivity();
-
         createPaginator();
         startDailyTasks();
         setShutdownHook();

@@ -32,7 +32,7 @@ public class AudioReceiveListener implements AudioReceiveHandler {
         try {
             if (receivedBytes.size() > MAX_TIME)
             {
-                receivedBytes.remove(0);
+                receivedBytes.removeFirst();
             }
             receivedBytes.add(combinedAudio.getAudioData(volume));
         } catch (OutOfMemoryError e) {
@@ -55,7 +55,7 @@ public class AudioReceiveListener implements AudioReceiveHandler {
             int lastPacket = Math.max(receivedBytes.size() - packetCount, 0);
 
             for (int x = receivedBytes.size(); x > lastPacket; x--) {
-                packets.add(0, receivedBytes.get(x - 1));
+                packets.addFirst(receivedBytes.get(x - 1));
             }
 
             for (byte[] bs : packets) {

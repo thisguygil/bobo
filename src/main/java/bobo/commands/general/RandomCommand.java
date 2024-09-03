@@ -151,7 +151,7 @@ public class RandomCommand extends AbstractGeneral {
                 guildQuoteListMap.put(guild, messages);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Error loading quotes map: " + e.getMessage());
         }
     }
 
@@ -247,7 +247,7 @@ public class RandomCommand extends AbstractGeneral {
                 guildClipListMap.put(guild, messages);
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            System.err.println("Error loading clips map: " + e.getMessage());
         }
     }
 

@@ -29,7 +29,12 @@ public abstract class AbstractMessageCommand {
 
         String message = event.getMessage().getContentRaw();
         this.command = message.split("\\s+")[0].substring(PREFIX.length());
-        this.args = message.substring(PREFIX.length() + command.length() + 1).split("\\s+");
+
+        if (message.length() > PREFIX.length() + command.length()) {
+            this.args = message.substring(PREFIX.length() + command.length() + 1).split("\\s+");
+        } else { // No arguments
+            this.args = null;
+        }
 
         handleCommand();
     }

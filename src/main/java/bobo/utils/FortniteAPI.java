@@ -422,6 +422,7 @@ public final class FortniteAPI {
             ShopItemType shopItemType = null;
             String itemName = "";
             String imageUrl;
+            String color = "";
             String rarity = "";
             String set = "";
             String itemType = "";
@@ -437,16 +438,22 @@ public final class FortniteAPI {
                 continue;
             }
 
-            // Gets the item image URL
-            JSONObject images = newDisplayAsset.getJSONArray("materialInstances").getJSONObject(0).getJSONObject("images");
-            if (images.has("Background")) {
-                imageUrl = images.getString("Background");
-            } else if (images.has("OfferImage")) {
-                imageUrl = images.getString("OfferImage");
-            } else if (images.has("CarTexture")) {
-                imageUrl = images.getString("CarTexture");
+            // Gets the item image URL and hex color if needed
+            JSONArray materialInstances = newDisplayAsset.getJSONArray("materialInstances");
+            if (!materialInstances.isEmpty()) {
+                JSONObject images = materialInstances.getJSONObject(0).getJSONObject("images");
+                if (images.has("Background")) {
+                    imageUrl = images.getString("Background");
+                } else if (images.has("OfferImage")) {
+                    imageUrl = images.getString("OfferImage");
+                } else if (images.has("CarTexture")) {
+                    imageUrl = images.getString("CarTexture");
+                } else {
+                    continue;
+                }
             } else {
-                continue;
+                imageUrl = newDisplayAsset.getJSONArray("renderImages").getJSONObject(0).getString("image");
+                color = item.getJSONObject("colors").getString("color1");
             }
 
             // Get the shop item type, name, and item type. For all except bundles and tracks, we'll also get the rarity and set if it exists
@@ -502,7 +509,7 @@ public final class FortniteAPI {
 
             // Get the item price and add the item to the list
             int itemPrice = item.getInt("finalPrice");
-            ShopItem shopItem = new ShopItem(shopItemType, itemName, itemPrice, imageUrl, rarity, set, itemType);
+            ShopItem shopItem = new ShopItem(shopItemType, itemName, itemPrice, imageUrl, color, rarity, set, itemType);
             if (!shopItems.contains(shopItem)) {
                 shopItems.add(shopItem);
             }
@@ -581,7 +588,7 @@ public final class FortniteAPI {
     /**
      * Record representing a shop item. Implements {@link Comparable} so that the items can be sorted.
      */
-    private record ShopItem(ShopItemType shopItemType, String name, int price, String imageUrl, String rarity, String set, String itemType) implements Comparable<ShopItem> {
+    private record ShopItem(ShopItemType shopItemType, String name, int price, String imageUrl, String backgroundColor, String rarity, String set, String itemType) implements Comparable<ShopItem> {
         /**
          * Compares the items by whether they are bundles, then by shop item type, then by rarity, then by set, then by item type, then by name
          * @param item2 the other item to be compared.
