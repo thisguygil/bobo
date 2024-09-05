@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
+import net.dv8tion.jda.api.requests.RestAction;
 import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -31,6 +32,14 @@ public class SearchCommand extends AbstractMusic {
     private static final ScheduledExecutorService scheduledService = Executors.newScheduledThreadPool(1);
     private static final Map<Long, SlashCommandInteractionEvent> MESSAGE_EVENT_MAP = new HashMap<>();
     private static final Map<SlashCommandInteractionEvent, String[]> EVENT_LINKS_MAP = new HashMap<>();
+    private static final List<Emoji> EMOJIS = List.of(
+            Emoji.fromUnicode("❌"),
+            Emoji.fromUnicode("1️⃣"),
+            Emoji.fromUnicode("2️⃣"),
+            Emoji.fromUnicode("3️⃣"),
+            Emoji.fromUnicode("4️⃣"),
+            Emoji.fromUnicode("5️⃣")
+    );
 
     /**
      * Creates a new search command.
@@ -372,7 +381,7 @@ public class SearchCommand extends AbstractMusic {
      * @param numLinks The number of links.
      */
     private void handleResult(String message, String type, int numLinks) {
-        message += "\nPlease select a " + type + " to play by selecting the proper reaction, or the " + EmojiType.X + " reaction to cancel.";
+        message += String.format("\nPlease select a %s to play by selecting the proper reaction, or the %s reaction to cancel.", type, EMOJIS.get(0));
         hook.editOriginal(StringEscapeUtils.unescapeHtml4(message)).queue(success -> addReactions(success, numLinks));
         MESSAGE_EVENT_MAP.put(event.getHook().retrieveOriginal().complete().getIdLong(), event);
     }
@@ -394,21 +403,21 @@ public class SearchCommand extends AbstractMusic {
 
         Emoji reaction = reactionEvent.getReaction().getEmoji();
         int index;
-        if (reaction.equals(EmojiType.X.asEmoji())) {
+        if (reaction.equals(EMOJIS.getFirst())) {
             long messageId = reactionEvent.getMessageIdLong();
             MESSAGE_EVENT_MAP.remove(messageId);
             EVENT_LINKS_MAP.remove(commandEvent);
             reactionEvent.getChannel().deleteMessageById(messageId).queue();
             return;
-        } else if (reaction.equals(EmojiType.ONE.asEmoji())) {
+        } else if (reaction.equals(EMOJIS.get(1))) {
             index = 0;
-        } else if (reaction.equals(EmojiType.TWO.asEmoji())) {
+        } else if (reaction.equals(EMOJIS.get(2))) {
             index = 1;
-        } else if (reaction.equals(EmojiType.THREE.asEmoji())) {
+        } else if (reaction.equals(EMOJIS.get(3))) {
             index = 2;
-        } else if (reaction.equals(EmojiType.FOUR.asEmoji())) {
+        } else if (reaction.equals(EMOJIS.get(4))) {
             index = 3;
-        } else if (reaction.equals(EmojiType.FIVE.asEmoji())) {
+        } else if (reaction.equals(EMOJIS.get(5))) {
             index = 4;
         } else {
             return;
@@ -439,9 +448,17 @@ public class SearchCommand extends AbstractMusic {
      * @param numLinks The number of links to add reactions for.
      */
     private void addReactions(@Nonnull Message message, int numLinks) {
-        message.addReaction(EmojiType.X.asEmoji()).queue();
-        List<Emoji> emojis = List.of(EmojiType.ONE.asEmoji(), EmojiType.TWO.asEmoji(), EmojiType.THREE.asEmoji(), EmojiType.FOUR.asEmoji(), EmojiType.FIVE.asEmoji());
-        emojis.stream().limit(numLinks).forEach(emoji -> message.addReaction(emoji).queue());
+        List<RestAction<Void>> actions = EMOJIS.stream()
+                .limit(numLinks + 1) // Add 1 for the cancel reaction
+                .map(message::addReaction)
+                .toList();
+
+        // Use flatMap to chain the reactions together so we can queue them all at once
+        RestAction<Void> chain = actions.stream()
+                .reduce((a, b) -> a.flatMap(_ -> b))
+                .orElseThrow();
+
+        chain.queue();
 
         // Schedule a task to clean up resources after 1 minute
         scheduledService.schedule(() -> cleanupResources(message.getIdLong(), event), 1, TimeUnit.MINUTES);
