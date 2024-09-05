@@ -16,7 +16,7 @@ public class RestartCommand extends AbstractOwner {
     @Override
     protected void handleOwnerCommand() {
         // Uses callback to ensure that the message is sent before the bot shuts down.
-        event.getChannel().sendMessage("Restarting...").queue(success -> Bobo.restart(), failure -> Bobo.restart());
+        event.getChannel().sendMessage("Restarting...").queue(_ -> Bobo.restart(), _ -> Bobo.restart());
     }
 
     @Override

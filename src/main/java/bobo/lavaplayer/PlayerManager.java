@@ -29,6 +29,7 @@ import net.dv8tion.jda.api.interactions.InteractionHook;
 
 import javax.annotation.Nonnull;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static bobo.utils.StringUtils.*;
 
@@ -63,7 +64,7 @@ public class PlayerManager {
                 Config.get("SPOTIFY_CLIENT_SECRET"),
                 Config.get("SP_DC"),
                 "US",
-                (v) -> audioPlayerManager,
+                (_) -> audioPlayerManager,
                 new DefaultMirroringAudioTrackResolver(null)
         );
 
@@ -94,7 +95,7 @@ public class PlayerManager {
      * @return The guild music manager.
      */
     public GuildMusicManager getMusicManager(@Nonnull Guild guild) {
-        return this.musicManagers.computeIfAbsent(guild.getIdLong(), (guildId) -> {
+        return this.musicManagers.computeIfAbsent(guild.getIdLong(), (_) -> {
             final GuildMusicManager guildMusicManager = new GuildMusicManager(this.audioPlayerManager, guild);
             guild.getAudioManager().setSendingHandler(guildMusicManager.sendHandler);
             return guildMusicManager;
@@ -123,7 +124,8 @@ public class PlayerManager {
         this.audioPlayerManager.loadItemOrdered(musicManager, trackURL, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
-                StringBuilder message = new StringBuilder("Adding to queue ");
+                int position = scheduler.queue.size() + 1 + (scheduler.currentTrack != null ? 1 : 0);
+                StringBuilder message = new StringBuilder("Adding ");
                 switch (trackType) {
                     case TRACK, FILE -> {
                         AudioTrackInfo info = track.getInfo();
@@ -137,31 +139,50 @@ public class PlayerManager {
                         TTSCommand.addTTSMessage(event.getGuild(), track, decodeUrl(trackURL.replace("ftts://", "")));
                     }
                 }
+                message.append(" to queue position ")
+                        .append(markdownBold(position))
+                        .append(".");
 
-                // Uses the success callback to ensure that the message is edited before the track is queued.
-                // Otherwise, the message that the track was added to the queue may be sent after the message that the track is now playing.
-                // Also ensures that if there's an error, the track is not queued.
-                hook.editOriginal(message.toString()).queue(success -> scheduler.queue(track, member, channel, trackType));
+                hook.editOriginal(message.toString()).queue(_ -> scheduler.queue(track, member, channel, trackType));
             }
 
             @Override
             public void playlistLoaded(AudioPlaylist playlist) {
                 // If the playlist is a search result, play the first track in the search results
                 if (playlist.isSearchResult()) {
-                    trackLoaded(playlist.getTracks().get(0));
+                    trackLoaded(playlist.getTracks().getFirst());
                     return;
                 }
 
                 final List<AudioTrack> tracks = playlist.getTracks();
-                boolean isAlbum = SpotifyLink.URL_PATTERN
-                        .matcher(trackURL)
-                        .group("type")
-                        .equals("album");
-                hook.editOriginal("Adding to queue " + markdownBold(tracks.size()) + " tracks from " + (isAlbum ? "album" : "playlist") + " " + markdownLinkNoEmbed(playlist.getName(), trackURL)).queue(success -> {
+                String message = getMessage(playlist, tracks);
+
+                hook.editOriginal(message).queue(_ -> {
                     for (final AudioTrack track : tracks) {
                         scheduler.queue(track, member, channel, TrackType.TRACK);
                     }
                 });
+            }
+
+            @Nonnull
+            private String getMessage(AudioPlaylist playlist, List<AudioTrack> tracks) {
+                int trackCount = tracks.size();
+                int position = scheduler.queue.size() + 1 + (scheduler.currentTrack != null ? 1 : 0);
+
+                AtomicBoolean isAlbum = new AtomicBoolean();
+                SpotifyLink.URL_PATTERN
+                        .matcher(trackURL)
+                        .results()
+                        .findFirst()
+                        .ifPresent(matchResult -> isAlbum.set(matchResult.group("type").equals("album")));
+
+                return String.format("Adding **%s** tracks from %s %s to queue positions **%d-%d**.",
+                        trackCount,
+                        isAlbum.get() ? "album" : "playlist",
+                        markdownLinkNoEmbed(playlist.getName(), trackURL),
+                        position,
+                        position + trackCount - 1
+                );
             }
 
             @Override
@@ -176,6 +197,11 @@ public class PlayerManager {
         });
     }
 
+    /**
+     * Gets the lyrics manager.
+     *
+     * @return The lyrics manager.
+     */
     public LyricsManager getLyricsManager() {
         return this.lyricsManager;
     }
