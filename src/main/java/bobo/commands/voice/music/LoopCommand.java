@@ -8,7 +8,6 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class LoopCommand extends AbstractMusic {
     /**
@@ -45,7 +44,7 @@ public class LoopCommand extends AbstractMusic {
             return;
         }
 
-        switch (Objects.requireNonNull(event.getSubcommandName())) {
+        switch (event.getOption("value").getAsString()) {
             case "track" -> track();
             case "queue" -> queue();
             case "off" -> off();
