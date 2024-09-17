@@ -57,7 +57,11 @@ public class PlayerManager {
                 new MediaConnectWithThumbnail(),
                 new TvHtml5EmbeddedWithThumbnail()
         );
-        Web.setPoTokenAndVisitorData(Config.get("PO_TOKEN"), Config.get("PO_VISITOR_DATA"));
+
+        String poToken = Config.get("PO_TOKEN");
+        String poVisitorData = Config.get("PO_VISITOR_DATA");
+        Web.setPoTokenAndVisitorData(poToken, poVisitorData);
+        WebEmbedded.setPoTokenAndVisitorData(poToken, poVisitorData);
 
         SpotifySourceManager spotifySourceManager = new SpotifySourceManager(
                 Config.get("SPOTIFY_CLIENT_ID"),
