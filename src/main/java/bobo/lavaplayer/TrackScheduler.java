@@ -109,11 +109,12 @@ public class TrackScheduler extends AudioEventAdapter {
      */
     @Override
     public void onTrackException(AudioPlayer player, AudioTrack track, @Nonnull FriendlyException exception) {
-        currentTrack.channel().sendMessage("Failed to start track: " + markdownBold(exception.getMessage())).queue();
+        TrackRecord record = this.currentTrack == null ? this.previousTrack : this.currentTrack;
+        record.channel().sendMessage("Failed to start track: " + markdownBold(exception.getMessage())).queue();
         if (this.looping != LoopCommand.looping.NONE) {
             this.looping = LoopCommand.looping.NONE;
         }
-        if (currentTrack.trackType() == TrackType.TTS) {
+        if (record.trackType() == TrackType.TTS) {
             TTSCommand.nextTTSMessage(this.guild, track);
         }
     }
