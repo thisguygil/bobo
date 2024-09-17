@@ -1,6 +1,5 @@
 package bobo;
 
-import bobo.commands.owner.SetActivityCommand;
 import bobo.utils.DailyTask;
 import bobo.utils.SQLConnection;
 import com.github.ygimenez.model.PaginatorBuilder;
@@ -53,7 +52,7 @@ public class Bobo {
                     .setDeleteOnCancel(true)
                     .activate();
         } catch (Exception e) {
-            e.printStackTrace();
+            System.err.println("Failed to create paginator.");
         }
     }
 
@@ -124,7 +123,7 @@ public class Bobo {
                     statement.executeBatch();
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                System.err.println("Failed to save voice channels to database.");
             }
 
             jda.shutdownNow();
