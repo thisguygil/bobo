@@ -263,10 +263,12 @@ public class RandomCommand extends AbstractGeneral {
         Pattern pattern = Pattern.compile(regex);
         Matcher matcher = pattern.matcher(quote);
         StringBuilder formattedQuote = new StringBuilder();
-        String speaker;
+        String originalQuote, speaker;
         while (matcher.find()) {
-            speaker = matcher.group(2);
-            matcher.appendReplacement(formattedQuote, "$1\n-||" + speaker + "||");
+            originalQuote = matcher.group(1).trim();
+            speaker = matcher.group(2).trim();
+            String replacement = String.format("%s\n-||%s||", originalQuote, speaker);
+            matcher.appendReplacement(formattedQuote, replacement);
         }
         matcher.appendTail(formattedQuote);
         return formattedQuote.toString();
