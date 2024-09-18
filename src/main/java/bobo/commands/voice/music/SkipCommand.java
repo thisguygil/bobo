@@ -22,14 +22,15 @@ public class SkipCommand extends AbstractMusic {
         if (currentTrack == null) {
             hook.editOriginal("There is nothing currently playing.").queue();
         } else {
-            hook.editOriginal("Skipped." + (scheduler.looping == LoopCommand.looping.TRACK ? " Looping has been turned off." : "")).queue();
-            scheduler.nextTrack();
-            if (scheduler.looping == LoopCommand.looping.TRACK) {
+            boolean wasLoopingTrack = scheduler.looping == LoopCommand.looping.TRACK;
+            if (wasLoopingTrack) {
                 scheduler.looping = LoopCommand.looping.NONE;
             }
             if (currentTrack.trackType() == TrackType.TTS) {
                 TTSCommand.nextTTSMessage(event.getGuild(), currentTrack.track());
             }
+            scheduler.nextTrack();
+            hook.editOriginal("Skipped." + (wasLoopingTrack ? " Looping has been turned off." : "")).queue();
         }
     }
 
