@@ -73,7 +73,7 @@ public class PlayerManager {
         );
 
         DeezerAudioSourceManager deezerAudioSourceManager = new DeezerAudioSourceManager(Config.get("DEEZER_MASTER_DECRYPTION_KEY"));
-        FloweryTTSSourceManager floweryTTSSourceManager = new FloweryTTSSourceManager("Eric");
+        FloweryTTSSourceManager floweryTTSSourceManager = new FloweryTTSSourceManager(Config.get("FLOWERY_TTS_VOICE"));
 
         this.audioPlayerManager.registerSourceManagers(
                 youtubeAudioSourceManager,
