@@ -9,6 +9,8 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.cache.CacheFlag;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -23,6 +25,8 @@ import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 
 public class Bobo {
+    private static final Logger logger = LoggerFactory.getLogger(Bobo.class);
+
     private static JDA jda;
 
     private static final String insertVoiceChannelsShutdownTableSQL = "INSERT INTO voice_channels_shutdown (channel_id) VALUES (?)";
@@ -52,7 +56,7 @@ public class Bobo {
                     .setDeleteOnCancel(true)
                     .activate();
         } catch (Exception e) {
-            System.err.println("Failed to create paginator.");
+            logger.error("Failed to create paginator.", e);
         }
     }
 
@@ -97,7 +101,7 @@ public class Bobo {
      */
     public static void setShutdownHook() {
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            System.out.println("Shutting down...");
+            logger.info("Shutting down...");
 
             // Save voice channels that the bot is connected to, so that it can reconnect to them on restart.
             List<String> connectedChannels = new ArrayList<>();
@@ -123,7 +127,7 @@ public class Bobo {
                     statement.executeBatch();
                 }
             } catch (SQLException e) {
-                System.err.println("Failed to save voice channels to database.");
+                logger.error("Failed to save voice channels.", e);
             }
 
             jda.shutdownNow();

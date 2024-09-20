@@ -24,6 +24,8 @@ import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.sql.*;
@@ -33,6 +35,8 @@ import static bobo.commands.AbstractMessageCommand.PREFIX;
 import static bobo.commands.admin.ConfigCommand.*;
 
 public class Listener extends ListenerAdapter {
+    private static final Logger logger = LoggerFactory.getLogger(Listener.class);
+
     private final CommandManager manager = new CommandManager();
 
     /**
@@ -63,9 +67,13 @@ public class Listener extends ListenerAdapter {
 
         if (event.isFromType(ChannelType.PRIVATE)) {
             GuildChannel channel = Bobo.getJDA().getGuildChannelById(Long.parseLong(Config.get("DM_LOG_CHANNEL_ID")));
+            if (channel == null) {
+                return;
+            }
+
             Message originalMessage = event.getMessage();
             MessageCreateBuilder message = new MessageCreateBuilder()
-                    .addContent("@silent **Message from " + author.getAsMention() + "**\n");
+                    .addContent("**Message from " + author.getAsMention() + "**\n");
 
             String messageContent = originalMessage.getContentDisplay();
             if (!messageContent.isEmpty()) {
@@ -79,8 +87,8 @@ public class Listener extends ListenerAdapter {
                 message.setEmbeds(embeds);
             }
 
-            assert channel != null;
             ((GuildMessageChannel) channel).sendMessage(message.build()).queue();
+            logger.info("DM Message from {} logged.", author.getName());
         } else if (event.isFromType(ChannelType.GUILD_PRIVATE_THREAD)) {
             ChatCommand.handleThreadMessage(event);
         }
@@ -162,7 +170,7 @@ public class Listener extends ListenerAdapter {
             statement3.setString(1, guildId);
             statement3.executeUpdate();
         } catch (SQLException e) {
-            System.out.println("Error deleting guild from tables: " + e.getMessage());
+            logger.error("Failed to delete guild from tables.", e);
         }
     }
 
@@ -189,17 +197,17 @@ public class Listener extends ListenerAdapter {
      */
     @Override
     public void onReady(@Nonnull ReadyEvent event) {
-        System.out.println("Setting activity...");
+        logger.info(("Setting activity..."));
         SetActivityCommand.setActivity();
 
-        System.out.println("Loading quotes and clips...");
+        logger.info("Loading quotes and clips...");
         RandomCommand.loadQuotesMap();
         RandomCommand.loadClipsMap();
 
-        System.out.println("Joining voice channels...");
+        logger.info("Joining voice channels...");
         JoinCommand.joinShutdown();
 
-        System.out.println("Bobo is ready!");
+        logger.info("Bobo is ready!");
     }
 
     /**

@@ -21,30 +21,47 @@ repositories {
 }
 
 dependencies {
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.9.2")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:5.9.2")
-    implementation("javax.annotation:javax.annotation-api:1.3.2")
-    implementation("org.apache.commons:commons-text:1.12.0")
+    // Discord API
     implementation("net.dv8tion:JDA:5.1.0")
-    implementation("com.github.ygimenez:Pagination-Utils:4.0.6")
-    implementation("com.theokanning.openai-gpt3-java:service:0.18.2")
+
+    // LavaPlayer
     implementation("dev.arbjerg:lavaplayer:2.2.2")
     implementation("dev.lavalink.youtube:v2:1.8.0")
     implementation("com.github.topi314.lavasrc:lavasrc:4.2.0")
     implementation("com.github.topi314.lavalyrics:lavalyrics:1.0.0")
-    implementation("com.google.api-client:google-api-client:2.6.0")
+
+    // JDA Utilities
+    implementation("com.github.ygimenez:Pagination-Utils:4.0.6")
+
+    // Google APIs
+    implementation("com.google.api-client:google-api-client:2.7.0")
     implementation("com.google.oauth-client:google-oauth-client-jetty:1.36.0")
-    implementation("com.google.apis:google-api-services-youtube:v3-rev20240514-2.0.0")
-    implementation("se.michaelthelin.spotify:spotify-web-api-java:8.4.1")
+    implementation("com.google.apis:google-api-services-youtube:v3-rev20240909-2.0.0")
+    implementation("com.google.guava:guava:33.3.0-jre")
+
+    // Image Processing
     implementation("net.coobird:thumbnailator:0.4.20")
     implementation("com.twelvemonkeys.imageio:imageio-webp:3.11.0")
-    implementation("org.apache.httpcomponents:httpclient:4.5.14")
-    implementation("org.json:json:20240303")
-    implementation("com.google.guava:guava:33.3.0-jre")
+
+    // Database
     implementation("mysql:mysql-connector-java:8.0.33")
+
+    // Logging
+    implementation("org.slf4j:slf4j-api:2.0.16")
+    implementation("ch.qos.logback:logback-core:1.5.8")
+    implementation("ch.qos.logback:logback-classic:1.5.8")
+
+    // Other API Wrappers
+    implementation("se.michaelthelin.spotify:spotify-web-api-java:8.4.1")
+    implementation("com.theokanning.openai-gpt3-java:service:0.18.2")
+
+    // Other Java Utilities
+    implementation("jakarta.annotation:jakarta.annotation-api:3.0.0")
+    implementation("org.apache.commons:commons-text:1.12.0")
+    implementation("io.github.cdimascio:dotenv-java:3.0.2")
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.3.1")
     implementation("commons-validator:commons-validator:1.9.0")
-    implementation("ch.qos.logback:logback-classic:1.5.6")
-    implementation("io.github.cdimascio:dotenv-java:3.0.1")
+    implementation("org.json:json:20240303")
 }
 
 tasks.jar {

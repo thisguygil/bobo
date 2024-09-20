@@ -10,6 +10,8 @@ import bobo.commands.voice.*;
 import bobo.commands.voice.music.*;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -17,6 +19,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CommandManager {
+    private static final Logger logger = LoggerFactory.getLogger(CommandManager.class);
+
     private final List<AbstractSlashCommand> slashCommands = new ArrayList<>();
     private final List<AbstractMessageCommand> messageCommands = new ArrayList<>();
 
@@ -128,8 +132,10 @@ public class CommandManager {
         AbstractSlashCommand command = getSlashCommand(event.getName());
         if (command != null) {
             command.handle(event);
+            logger.info("Slash command '{}' executed by '{}'.", event.getName(), event.getUser().getName());
         } else {
             event.reply("Error retrieving command.").queue();
+            logger.error("Slash command '{}' not found.", event.getName());
         }
     }
 
@@ -143,6 +149,7 @@ public class CommandManager {
         AbstractMessageCommand command = getMessageCommand(args[0].substring(1));
         if (command != null) {
             command.handle(event);
+            logger.info("Message command '{}' executed by '{}'.", args[0], event.getAuthor().getName());
         } // Do nothing if command is not found, as it may be a regular message or a different bot's command
     }
 }

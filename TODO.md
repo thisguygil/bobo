@@ -10,11 +10,9 @@
 * Enable the bot to be able to be added as a [user app](https://discord.com/developers/docs/tutorials/developing-a-user-installable-app)
   * Currently a normal app, but only usable in servers (as opposed to servers and the DM with the bot) as all commands are set to guild-only
   * Allows users to use the bot in any server or DM, even those the bot is not a member of
-  * Needs permission checks to be implemented first
-* Switch Last.fm commands to subcommands of one Last.fm-specific command, such as `/fm`, since the current command names aren't enough to convey that Last.fm is needed
-* Add proper logging to command usage and errors
-  * Currently only prints the stack trace for errors, and has no logging for command uses
-  * Every class will need to have its own log handling
+* Switch Last.fm commands to subcommands/command choices of one Last.fm-specific command, such as `/fm`, since the current command names aren't enough to convey that Last.fm is needed
+* Add a FileAppender to the logback configuration
+  * Currently only logs to the console which is fine, but it would be useful to have logs saved to a file for later reference
 * Migration to [Lavalink](https://lavalink.dev/index.html) for music playback
   * More efficient and scalable than [Lavaplayer](https://github.com/lavalink-devs/lavaplayer) (currently using) and has more features, but is more complex to set up
   * The current music commands are tightly coupled with Lavaplayer

@@ -69,11 +69,9 @@ public class NowPlayingCommand extends AbstractMusic {
                     embed.addField("Album", albumName, true);
                 }
             }
-            case FILE -> {
-                embed.setTitle(title, uri)
-                        .addField("Author", info.author, true)
-                        .setFooter(footerText(info, currentAudioTrack));
-            }
+            case FILE -> embed.setTitle(title, uri)
+                    .addField("Author", info.author, true)
+                    .setFooter(footerText(info, currentAudioTrack));
             case TTS -> embed.setTitle("TTS Message")
                     .setDescription(TTSCommand.getTTSMessage(musicManager.guild, currentAudioTrack));
         }
