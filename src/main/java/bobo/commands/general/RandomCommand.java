@@ -10,6 +10,8 @@ import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.sql.Connection;
@@ -29,6 +31,8 @@ import java.util.regex.Pattern;
  * There can be multiple quotes in one message, and blank space does not matter.
  */
 public class RandomCommand extends AbstractGeneral {
+    private static Logger logger = LoggerFactory.getLogger(RandomCommand.class);
+
     public static final Map<Guild, List<Message>> guildQuoteListMap = new HashMap<>();
     public static final Map<Guild, List<Message>> guildClipListMap = new HashMap<>();
     private static final String selectQuotesSQL = "SELECT channel_id FROM quotes_channels WHERE guild_id = ?";
@@ -131,15 +135,17 @@ public class RandomCommand extends AbstractGeneral {
      * Loads all quotes from all quotes channels into the map
      */
     public static void loadQuotesMap() {
+        Guild guild = null;
         try (Connection connection = SQLConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(selectAllQuotesSQL)) {
             ResultSet resultSet = statement.executeQuery();
             JDA jda = Bobo.getJDA();
             while (resultSet.next()) {
-                Guild guild = jda.getGuildById(resultSet.getString("guild_id"));
+                guild = jda.getGuildById(resultSet.getString("guild_id"));
                 GuildChannel channel = jda.getGuildChannelById(resultSet.getString("channel_id"));
-                assert guild != null;
-                assert channel != null;
+                if (guild == null || channel == null) {
+                    continue;
+                }
 
                 List<Message> messages = new ArrayList<>();
                 GuildMessageChannel messageChannel = (GuildMessageChannel) channel;
@@ -150,8 +156,9 @@ public class RandomCommand extends AbstractGeneral {
                 }
                 guildQuoteListMap.put(guild, messages);
             }
+            logger.info("Quotes map loaded.");
         } catch (SQLException e) {
-            System.err.println("Error loading quotes map: " + e.getMessage());
+            logger.warn("Failed to load quotes map.");
         }
     }
 
@@ -246,8 +253,9 @@ public class RandomCommand extends AbstractGeneral {
                 }
                 guildClipListMap.put(guild, messages);
             }
+            logger.info("Clips map loaded.");
         } catch (SQLException e) {
-            System.err.println("Error loading clips map: " + e.getMessage());
+            logger.warn("Failed to load clips map.");
         }
     }
 

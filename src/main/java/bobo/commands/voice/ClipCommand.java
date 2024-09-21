@@ -12,6 +12,8 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.utils.FileUpload;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.sql.Connection;
@@ -25,6 +27,8 @@ import java.util.List;
 import java.util.Objects;
 
 public class ClipCommand extends AbstractVoice {
+    private static final Logger logger = LoggerFactory.getLogger(ClipCommand.class);
+
     private static final String selectSQL = "SELECT channel_id FROM clips_channels WHERE guild_id = ?";
 
     /**
@@ -72,7 +76,7 @@ public class ClipCommand extends AbstractVoice {
                     channel = null;
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.warn("Failed to get clips channel for guild {}", guild.getId(), e);
                 channel = null;
             }
 

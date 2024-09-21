@@ -9,6 +9,8 @@ import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.managers.AudioManager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.sql.*;
@@ -17,6 +19,8 @@ import java.util.List;
 import java.util.Objects;
 
 public class JoinCommand extends AbstractVoice {
+    private static final Logger logger = LoggerFactory.getLogger(JoinCommand.class);
+
     /**
      * Creates a new join command.
      */
@@ -107,8 +111,9 @@ public class JoinCommand extends AbstractVoice {
                     join(channel);
                 }
             }
+            logger.info("Joined previous voice channels.");
         } catch (SQLException e) {
-            System.err.println("Error joining voice channels: " + e.getMessage());
+            logger.error("Failed to join previous voice channels.");
         }
     }
 

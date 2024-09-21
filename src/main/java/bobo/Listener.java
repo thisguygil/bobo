@@ -197,14 +197,11 @@ public class Listener extends ListenerAdapter {
      */
     @Override
     public void onReady(@Nonnull ReadyEvent event) {
-        logger.info(("Setting activity..."));
         SetActivityCommand.setActivity();
 
-        logger.info("Loading quotes and clips...");
         RandomCommand.loadQuotesMap();
         RandomCommand.loadClipsMap();
 
-        logger.info("Joining voice channels...");
         JoinCommand.joinShutdown();
 
         logger.info("Bobo is ready!");

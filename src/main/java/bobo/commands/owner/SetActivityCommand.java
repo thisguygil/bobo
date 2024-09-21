@@ -3,10 +3,14 @@ package bobo.commands.owner;
 import bobo.Bobo;
 import bobo.utils.SQLConnection;
 import net.dv8tion.jda.api.entities.Activity;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 
 public class SetActivityCommand extends AbstractOwner {
+    private static final Logger logger = LoggerFactory.getLogger(SetActivityCommand.class);
+
     private static final String createTableSQL = "CREATE TABLE IF NOT EXISTS activity (activity_type VARCHAR(255), activity_name VARCHAR(255), stream_url VARCHAR(255))";
     private static final String deleteSQL = "DELETE FROM activity";
     private static final String insertSQL = "INSERT INTO activity (activity_type, activity_name, stream_url) VALUES (?, ?, ?)";
@@ -82,12 +86,13 @@ public class SetActivityCommand extends AbstractOwner {
      */
     public static void setActivity() {
         Activity activity = null;
+        String activityName = "";
         try (Connection connection = SQLConnection.getConnection();
              Statement statement = connection.createStatement()) {
             ResultSet resultSet = statement.executeQuery(selectSQL);
             if (resultSet.next()) {
                 String activityType = resultSet.getString("activity_type");
-                String activityName = resultSet.getString("activity_name");
+                activityName = resultSet.getString("activity_name");
                 String streamURL = resultSet.getString("stream_url");
                 activity = switch (activityType) {
                     case "playing" -> Activity.playing(activityName);
@@ -101,10 +106,13 @@ public class SetActivityCommand extends AbstractOwner {
                 return;
             }
         } catch (SQLException e) {
-            System.err.println("Error setting the activity: " + e.getMessage());
+            logger.warn("Failed to set activity.");
         }
 
-        Bobo.getJDA().getPresence().setActivity(activity);
+        if (activity != null) {
+            Bobo.getJDA().getPresence().setActivity(activity);
+            logger.info("Activity set to: {}", activityName);
+        }
     }
 
     @Override

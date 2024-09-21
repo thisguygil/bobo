@@ -56,7 +56,7 @@ public class Bobo {
                     .setDeleteOnCancel(true)
                     .activate();
         } catch (Exception e) {
-            logger.error("Failed to create paginator.", e);
+            logger.error("Failed to create paginator.");
         }
     }
 
@@ -127,7 +127,7 @@ public class Bobo {
                     statement.executeBatch();
                 }
             } catch (SQLException e) {
-                logger.error("Failed to save voice channels.", e);
+                logger.error("Failed to save voice channels.");
             }
 
             jda.shutdownNow();
