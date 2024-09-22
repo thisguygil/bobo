@@ -4,6 +4,7 @@ import bobo.Config;
 import bobo.commands.voice.music.TTSCommand;
 import bobo.utils.SpotifyLink;
 import bobo.utils.TrackType;
+import bobo.utils.YouTubeUtil;
 import com.github.topi314.lavalyrics.LyricsManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
 import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
@@ -196,7 +197,18 @@ public class PlayerManager {
 
             @Override
             public void loadFailed(FriendlyException e) {
-                hook.editOriginal("Could not load: " + markdownBold(e.getMessage())).queue();
+                String errorMessage = e.getMessage();
+                if (errorMessage.equals("Sign in to confirm you’re not a bot")) {
+                    String youtubeTitle = YouTubeUtil.getTitle(trackURL);
+                    if (youtubeTitle == null) {
+                        hook.editOriginal("Could not load: " + markdownBold(errorMessage)).queue();
+                        return;
+                    }
+
+                    loadAndPlay(event, "scsearch:" + youtubeTitle, trackType);
+                } else {
+                    hook.editOriginal("Could not load: " + markdownBold(errorMessage)).queue();
+                }
             }
         });
     }

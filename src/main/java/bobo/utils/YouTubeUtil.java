@@ -5,6 +5,7 @@ import com.google.api.client.googleapis.javanet.GoogleNetHttpTransport;
 import com.google.api.client.json.gson.GsonFactory;
 import com.google.api.services.youtube.YouTube;
 import com.google.api.services.youtube.model.SearchResult;
+import com.google.api.services.youtube.model.Video;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -191,6 +192,35 @@ public final class YouTubeUtil {
             return image;
         } catch (Exception e) {
             e.printStackTrace();
+            return null;
+        }
+    }
+
+    /**
+     * @param youTubeURL the YouTube link
+     * @return the title of the video from the given link
+     */
+    public static String getTitle(String youTubeURL) {
+        try {
+            String id = getYouTubeID(youTubeURL);
+            if (id == null) {
+                return null;
+            }
+
+            List<Video> videoList = youtube.videos()
+                    .list(List.of("snippet"))
+                    .setKey(API_KEY)
+                    .setId(List.of(id))
+                    .setMaxResults(1L)
+                    .execute()
+                    .getItems();
+
+            if (videoList == null || videoList.isEmpty()) {
+                return null;
+            }
+
+            return videoList.getFirst().getSnippet().getTitle();
+        } catch (Exception e) {
             return null;
         }
     }
