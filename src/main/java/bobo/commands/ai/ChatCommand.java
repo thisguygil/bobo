@@ -1,11 +1,13 @@
 package bobo.commands.ai;
 
 import bobo.Config;
+import io.github.sashirestela.openai.common.content.ContentPart;
 import io.github.sashirestela.openai.domain.chat.Chat;
 import io.github.sashirestela.openai.domain.chat.ChatMessage;
 import io.github.sashirestela.openai.domain.chat.ChatRequest;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -57,6 +59,7 @@ public class ChatCommand extends AbstractAI {
 
     /**
      * Handles a message received in a thread.
+     * Designed for an OpenAI model that has vision capabilities.
      *
      * @param event the message received to handle
      */
@@ -69,8 +72,26 @@ public class ChatCommand extends AbstractAI {
         threadChannel.sendTyping().queue();
         List<ChatMessage> messages = CHANNEL_MESSAGE_MAP.get(threadChannel);
 
-        String prompt = event.getMessage().getContentDisplay();
-        ChatMessage userMessage = ChatMessage.UserMessage.of(prompt);
+        Message message = event.getMessage();
+        String prompt = message.getContentDisplay();
+        List<Message.Attachment> attachments = message.getAttachments();
+
+        List<ContentPart> userMessageContent = new ArrayList<>();
+        if (prompt.isEmpty() && attachments.isEmpty()) {
+            return;
+        }
+
+        if (!prompt.isEmpty()) {
+            userMessageContent.add(ContentPart.ContentPartText.of(prompt));
+        }
+
+        attachments.stream()
+                .filter(Message.Attachment::isImage)
+                .map(attachment -> ContentPart.ContentPartImageUrl.of(
+                        ContentPart.ContentPartImageUrl.ImageUrl.of(attachment.getUrl())))
+                .forEach(userMessageContent::add);
+
+        ChatMessage userMessage = ChatMessage.UserMessage.of(userMessageContent);
         messages.add(userMessage);
 
         ChatRequest chatCompletionRequest = ChatRequest.builder()
@@ -85,7 +106,33 @@ public class ChatCommand extends AbstractAI {
         ChatMessage.ResponseMessage assistantMessage = futureAssistantMessage.firstMessage();
         messages.add(assistantMessage);
 
-        threadChannel.sendMessage(futureAssistantMessage.firstContent()).queue(_ -> CHANNEL_MESSAGE_MAP.replace(threadChannel, messages));
+        String responseContent = futureAssistantMessage.firstContent();
+
+        List<String> responseChunks = splitMessage(responseContent, 2000);
+
+        for (String chunk : responseChunks) {
+            threadChannel.sendMessage(chunk).queue();
+        }
+
+        CHANNEL_MESSAGE_MAP.replace(threadChannel, messages);
+    }
+
+    /**
+     * Splits a message into chunks of the specified size.
+     *
+     * @param message the message to split
+     * @param maxLength the maximum length of each chunk
+     * @return a list of message chunks
+     */
+    private static List<String> splitMessage(String message, int maxLength) {
+        List<String> chunks = new ArrayList<>();
+        int start = 0;
+        while (start < message.length()) {
+            int end = Math.min(message.length(), start + maxLength);
+            chunks.add(message.substring(start, end));
+            start = end;
+        }
+        return chunks;
     }
 
     /**

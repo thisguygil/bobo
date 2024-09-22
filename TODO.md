@@ -5,7 +5,6 @@
 * Add Apple Music source and [Apple Music API](https://developer.apple.com/documentation/applemusicapi/) integration
   * Not currently feasible as the API requires a paid ($99 per year) Apple Developer account to access
 ## Rewrites
-* Add [vision capabilities](https://platform.openai.com/docs/guides/vision) to the chat command
 * Enable the bot to be able to be added as a [user app](https://discord.com/developers/docs/tutorials/developing-a-user-installable-app)
   * Currently a normal app, but only usable in servers (as opposed to servers and the DM with the bot) as all commands are set to guild-only
   * Allows users to use the bot in any server or DM, even those the bot is not a member of
