@@ -1,8 +1,7 @@
 package bobo.commands.ai;
 
 import bobo.Config;
-import com.theokanning.openai.OpenAiHttpException;
-import com.theokanning.openai.image.CreateImageRequest;
+import io.github.sashirestela.openai.domain.image.ImageRequest;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
@@ -33,16 +32,17 @@ public class ImageCommand extends AbstractAI {
         var currentHook = hook;
         String prompt = Objects.requireNonNull(event.getOption("prompt")).getAsString();
 
-        CreateImageRequest createImageRequest = CreateImageRequest.builder()
+        ImageRequest createImageRequest = ImageRequest.builder()
                 .model(IMAGE_MODEL)
                 .prompt(prompt)
                 .build();
 
         CompletableFuture.supplyAsync(() -> {
             try {
-                return service.createImage(createImageRequest)
-                        .getData()
-                        .get(0)
+                return openAI.images()
+                        .create(createImageRequest)
+                        .join()
+                        .getFirst()
                         .getUrl();
             } catch (Exception e) {
                 throw new RuntimeException(e);
@@ -57,20 +57,6 @@ public class ImageCommand extends AbstractAI {
                     .setImage(imageUrl)
                     .build();
             currentHook.editOriginalEmbeds(embed).queue();
-        }).exceptionally(e -> {
-            Throwable cause = e.getCause();
-            if (cause instanceof OpenAiHttpException exception) {
-                if (exception.statusCode == 429) {
-                    currentHook.editOriginal("DALL-E 3 rate limit reached. Please try again in a few seconds.").queue();
-                } else {
-                    currentHook.editOriginal(cause.getMessage()).queue();
-                    e.printStackTrace();
-                }
-            } else {
-                currentHook.editOriginal(cause.getMessage()).queue();
-                e.printStackTrace();
-            }
-            return null;
         });
     }
 

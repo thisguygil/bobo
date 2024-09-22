@@ -47,13 +47,11 @@ dependencies {
     implementation("mysql:mysql-connector-java:8.0.33")
 
     // Logging
-    implementation("org.slf4j:slf4j-api:2.0.16")
-    implementation("ch.qos.logback:logback-core:1.5.8")
     implementation("ch.qos.logback:logback-classic:1.5.8")
 
     // Other API Wrappers
     implementation("se.michaelthelin.spotify:spotify-web-api-java:8.4.1")
-    implementation("com.theokanning.openai-gpt3-java:service:0.18.2")
+    implementation("io.github.sashirestela:simple-openai:3.8.1")
 
     // Other Java Utilities
     implementation("jakarta.annotation:jakarta.annotation-api:3.0.0")

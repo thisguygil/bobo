@@ -1,9 +1,8 @@
 package bobo.commands.ai;
 
 import bobo.Config;
-import com.theokanning.openai.completion.chat.ChatCompletionRequest;
-import com.theokanning.openai.completion.chat.ChatMessage;
-import com.theokanning.openai.completion.chat.ChatMessageRole;
+import io.github.sashirestela.openai.domain.chat.ChatMessage;
+import io.github.sashirestela.openai.domain.chat.ChatRequest;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
@@ -19,7 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TLDRCommand extends AbstractAI {
-    private static final String TLDR_MODEL = Config.get("TLDR_MODEL");
+    private static final String CHAT_MODEL = Config.get("CHAT_MODEL");
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     /**
@@ -69,11 +68,11 @@ public class TLDRCommand extends AbstractAI {
                 continue;
             }
 
-            if (!messages.isEmpty() && shouldBreakLoop(messages.get(0), message, minutes)) {
+            if (!messages.isEmpty() && shouldBreakLoop(messages.getFirst(), message, minutes)) {
                 break;
             }
 
-            messages.add(0, message);
+            messages.addFirst(message);
         }
 
         int size = messages.size();
@@ -117,11 +116,7 @@ public class TLDRCommand extends AbstractAI {
      */
     private String summarizeMessages(List<Message> messages) {
         String prompt = "Conversation:\n" + formatMessages(messages) + "\n";
-        try {
-            return callOpenAI(prompt);
-        } catch (Exception e) {
-            return "Failed to summarize the conversation: " + e.getMessage();
-        }
+        return callOpenAI(prompt);
     }
 
     /**
@@ -150,24 +145,20 @@ public class TLDRCommand extends AbstractAI {
      *
      * @param prompt the prompt to call the API with
      * @return the response from the API
-     * @throws Exception if an error occurs
      */
-    private String callOpenAI(String prompt) throws Exception {
-        ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest.builder()
-                .model(TLDR_MODEL)
+    private String callOpenAI(String prompt) {
+        ChatRequest chatCompletionRequest = ChatRequest.builder()
+                .model(CHAT_MODEL)
                 .messages(List.of(
-                        new ChatMessage(ChatMessageRole.SYSTEM.value(), "You are an assistant that summarizes Discord conversations. You will be given a conversation and are to provide a concise summary, highlighting key points and main topics discussed."),
-                        new ChatMessage(ChatMessageRole.USER.value(), prompt)
+                        ChatMessage.SystemMessage.of("You are an assistant that summarizes Discord conversations. You will be given a conversation and are to provide a concise summary, highlighting key points and main topics discussed."),
+                        ChatMessage.UserMessage.of(prompt)
                 ))
                 .build();
 
-        return service.createChatCompletion(chatCompletionRequest)
-                .getChoices()
-                .stream()
-                .findFirst()
-                .orElseThrow(() -> new Exception("No response from OpenAI"))
-                .getMessage()
-                .getContent();
+        return openAI.chatCompletions()
+                .create(chatCompletionRequest)
+                .join()
+                .firstContent();
     }
 
     @Override

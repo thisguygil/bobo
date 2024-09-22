@@ -1,9 +1,9 @@
 package bobo.commands.ai;
 
 import bobo.Config;
-import com.theokanning.openai.completion.chat.ChatCompletionRequest;
-import com.theokanning.openai.completion.chat.ChatMessage;
-import com.theokanning.openai.completion.chat.ChatMessageRole;
+import io.github.sashirestela.openai.domain.chat.Chat;
+import io.github.sashirestela.openai.domain.chat.ChatMessage;
+import io.github.sashirestela.openai.domain.chat.ChatRequest;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
@@ -70,21 +70,22 @@ public class ChatCommand extends AbstractAI {
         List<ChatMessage> messages = CHANNEL_MESSAGE_MAP.get(threadChannel);
 
         String prompt = event.getMessage().getContentDisplay();
-        ChatMessage userMessage = new ChatMessage(ChatMessageRole.USER.value(), prompt);
+        ChatMessage userMessage = ChatMessage.UserMessage.of(prompt);
         messages.add(userMessage);
 
-        ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest.builder()
+        ChatRequest chatCompletionRequest = ChatRequest.builder()
                 .model(CHAT_MODEL)
                 .messages(messages)
                 .build();
 
-        ChatMessage assistantMessage = service.createChatCompletion(chatCompletionRequest)
-                .getChoices()
-                .get(0)
-                .getMessage();
+        Chat futureAssistantMessage = openAI.chatCompletions()
+                .create(chatCompletionRequest)
+                .join();
+
+        ChatMessage.ResponseMessage assistantMessage = futureAssistantMessage.firstMessage();
         messages.add(assistantMessage);
 
-        threadChannel.sendMessage(assistantMessage.getContent()).queue(success -> CHANNEL_MESSAGE_MAP.replace(threadChannel, messages));
+        threadChannel.sendMessage(futureAssistantMessage.firstContent()).queue(_ -> CHANNEL_MESSAGE_MAP.replace(threadChannel, messages));
     }
 
     /**
@@ -103,10 +104,12 @@ public class ChatCommand extends AbstractAI {
      */
     public static void initializeMessages(@Nonnull List<ChatMessage> messages) {
         messages.clear();
-        final ChatMessage systemMessage = new ChatMessage(ChatMessageRole.SYSTEM.value(), "You are Bobo, " +
-                "a Discord bot created by Gil. You use slash commands and provide clipping, music, chat, image " +
-                "creation, Last.fm info, Fortnite info, and other features. Don't refer to yourself as an AI language " +
-                "model. When users talk to you, engage with them. For help, direct users to the 'help' command.");
+        final ChatMessage systemMessage = ChatMessage.SystemMessage.of(
+                "You are Bobo, a Discord bot created by Gil. You use slash commands and provide clipping, " +
+                        "music, chat, image creation, Last.fm info, Fortnite info, and other features. Don't refer " +
+                        "to yourself as an AI language model. When users talk to you, engage with them. For help, " +
+                        "direct users to the 'help' command."
+        );
         messages.add(systemMessage);
     }
 

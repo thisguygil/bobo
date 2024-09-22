@@ -2,15 +2,16 @@ package bobo.commands.ai;
 
 import bobo.Config;
 import bobo.commands.AbstractSlashCommand;
-import com.theokanning.openai.service.OpenAiService;
+import io.github.sashirestela.openai.SimpleOpenAI;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
-import java.time.Duration;
 import java.util.List;
 
 public abstract class AbstractAI extends AbstractSlashCommand {
-    protected static final OpenAiService service = new OpenAiService(Config.get("OPENAI_API_KEY"), Duration.ZERO);
+    protected static final SimpleOpenAI openAI = SimpleOpenAI.builder()
+            .apiKey(Config.get("OPENAI_API_KEY"))
+            .build();
 
     /**
      * Creates a new AI command.
