@@ -1,7 +1,5 @@
 # List of Goals for Bobo
 ## New Features
-* Add normal search to Google command
-  * Currently only supports image search
 * Add Apple Music source and [Apple Music API](https://developer.apple.com/documentation/applemusicapi/) integration
   * Not currently feasible as the API requires a paid ($99 per year) Apple Developer account to access
 ## Rewrites

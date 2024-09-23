@@ -35,6 +35,7 @@ dependencies {
 
     // Google APIs
     implementation("com.google.api-client:google-api-client:2.7.0")
+    implementation("com.google.apis:google-api-services-customsearch:v1-rev20240821-2.0.0")
     implementation("com.google.oauth-client:google-oauth-client-jetty:1.36.0")
     implementation("com.google.apis:google-api-services-youtube:v3-rev20240909-2.0.0")
     implementation("com.google.guava:guava:33.3.0-jre")

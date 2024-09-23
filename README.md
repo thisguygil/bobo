@@ -11,7 +11,7 @@ The greatest Discord bot on the planet (don't fact-check that).
   * AI-generate images with [DALL-E 3](https://openai.com/index/dall-e-3/)
 * Last.fm integration with the [Last.fm API](https://www.last.fm/api)
   * Get currently playing Spotify track information
-* Search Google for images with [Google Images](https://developers.google.com/custom-search/v1/overview)
+* Search Google (and Google Images) with the [Google API](https://developers.google.com/custom-search/v1/overview)
 * Get Fortnite stats, daily shop updates, and map information with the [Fortnite API](https://fortnite-api.com/)
 
 ## Supported audio sources and formats
