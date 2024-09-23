@@ -153,13 +153,18 @@ public class PlayerManager {
 
             @Override
             public void playlistLoaded(AudioPlaylist playlist) {
+                List<AudioTrack> tracks = playlist.getTracks();
+                if (tracks.isEmpty()) {
+                    noMatches();
+                    return;
+                }
+
                 // If the playlist is a search result, play the first track in the search results
                 if (playlist.isSearchResult()) {
                     trackLoaded(playlist.getTracks().getFirst());
                     return;
                 }
 
-                final List<AudioTrack> tracks = playlist.getTracks();
                 String message = getMessage(playlist, tracks);
 
                 hook.editOriginal(message).queue(_ -> {
@@ -192,7 +197,13 @@ public class PlayerManager {
 
             @Override
             public void noMatches() {
-                hook.editOriginal(trackType == TrackType.TTS ? "No speakable text found" : "Nothing found by " + markdownBold(trackURL)).queue();
+                String query;
+                if (trackURL.startsWith("scsearch:")) {
+                    query = trackURL.replace("scsearch:", "");
+                } else {
+                    query = trackURL;
+                }
+                hook.editOriginal(trackType == TrackType.TTS ? "No speakable text found" : "Nothing found by " + markdownBold(query)).queue();
             }
 
             @Override
