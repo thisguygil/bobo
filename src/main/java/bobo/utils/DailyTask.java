@@ -83,7 +83,7 @@ public class DailyTask {
                 if (messageChannel != null) {
                     messageChannel.sendMessage(message)
                             .setFiles(fileUploads)
-                            .queue(success -> files.forEach(file -> {
+                            .queue(_ -> files.forEach(file -> {
                                 if (!file.delete()) {
                                     System.err.println("Failed to delete file: " + file.getAbsolutePath());
                                 }

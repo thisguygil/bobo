@@ -88,6 +88,10 @@ public class FortniteCommand extends AbstractGeneral {
         // Get the shop images and send them.
         CompletableFuture.supplyAsync(() -> {
                     List<BufferedImage> images = FortniteAPI.getShopImages();
+                    if (images == null) {
+                        return null;
+                    }
+
                     return images.stream()
                             .map(image -> convertBufferedImageToFile(image, "shop"))
                             .filter(Objects::nonNull)

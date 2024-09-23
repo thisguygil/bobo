@@ -94,11 +94,16 @@ public final class FortniteAPI {
             // Create images for both categories
             BufferedImage imageWithoutTracks = drawItems(nonTrackItems, vbuckIconUrl, contentWidth, contentHeight);
             BufferedImage imageOnlyTracks = drawItems(trackItems, vbuckIconUrl, contentWidth, contentHeight);
-            if (imageWithoutTracks == null || imageOnlyTracks == null) {
-                return null;
-            }
 
-            return List.of(imageWithoutTracks, imageOnlyTracks);
+            if (imageWithoutTracks == null && imageOnlyTracks == null) {
+                return List.of();
+            } else if (imageWithoutTracks == null) {
+                return List.of(imageOnlyTracks);
+            } else if (imageOnlyTracks == null) {
+                return List.of(imageWithoutTracks);
+            } else {
+                return List.of(imageWithoutTracks, imageOnlyTracks);
+            }
         } catch (IOException | URISyntaxException | FontFormatException e) {
             e.printStackTrace();
             return null;
@@ -128,6 +133,10 @@ public final class FortniteAPI {
 
             // Initialize the variables to hold the optimal configuration
             int numItems = shopItems.size();
+            if (numItems == 0) {
+                return null;
+            }
+
             int maxSquareLength = 0;
             int bestImagesPerRow = 1;
             int bestNumRows = numItems;
@@ -187,7 +196,7 @@ public final class FortniteAPI {
             int finalBestNumRows = bestNumRows;
             int finalMaxSquareLength = maxSquareLength;
 
-            return allLoaded.thenApply(v -> {
+            return allLoaded.thenApply(_ -> {
                 List<BufferedImage> images = imageFutures.stream()
                         .map(CompletableFuture::join)
                         .toList();
