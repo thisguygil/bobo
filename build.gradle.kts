@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("com.gradleup.shadow") version "8.3.0"
+    id("com.gradleup.shadow") version "8.3.2"
 }
 
 group = "com.thisguygil"
@@ -9,8 +9,8 @@ version = "1.0"
 val mainClassName = "bobo.Bobo"
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_22
-    targetCompatibility = JavaVersion.VERSION_22
+    sourceCompatibility = JavaVersion.VERSION_23
+    targetCompatibility = JavaVersion.VERSION_23
 }
 
 repositories {
