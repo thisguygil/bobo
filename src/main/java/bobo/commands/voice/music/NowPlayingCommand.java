@@ -8,6 +8,7 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
@@ -47,9 +48,10 @@ public class NowPlayingCommand extends AbstractMusic {
         AudioTrackInfo info = currentAudioTrack.getInfo();
         String title = info.title;
         String uri = info.uri;
+        Member member = currentTrack.member();
         EmbedBuilder embed = new EmbedBuilder()
                 .setAuthor("Now " + (info.isStream ? "Streaming" : (musicManager.scheduler.looping == LoopCommand.looping.TRACK ? "Looping" : "Playing")))
-                .addField("Requested by", currentTrack.member().getAsMention(), true)
+                .addField("Requested by", member == null ? "Unknown Member" : member.getAsMention(), true)
                 .setColor(Color.red);
 
         // Add track type-specific information
