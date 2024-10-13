@@ -113,7 +113,7 @@ public class JoinCommand extends AbstractVoice {
             }
             logger.info("Joined previous voice channels.");
         } catch (SQLException e) {
-            logger.error("Failed to join previous voice channels.");
+            logger.warn("Failed to join previous voice channels.");
         }
     }
 

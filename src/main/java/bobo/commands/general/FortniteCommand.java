@@ -10,6 +10,8 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.utils.FileUpload;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -24,6 +26,8 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
 public class FortniteCommand extends AbstractGeneral {
+    private static final Logger logger = LoggerFactory.getLogger(FortniteCommand.class);
+
     /**
      * Creates a new Fortnite command.
      */
@@ -149,7 +153,7 @@ public class FortniteCommand extends AbstractGeneral {
         if (file != null) {
             currentHook.editOriginal(message).setAttachments(FileUpload.fromData(file)).queue(_ -> {
                 if (!file.delete()) {
-                    System.err.println("Failed to delete file: " + file.getAbsolutePath());
+                    logger.error("Failed to delete file: {}", file.getAbsolutePath());
                 }
             });
         } else {
@@ -171,7 +175,7 @@ public class FortniteCommand extends AbstractGeneral {
                     .queue(_ -> {
                         for (File file : files) {
                             if (!file.delete()) {
-                                System.err.println("Failed to delete file: " + file.getAbsolutePath());
+                                logger.error("Failed to delete file: {}", file.getAbsolutePath());
                             }
                         }
                     });
