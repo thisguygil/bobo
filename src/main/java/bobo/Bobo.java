@@ -61,14 +61,23 @@ public class Bobo {
     }
 
     /**
-     * Starts daily tasks. THIS DEPENDS ON THE TIME ZONE OF THE BOT. HERE IT IS UTC.
+     * Starts daily tasks, depending on the time zone of the bot, configured with the UTC_OFFSET environment variable.
+     * If the environment variable is not set, the default time zone is UTC.
      */
     public static void startDailyTasks() {
+        // Get the UTC offset from the environment variable
+        String offset = Config.get("UTC_OFFSET");
+        if (offset == null) {
+            offset = "0";
+        }
+        int utcOffset = Integer.parseInt(offset);
+
         // Get the current time in UTC
         ZonedDateTime nowUTC = ZonedDateTime.now(ZoneId.of("UTC"));
 
         // Set the Fortnite shop reset time at 00:01 UTC
-        ZonedDateTime zonedFortniteShopResetTime = nowUTC.withHour(0).withMinute(1).withSecond(0).withNano(0);
+        ZonedDateTime zonedFortniteShopResetTime = nowUTC.withHour(0).withMinute(1).withSecond(0).withNano(0)
+                .plusHours(utcOffset);
 
         // Ensure the Fortnite shop reset time is set to the next occurrence if the current time is past today's reset time
         if (nowUTC.isAfter(zonedFortniteShopResetTime)) {
@@ -76,7 +85,8 @@ public class Bobo {
         }
 
         // Set the bot restart time at 08:00 UTC
-        ZonedDateTime zonedBotRestartTime = nowUTC.withHour(8).withMinute(0).withSecond(0).withNano(0);
+        ZonedDateTime zonedBotRestartTime = nowUTC.withHour(8).withMinute(0).withSecond(0).withNano(0)
+                .plusHours(utcOffset);
 
         // Ensure the bot restart time is set to the next occurrence if the current time is past today's restart time
         if (nowUTC.isAfter(zonedBotRestartTime)) {
