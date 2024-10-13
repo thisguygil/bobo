@@ -12,10 +12,13 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.utils.FileUpload;
+import okhttp3.MediaType;
+import org.apache.commons.lang3.tuple.Pair;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -63,7 +66,13 @@ public class ClipCommand extends AbstractVoice {
 
         OptionMapping nameOption = event.getOption("name");
         String name = nameOption == null ? LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) : nameOption.getAsString();
-        File file = ((AudioReceiveListener) receiveHandler).createFile(30, name);
+        Pair<File, byte[]> pair = ((AudioReceiveListener) receiveHandler).createClip(30, name);
+        if (pair == null) {
+            hook.editOriginal("Clip creation failed.").queue();
+            return;
+        }
+
+        File file = pair.getLeft();
         if (file != null) {
             GuildChannel channel;
             try (Connection connection = SQLConnection.getConnection();
@@ -76,19 +85,25 @@ public class ClipCommand extends AbstractVoice {
                     channel = null;
                 }
             } catch (SQLException e) {
-                logger.warn("Failed to get clips channel for guild {}", guild.getId(), e);
+                logger.warn("Failed to get clips channel for guild {}", guild.getId());
                 channel = null;
             }
 
-            FileUpload fileUpload = FileUpload.fromData(file);
-            if (channel != null && channel != event.getChannel()) {
-                ((GuildMessageChannel) channel).sendFiles(fileUpload).queue();
-            }
-            hook.editOriginalAttachments(fileUpload).queue(success -> {
-                if (!file.delete()) {
-                    System.err.println("Failed to delete file: " + file.getName());
+            byte[] waveform = pair.getRight();
+            try (FileUpload fileUpload = FileUpload.fromData(file)
+                    .asVoiceMessage(MediaType.parse("audio/wav"), waveform, 30)) {
+                if (channel != null && channel != event.getChannel()) {
+                    ((GuildMessageChannel) channel).sendFiles(fileUpload).queue();
                 }
-            });
+                hook.editOriginalAttachments(fileUpload).queue(_ -> {
+                    if (!file.delete()) {
+                        logger.error("Failed to delete file: {}", file.getName());
+                    }
+                });
+            } catch (IOException e) {
+                logger.error("Failed to upload file: {}", file.getName());
+                hook.editOriginal("Clip creation failed.").queue();
+            }
         } else {
             hook.editOriginal("Clip creation failed.").queue();
         }

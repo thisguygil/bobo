@@ -2,6 +2,9 @@ package bobo.utils;
 
 import net.dv8tion.jda.api.audio.AudioReceiveHandler;
 import net.dv8tion.jda.api.audio.CombinedAudio;
+import org.apache.commons.lang3.tuple.Pair;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.sound.sampled.AudioFileFormat;
@@ -14,6 +17,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class AudioReceiveListener implements AudioReceiveHandler {
+    private static final Logger logger = LoggerFactory.getLogger(AudioReceiveListener.class);
+
     private final List<byte[]> receivedBytes = new ArrayList<>();
     private final double volume;
     private static final int MAX_TIME = 30 * 1000 / 20;
@@ -41,14 +46,16 @@ public class AudioReceiveListener implements AudioReceiveHandler {
     }
 
     /**
-     * Creates a file with the audio data received in the last x seconds.
+     * Creates a pair of a file and a waveform byte array from the recorded audio.
      *
      * @param seconds the number of seconds to record
-     * @return the file created
+     * @param name    the name of the file
+     * @return the pair of the file and the waveform byte array
      */
-    public File createFile(int seconds, String name) {
+    public Pair<File, byte[]> createClip(int seconds, String name) {
         int packetCount = (seconds * 1000) / 20;
         File file;
+        byte[] waveform = new byte[256];
         try {
             int size = 0;
             List<byte[]> packets = new ArrayList<>();
@@ -69,13 +76,19 @@ public class AudioReceiveListener implements AudioReceiveHandler {
                 }
             }
 
+            int step = Math.max(decodedData.length / 256, 1);
+            for (int j = 0; j < waveform.length; j++) {
+                int index = j * step;
+                waveform[j] = decodedData[index];
+            }
+
             file = new File(name + ".wav");
             AudioSystem.write(new AudioInputStream(new ByteArrayInputStream(decodedData), AudioReceiveHandler.OUTPUT_FORMAT, decodedData.length), AudioFileFormat.Type.WAVE, file);
+            return Pair.of(file, waveform);
         } catch (IOException | OutOfMemoryError e) {
-            file = null;
-            e.printStackTrace();
+            logger.error("Failed to create clip");
         }
 
-        return file;
+        return null;
     }
 }
