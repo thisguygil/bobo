@@ -12,6 +12,8 @@ import com.sedmelluq.discord.lavaplayer.track.AudioTrackEndReason;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.util.concurrent.BlockingDeque;
@@ -23,6 +25,8 @@ import static bobo.utils.StringUtils.markdownBold;
  * This class schedules tracks for the audio player. It contains the queue of tracks.
  */
 public class TrackScheduler extends AudioEventAdapter {
+    private static final Logger logger = LoggerFactory.getLogger(TrackScheduler.class);
+
     public final AudioPlayer player;
     public BlockingDeque<TrackRecord> queue;
     public TrackRecord currentTrack;
@@ -109,8 +113,9 @@ public class TrackScheduler extends AudioEventAdapter {
      */
     @Override
     public void onTrackException(AudioPlayer player, AudioTrack track, @Nonnull FriendlyException exception) {
+        logger.warn("Track exception: {}", exception.getMessage());
         TrackRecord record = this.currentTrack == null ? this.previousTrack : this.currentTrack;
-        record.channel().sendMessage("Failed to start track: " + markdownBold(exception.getMessage())).queue();
+        record.channel().sendMessage("Error: " + markdownBold(exception.getMessage())).queue();
         if (this.looping != LoopCommand.looping.NONE) {
             this.looping = LoopCommand.looping.NONE;
         }
