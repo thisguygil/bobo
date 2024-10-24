@@ -28,6 +28,7 @@ I recommend using an SQL database such as MySQL to store the bot's data. It is n
 ### Bot Owner commands
 Can be used by the bot owner only (as message commands) - configured with the owner's [Discord user ID](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID) in the `.env` file
 * `!restart` - Restarts Bobo
+* `!sql <statement>` - Executes an SQL statement (useful for debugging, but be careful)
 * `!set-activity` - Sets Bobo's activity/status
     * Subcommands:
     * `custom <status>` - Sets Bobo's status to `<status>`

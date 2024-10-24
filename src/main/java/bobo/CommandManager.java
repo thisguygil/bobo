@@ -31,6 +31,7 @@ public class CommandManager {
         // Bot Owner commands
         messageCommands.add(new RestartCommand());
         messageCommands.add(new SetActivityCommand());
+        messageCommands.add(new SQLCommand());
 
         // Server Admin commands
         slashCommands.add(new ConfigCommand());
@@ -149,7 +150,7 @@ public class CommandManager {
         AbstractMessageCommand command = getMessageCommand(args[0].substring(1));
         if (command != null) {
             command.handle(event);
-            logger.info("Message command '{}' executed by '{}'.", args[0], event.getAuthor().getName());
+            logger.info("Message command '{}' executed by '{}'.", args[0].substring(1), event.getAuthor().getName());
         } // Do nothing if command is not found, as it may be a regular message or a different bot's command
     }
 }
