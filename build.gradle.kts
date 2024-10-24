@@ -52,7 +52,7 @@ dependencies {
 
     // Other API Wrappers
     implementation("se.michaelthelin.spotify:spotify-web-api-java:8.4.1")
-    implementation("io.github.sashirestela:simple-openai:3.8.1")
+    implementation("io.github.sashirestela:simple-openai:3.9.0")
 
     // Other Java Utilities
     implementation("jakarta.annotation:jakarta.annotation-api:3.0.0")
