@@ -18,9 +18,9 @@ The greatest Discord bot on the planet (don't fact-check that).
 Bobo supports all the web sources and file formats supported by [Lavaplayer](https://github.com/lavalink-devs/lavaplayer), as well as Spotify and Deezer supported by [LavaSrc](https://github.com/topi314/LavaSrc), with extra functionality from API integrations.
 
 ## Hosting
-Bobo isn't currently publicly available to be invited to your server, but you can host your own instance easily. Bobo is containerized with Docker, so you can run it on any platform that supports Docker by cloning the repository, filling in the environment variables in the `.env` file and running the `docker-compose up` command.
+Bobo isn't currently publicly available to be invited to your server, but you can host your own instance easily. You can run it on any platform with Docker by copying the `docker-compose.yml`, filling in the environment variables in the `.env` file (see below), and running `docker-compose up -d`.
 
-An example file including all the required variables can be found in the repository's `.env.example` file.
+An example file including all the required environment variables can be found in the `.env.example` file.
 
 The `docker-compose` configuration also includes a MySQL database for storing user/server data, so you can run the bot without setting up a database separately.
 
