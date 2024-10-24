@@ -59,7 +59,6 @@ dependencies {
     implementation("org.apache.commons:commons-text:1.12.0")
     implementation("org.apache.commons:commons-lang3:3.17.0")
     implementation("org.apache.httpcomponents.client5:httpclient5:5.3.1")
-    implementation("io.github.cdimascio:dotenv-java:3.0.2")
     implementation("commons-validator:commons-validator:1.9.0")
     implementation("org.json:json:20240303")
 }

@@ -1,0 +1,26 @@
+services:
+  bot:
+    image: thisguygil/bobo:latest
+    env_file:
+      - .env
+    depends_on:
+      - mysql
+    networks:
+      - botnet
+
+  mysql:
+    image: mysql:latest
+    env_file:
+      - .env
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - botnet
+
+volumes:
+  mysql-data:
+
+networks:
+  botnet:
