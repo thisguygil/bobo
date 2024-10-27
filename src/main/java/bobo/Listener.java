@@ -12,8 +12,7 @@ import bobo.utils.AudioReceiveListener;
 import bobo.utils.SQLConnection;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
-import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
-import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
@@ -23,13 +22,11 @@ import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.sql.*;
-import java.util.List;
 
 import static bobo.commands.AbstractMessageCommand.PREFIX;
 import static bobo.commands.admin.ConfigCommand.*;
@@ -59,41 +56,24 @@ public class Listener extends ListenerAdapter {
     @Override
     public void onMessageReceived(@Nonnull MessageReceivedEvent event) {
         User author = event.getAuthor();
+        Message message = event.getMessage();
 
         // Ignore bot, system, and webhook messages
-        if (author.isBot() || author.isSystem() || event.getMessage().isWebhookMessage()) {
+        if (author.isBot() || author.isSystem() || message.isWebhookMessage()) {
             return;
         }
 
         if (event.isFromType(ChannelType.PRIVATE)) {
-            GuildChannel channel = Bobo.getJDA().getGuildChannelById(Long.parseLong(Config.get("DM_LOG_CHANNEL_ID")));
-            if (channel == null) {
-                return;
+            MessageChannel channel = Bobo.getJDA().getChannelById(MessageChannel.class, Config.get("DM_LOG_CHANNEL_ID"));
+            if (channel != null) {
+                message.forwardTo(channel).queue();
+                logger.info("DM Message from {} logged in #{}", author.getName(), channel.getName());
             }
-
-            Message originalMessage = event.getMessage();
-            MessageCreateBuilder message = new MessageCreateBuilder()
-                    .addContent("**Message from " + author.getAsMention() + "**\n");
-
-            String messageContent = originalMessage.getContentDisplay();
-            if (!messageContent.isEmpty()) {
-                message.addContent(messageContent + "\n");
-            }
-
-            originalMessage.getAttachments().forEach(attachment -> message.addContent(attachment.getUrl() + "\n"));
-
-            List<MessageEmbed> embeds = originalMessage.getEmbeds();
-            if (!embeds.isEmpty()) {
-                message.setEmbeds(embeds);
-            }
-
-            ((GuildMessageChannel) channel).sendMessage(message.build()).queue();
-            logger.info("DM Message from {} logged.", author.getName());
         } else if (event.isFromType(ChannelType.GUILD_PRIVATE_THREAD)) {
             ChatCommand.handleThreadMessage(event);
         }
 
-        if (event.getMessage().getContentRaw().startsWith(PREFIX)) {
+        if (message.getContentRaw().startsWith(PREFIX)) {
             manager.handle(event);
         }
     }
