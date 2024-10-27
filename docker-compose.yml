@@ -1,15 +1,19 @@
 services:
-  bot:
+  bobo:
     image: thisguygil/bobo:latest
+    container_name: bobo
+    restart: unless-stopped
     env_file:
       - .env
     depends_on:
       - mysql
     networks:
-      - botnet
+      - bobonet
 
   mysql:
     image: mysql:latest
+    container_name: mysql
+    restart: unless-stopped
     env_file:
       - .env
     ports:
@@ -17,10 +21,11 @@ services:
     volumes:
       - mysql-data:/var/lib/mysql
     networks:
-      - botnet
+      - bobonet
 
 volumes:
   mysql-data:
 
 networks:
-  botnet:
+  bobonet:
+    name: bobonet
