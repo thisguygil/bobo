@@ -1,7 +1,7 @@
 package bobo;
 
 import bobo.utils.DailyTask;
-import bobo.utils.SQLConnection;
+import bobo.utils.api_clients.SQLConnection;
 import com.github.ygimenez.model.PaginatorBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;

@@ -9,7 +9,7 @@ import bobo.commands.voice.music.SearchCommand;
 import bobo.commands.voice.music.TTSCommand;
 import bobo.lavaplayer.PlayerManager;
 import bobo.utils.AudioReceiveListener;
-import bobo.utils.SQLConnection;
+import bobo.utils.api_clients.SQLConnection;
 import net.dv8tion.jda.api.entities.*;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;

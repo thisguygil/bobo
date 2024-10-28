@@ -2,7 +2,7 @@ package bobo.commands.admin;
 
 import bobo.Bobo;
 import bobo.commands.general.RandomCommand;
-import bobo.utils.SQLConnection;
+import bobo.utils.api_clients.SQLConnection;
 import net.dv8tion.jda.api.entities.channel.unions.GuildChannelUnion;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;

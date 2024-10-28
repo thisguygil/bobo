@@ -2,6 +2,9 @@ package bobo.commands.voice.music;
 
 import bobo.lavaplayer.PlayerManager;
 import bobo.utils.*;
+import bobo.utils.api_clients.SoundCloudAPI;
+import bobo.utils.api_clients.SpotifyLink;
+import bobo.utils.api_clients.YouTubeUtil;
 import com.google.api.services.youtube.model.SearchResult;
 import com.google.api.services.youtube.model.SearchResultSnippet;
 import net.dv8tion.jda.api.Permission;

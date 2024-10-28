@@ -1,7 +1,7 @@
 package bobo.commands.general;
 
 import bobo.Config;
-import bobo.utils.GoogleCustomSearchService;
+import bobo.utils.api_clients.GoogleCustomSearchService;
 import com.github.ygimenez.method.Pages;
 import com.github.ygimenez.model.InteractPage;
 import com.github.ygimenez.model.Page;

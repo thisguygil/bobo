@@ -2,9 +2,9 @@ package bobo.lavaplayer;
 
 import bobo.Config;
 import bobo.commands.voice.music.TTSCommand;
-import bobo.utils.SpotifyLink;
+import bobo.utils.api_clients.SpotifyLink;
 import bobo.utils.TrackType;
-import bobo.utils.YouTubeUtil;
+import bobo.utils.api_clients.YouTubeUtil;
 import com.github.topi314.lavalyrics.LyricsManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
 import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;

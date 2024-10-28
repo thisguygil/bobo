@@ -1,7 +1,7 @@
 package bobo.commands.owner;
 
 import bobo.Bobo;
-import bobo.utils.SQLConnection;
+import bobo.utils.api_clients.SQLConnection;
 import net.dv8tion.jda.api.entities.Activity;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,4 +1,4 @@
-package bobo.utils;
+package bobo.utils.api_clients;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;

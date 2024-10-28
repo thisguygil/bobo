@@ -2,7 +2,7 @@ package bobo.commands.voice.music;
 
 import bobo.utils.StringUtils;
 import bobo.utils.TrackType;
-import bobo.utils.YouTubeUtil;
+import bobo.utils.api_clients.YouTubeUtil;
 import com.google.api.services.youtube.model.SearchResult;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;

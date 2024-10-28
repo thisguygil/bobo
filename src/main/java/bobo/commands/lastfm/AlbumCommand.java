@@ -1,7 +1,7 @@
 package bobo.commands.lastfm;
 
-import bobo.utils.LastfmAPI;
-import bobo.utils.MusicBrainzAPI;
+import bobo.utils.api_clients.LastfmAPI;
+import bobo.utils.api_clients.MusicBrainzAPI;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;

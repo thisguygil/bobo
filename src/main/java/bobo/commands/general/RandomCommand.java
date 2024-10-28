@@ -2,7 +2,7 @@ package bobo.commands.general;
 
 import bobo.Bobo;
 import bobo.utils.AudioReceiveListener;
-import bobo.utils.SQLConnection;
+import bobo.utils.api_clients.SQLConnection;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;

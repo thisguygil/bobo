@@ -1,6 +1,8 @@
 package bobo.utils;
 
 import bobo.Bobo;
+import bobo.utils.api_clients.FortniteAPI;
+import bobo.utils.api_clients.SQLConnection;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.utils.FileUpload;
 

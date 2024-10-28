@@ -1,6 +1,6 @@
 package bobo.commands.general;
 
-import bobo.utils.FortniteAPI;
+import bobo.utils.api_clients.FortniteAPI;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.Command;

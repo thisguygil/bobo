@@ -1,6 +1,6 @@
 package bobo.commands.owner;
 
-import bobo.utils.SQLConnection;
+import bobo.utils.api_clients.SQLConnection;
 
 import java.sql.Connection;
 import java.sql.ResultSet;

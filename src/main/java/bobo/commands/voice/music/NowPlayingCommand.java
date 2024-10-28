@@ -1,7 +1,7 @@
 package bobo.commands.voice.music;
 
 import bobo.lavaplayer.GuildMusicManager;
-import bobo.utils.SpotifyLink;
+import bobo.utils.api_clients.SpotifyLink;
 import bobo.utils.TimeFormat;
 import bobo.utils.TrackRecord;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;

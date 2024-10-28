@@ -1,6 +1,6 @@
 package bobo.commands.voice.music;
 
-import bobo.utils.SpotifyLink;
+import bobo.utils.api_clients.SpotifyLink;
 import com.github.topi314.lavalyrics.LyricsManager;
 import com.github.topi314.lavalyrics.lyrics.AudioLyrics;
 import com.github.ygimenez.method.Pages;

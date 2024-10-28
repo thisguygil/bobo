@@ -2,7 +2,7 @@ package bobo.commands.lastfm;
 
 import bobo.Config;
 import bobo.commands.AbstractSlashCommand;
-import bobo.utils.SQLConnection;
+import bobo.utils.api_clients.SQLConnection;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import org.jetbrains.annotations.Nullable;
