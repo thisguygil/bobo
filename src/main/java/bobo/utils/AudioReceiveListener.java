@@ -2,11 +2,13 @@ package bobo.utils;
 
 import net.dv8tion.jda.api.audio.AudioReceiveHandler;
 import net.dv8tion.jda.api.audio.CombinedAudio;
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
+import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import javax.sound.sampled.AudioFileFormat;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
@@ -41,21 +43,21 @@ public class AudioReceiveListener implements AudioReceiveHandler {
             }
             receivedBytes.add(combinedAudio.getAudioData(volume));
         } catch (OutOfMemoryError e) {
-            e.printStackTrace();
+            logger.error("Failed to handle combined audio");
         }
     }
 
     /**
-     * Creates a pair of a file and a waveform byte array from the recorded audio.
+     * Creates a {@link Triple} containing the file, waveform, and duration of the clip.
      *
      * @param seconds the number of seconds to record
      * @param name    the name of the file
-     * @return the pair of the file and the waveform byte array
+     * @return the {@link Triple}, or null if the clip could not be created
      */
-    public Pair<File, byte[]> createClip(int seconds, String name) {
+    @Nullable
+    public Triple<File, byte[], Integer> createClip(int seconds, String name) {
         int packetCount = (seconds * 1000) / 20;
         File file;
-        byte[] waveform = new byte[256];
         try {
             int size = 0;
             List<byte[]> packets = new ArrayList<>();
@@ -76,19 +78,49 @@ public class AudioReceiveListener implements AudioReceiveHandler {
                 }
             }
 
-            int step = Math.max(decodedData.length / 256, 1);
-            for (int j = 0; j < waveform.length; j++) {
-                int index = j * step;
-                waveform[j] = decodedData[index];
-            }
+            byte[] waveform = generateWaveform(decodedData);
+            int duration = calculateClipDuration(decodedData);
 
             file = new File(name + ".wav");
             AudioSystem.write(new AudioInputStream(new ByteArrayInputStream(decodedData), AudioReceiveHandler.OUTPUT_FORMAT, decodedData.length), AudioFileFormat.Type.WAVE, file);
-            return Pair.of(file, waveform);
+            return Triple.of(file, waveform, duration);
         } catch (IOException | OutOfMemoryError e) {
             logger.error("Failed to create clip");
         }
 
         return null;
+    }
+
+    /**
+     * Generates a waveform from the decoded audio data.
+     *
+     * @param decodedData the decoded audio data
+     * @return the waveform byte array
+     */
+    public static byte[] generateWaveform(byte[] decodedData) {
+        byte[] waveform = new byte[256];
+
+        int step = Math.max(decodedData.length / 256, 1);
+        for (int j = 0; j < waveform.length; j++) {
+            int index = j * step;
+            waveform[j] = decodedData[index];
+        }
+
+        return waveform;
+    }
+
+    /**
+     * Calculates the duration of the clip from the audio data.
+     *
+     * @param audioData the audio data
+     * @return the duration of the clip
+     */
+    @Contract(pure = true)
+    public static int calculateClipDuration(@Nonnull byte[] audioData) {
+        int bytesPerSample = 2;
+        int sampleRate = 48000;
+        int numChannels = 2;
+
+        return audioData.length / (sampleRate * bytesPerSample * numChannels);
     }
 }

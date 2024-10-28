@@ -13,7 +13,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.utils.FileUpload;
 import okhttp3.MediaType;
-import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,13 +66,13 @@ public class ClipCommand extends AbstractVoice {
 
         OptionMapping nameOption = event.getOption("name");
         String name = nameOption == null ? LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) : nameOption.getAsString();
-        Pair<File, byte[]> pair = ((AudioReceiveListener) receiveHandler).createClip(30, name);
-        if (pair == null) {
+        Triple<File, byte[], Integer> triple = ((AudioReceiveListener) receiveHandler).createClip(30, name);
+        if (triple == null) {
             hook.editOriginal("Clip creation failed.").queue();
             return;
         }
 
-        File file = pair.getLeft();
+        File file = triple.getLeft();
         if (file != null) {
             GuildChannel channel;
             try (Connection connection = SQLConnection.getConnection();
@@ -89,9 +89,12 @@ public class ClipCommand extends AbstractVoice {
                 channel = null;
             }
 
-            byte[] waveform = pair.getRight();
+            byte[] waveform = triple.getMiddle();
+            MediaType mediaType = MediaType.parse("audio/wav");
+            int duration = triple.getRight();
+
             try (FileUpload fileUpload = FileUpload.fromData(file)
-                    .asVoiceMessage(MediaType.parse("audio/wav"), waveform, 30)) {
+                    .asVoiceMessage(mediaType, waveform, duration)) {
                 if (channel != null && channel != event.getChannel()) {
                     ((GuildMessageChannel) channel).sendFiles(fileUpload).queue();
                 }

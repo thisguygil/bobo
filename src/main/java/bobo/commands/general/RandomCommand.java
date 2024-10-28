@@ -1,6 +1,7 @@
 package bobo.commands.general;
 
 import bobo.Bobo;
+import bobo.utils.AudioReceiveListener;
 import bobo.utils.SQLConnection;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
@@ -10,10 +11,16 @@ import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
+import net.dv8tion.jda.api.utils.FileUpload;
+import okhttp3.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.net.HttpURLConnection;
+import java.net.URI;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -31,7 +38,7 @@ import java.util.regex.Pattern;
  * There can be multiple quotes in one message, and blank space does not matter.
  */
 public class RandomCommand extends AbstractGeneral {
-    private static Logger logger = LoggerFactory.getLogger(RandomCommand.class);
+    private static final Logger logger = LoggerFactory.getLogger(RandomCommand.class);
 
     public static final Map<Guild, List<Message>> guildQuoteListMap = new HashMap<>();
     public static final Map<Guild, List<Message>> guildClipListMap = new HashMap<>();
@@ -70,7 +77,7 @@ public class RandomCommand extends AbstractGeneral {
         try {
             loadGuildQuotes(guild);
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.warn("Failed to load quotes for guild {}.", guild.getId());
             hook.editOriginal("An error occurred while getting the quote.").queue();
             return;
         }
@@ -135,7 +142,7 @@ public class RandomCommand extends AbstractGeneral {
      * Loads all quotes from all quotes channels into the map
      */
     public static void loadQuotesMap() {
-        Guild guild = null;
+        Guild guild;
         try (Connection connection = SQLConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(selectAllQuotesSQL)) {
             ResultSet resultSet = statement.executeQuery();
@@ -171,7 +178,7 @@ public class RandomCommand extends AbstractGeneral {
         try {
             loadGuildClips(guild);
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Failed to get clip.");
             hook.editOriginal("An error occurred while getting the clip.").queue();
             return;
         }
@@ -188,7 +195,44 @@ public class RandomCommand extends AbstractGeneral {
 
         int randomIndex = (int) (Math.random() * guildList.size());
         Message randomMessage = guildList.get(randomIndex);
-        hook.editOriginal(randomMessage.getAttachments().get(0).getUrl()).queue();
+        Message.Attachment attachment = randomMessage.getAttachments().getFirst();
+
+        // Download the attachment and re-upload it
+        try (ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+             InputStream inputStream = downloadFile(attachment.getUrl())) {
+            byte[] buffer = new byte[1024];
+            int bytesRead;
+            while ((bytesRead = inputStream.read(buffer)) != -1) {
+                byteArrayOutputStream.write(buffer, 0, bytesRead);
+            }
+
+            byte[] fileData = byteArrayOutputStream.toByteArray();
+            MediaType mediaType = MediaType.parse("audio/wav");
+            byte[] waveform = AudioReceiveListener.generateWaveform(fileData);
+            int duration = AudioReceiveListener.calculateClipDuration(fileData);
+
+            FileUpload voiceMessageUpload = FileUpload.fromData(fileData, attachment.getFileName())
+                    .asVoiceMessage(mediaType, waveform, duration);
+
+            hook.editOriginalAttachments(voiceMessageUpload).queue();
+        } catch (Exception e) {
+            logger.error("Failed to send clip as attachment.", e);
+            hook.editOriginal("Failed to send the clip.").queue();
+        }
+    }
+
+    /**
+     * Helper method to download a file from a URL
+     *
+     * @param fileUrl the URL of the file to download
+     * @return the input stream of the downloaded file
+     * @throws Exception if the file cannot be downloaded
+     */
+    private InputStream downloadFile(String fileUrl) throws Exception {
+        HttpURLConnection connection = (HttpURLConnection) new URI(fileUrl).toURL().openConnection();
+        connection.setRequestMethod("GET");
+        connection.setDoInput(true);
+        return connection.getInputStream();
     }
 
     /**
@@ -216,11 +260,11 @@ public class RandomCommand extends AbstractGeneral {
         }
 
         messageChannel = (GuildMessageChannel) channel;
-        List<Message> messages = guildClipListMap.computeIfAbsent(guild, k -> new ArrayList<>());
+        List<Message> messages = guildClipListMap.computeIfAbsent(guild, _ -> new ArrayList<>());
         for (Message message : messageChannel.getIterableHistory()) {
             List<Message.Attachment> attachments = message.getAttachments();
             if (!attachments.isEmpty()) {
-                if (Objects.equals(attachments.get(0).getFileExtension(), "wav")) {
+                if (Objects.equals(attachments.getFirst().getFileExtension(), "wav")) {
                     messages.add(message);
                 }
             }
@@ -246,7 +290,7 @@ public class RandomCommand extends AbstractGeneral {
                 for (Message message : messageChannel.getIterableHistory()) {
                     List<Message.Attachment> attachments = message.getAttachments();
                     if (!attachments.isEmpty()) {
-                        if (attachments.get(0).getFileExtension().equals("wav")) {
+                        if (Objects.equals(attachments.getFirst().getFileExtension(), "wav")) {
                             messages.add(message);
                         }
                     }
