@@ -31,7 +31,7 @@ dependencies {
     implementation("com.github.topi314.lavalyrics:lavalyrics:1.0.0")
 
     // JDA Utilities
-    implementation("com.github.ygimenez:Pagination-Utils:4.0.6")
+    implementation("com.github.ygimenez:Pagination-Utils:4.1.0")
 
     // Google APIs
     implementation("com.google.api-client:google-api-client:2.7.0")
