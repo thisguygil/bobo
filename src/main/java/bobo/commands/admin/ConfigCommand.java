@@ -3,17 +3,17 @@ package bobo.commands.admin;
 import bobo.Bobo;
 import bobo.commands.general.RandomCommand;
 import bobo.utils.SQLConnection;
+import net.dv8tion.jda.api.entities.channel.unions.GuildChannelUnion;
+import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
-import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
-import net.dv8tion.jda.api.interactions.commands.build.SubcommandGroupData;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.Objects;
 
 public class ConfigCommand extends AbstractAdmin {
     private static final String createClipsTableSQL = "CREATE TABLE IF NOT EXISTS clips_channels (guild_id VARCHAR(255) PRIMARY KEY, channel_id VARCHAR(255) NOT NULL)";
@@ -31,21 +31,14 @@ public class ConfigCommand extends AbstractAdmin {
      */
     public ConfigCommand() {
         super(Commands.slash("config", "Configures the server.")
-                .addSubcommands(
-                        new SubcommandData("clips", "Sets the channel to send clips to.")
-                                .addOption(OptionType.INTEGER, "channel-id", "ID of the channel. Defaults to current channel.", false),
-                        new SubcommandData("quotes", "Sets the channel to send quotes to.")
-                                .addOption(OptionType.INTEGER, "channel-id", "ID of the channel. Defaults to current channel.", false),
-                        new SubcommandData("fortnite-shop", "Sets the channel to send the daily Fortnite Shop to.")
-                                .addOption(OptionType.INTEGER, "channel-id", "ID of the channel. Defaults to current channel.", false)
-                )
-                .addSubcommandGroups(
-                        new SubcommandGroupData("reset", "Resets the configured channel in the server.")
-                                .addSubcommands(
-                                        new SubcommandData("clips", "Resets the clips channel."),
-                                        new SubcommandData("quotes", "Resets the quotes channel."),
-                                        new SubcommandData("fortnite-shop", "Resets the Fortnite Shop channel.")
-                                )
+                .addOptions(
+                        new OptionData(OptionType.STRING, "setting", "The setting to configure.", true)
+                                .addChoices(
+                                        new Command.Choice("clips channel", "clips"),
+                                        new Command.Choice("quotes channel", "quotes"),
+                                        new Command.Choice("Fortnite Shop channel", "fortnite-shop")
+                                ),
+                        new OptionData(OptionType.CHANNEL, "channel", "The channel to set. No channel input clears the setting.", false)
                 )
         );
     }
@@ -60,24 +53,22 @@ public class ConfigCommand extends AbstractAdmin {
         event.deferReply().queue();
 
         String guildId = event.getGuildChannel().getGuild().getId();
-        OptionMapping channelIdOption = event.getOption("channel-id");
-        String channelId = channelIdOption == null ? event.getChannel().getId() : channelIdOption.getAsString();
-        String subcommandGroupName = event.getSubcommandGroup();
-        String subcommandName = Objects.requireNonNull(event.getSubcommandName());
-
-        if (subcommandGroupName != null) {
-            if (subcommandGroupName.equals("reset")) {
-                switch (subcommandName) {
-                    case "clips" -> resetClips(guildId);
-                    case "quotes" -> resetQuotes(guildId);
-                    case "fortnite-shop" -> resetFortniteShop(guildId);
-                }
-            }
-        } else {
-            switch (subcommandName) {
+        String setting = event.getOption("setting").getAsString();
+        OptionMapping channelOption = event.getOption("channel");
+        GuildChannelUnion channel;
+        if (channelOption != null) {
+            channel = channelOption.getAsChannel();
+            String channelId = channel.getId();
+            switch (setting) {
                 case "clips" -> configClips(guildId, channelId);
                 case "quotes" -> configQuotes(guildId, channelId);
                 case "fortnite-shop" -> configFortniteShop(guildId, channelId);
+            }
+        } else {
+            switch (setting) {
+                case "clips" -> resetClips(guildId);
+                case "quotes" -> resetQuotes(guildId);
+                case "fortnite-shop" -> resetFortniteShop(guildId);
             }
         }
     }
@@ -214,13 +205,13 @@ public class ConfigCommand extends AbstractAdmin {
     public String getHelp() {
         return super.getHelp() + " " + """
                 Configures the server.
-                Usage: `/config <subcommand>`
-                Subcommands:
-                * `clips <channel>` - Sets <channel> as the channel to send clips to. No channel defaults to current channel.
-                * `quotes <channel>` - Sets <channel> as the channel to send quotes to. No channel defaults to current channel.
-                * `fortnite-shop <channel> ` - Sets <channel> as the channel to send the daily Fortnite Shop to. No channel defaults to current channel.
-                * `reset clips` - Resets the clips channel.
-                * `reset quotes` - Resets the quotes channel.
-                * `reset fortnite-shop` - Resets the Fortnite Shop channel.""";
+                Usage: `/config <setting> <channel>`
+                Settings:
+                * clips channel
+                * quotes channel
+                * Fortnite Shop channel
+                No channel input clears the setting.
+                """;
+
     }
 }

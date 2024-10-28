@@ -43,30 +43,28 @@ Can be used by the bot owner only (as message commands) - configured with the ow
 ### Server Admin commands
 Can be used by server admins only
 * `/say <message>` - Makes Bobo say `<message>` in the current channel
-* `/config` - Configures the server
-  * Subcommands:
-  * `clips <channel-id>` - Sets `<channel-id>` as the channel to send clips to (no input defaults to current channel)
-  * `quotes <channel-id>` - Sets `<channel-id>` to send quotes to (no input defaults to current channel)
-  * `fortnite-shop <channel-id>` - Sets `<channel-id>` to send Fortnite shop updates to (no input defaults to current channel)
-  * Subcommand Groups:
-    * `reset`
-      * Subcommands: `clips`, `quotes`, `fortnite-shop` (resets the channel to none)
+* `/config <setting> <channel>` - Configures the server
+  * Settings:
+    * `clips channel`
+    * `quotes channel`
+    * `Fortnite Shop channel`
+  * No channel input clears the setting
 
 ### General commands
 * `/help` - Shows the list of commands or gets info on a specific command
 * `/google <query>` - Searches Google for `<query>` and returns the first 10 results
 * `/random` - Gets a random quote/clip from the respective configured channel
   * Subcommands:
-  * `quote` - Gets a random quote
-  * `clip` - Gets a random clip
+    * `quote` - Gets a random quote
+    * `clip` - Gets a random clip
 * `/fortnite` - Get info about Fortnite
   * Subcommands:
-  * `stats <username>` - Gets the stats of `<username>` in Fortnite
-  * `info` - Get info about Fortnite
-    * Choices:
-    * `shop` - Gets the current Fortnite shop
-    * `news` - Gets the current Fortnite (Battle Royale) news
-    * `map` - Gets the current Fortnite map
+    * `stats <username>` - Gets the stats of `<username>` in Fortnite
+    * `info` - Get info about Fortnite
+      * Choices:
+      * `shop` - Gets the current Fortnite shop
+      * `news` - Gets the current Fortnite (Battle Royale) news
+      * `map` - Gets the current Fortnite map
 
 ### Last.fm commands
 Requires the user to be logged into Last.fm
@@ -92,12 +90,12 @@ Can be used in voice channels only
 ### Music commands
 Subset of voice commands
 * `/play` - Plays a track in the voice channel you are in
-    * Subcommands:
+  * Subcommands:
     * `track <url/query>` - Plays given YouTube `<url>` or the first track result from `<query>`
     * `file <file>` - Plays the given `<file>` (must be a valid audio file as detailed above)
 * `/tts <message>` - Plays `<message>` as text-to-speech for the voice channel.
 * `/search` - Searches a platform, and plays the requested result
-    * Choices:
+  * Choices:
     * `youtube/spotify/soundcloud` - Search YouTube/Spotify/SoundCloud
     * `track/playlist/album` - Search for a track/playlist/album
 * `/lyrics` - Get the lyrics of the currently playing track
@@ -106,22 +104,22 @@ Subset of voice commands
 * `/skip` - Skips the current track
 * `/loop` - Loops the currently playing track or queue
   * Subcommands:
-  * `track` - Loops the currently playing track
-  * `queue` - Loops the entire queue
-  * `off` - Turns looping off
+    * `track` - Loops the currently playing track
+    * `queue` - Loops the entire queue
+    * `off` - Turns looping off
 * `/repeat` - Repeats the current/last-played track
 * `/now-playing` - Shows the current track
 * `/seek` - Seeks to specified position in the current track
   * Subcommands:
-  * `forward <seconds>` - Seeks forward by `<seconds>` seconds
-  * `backward <seconds>` - Seeks backward by `<seconds>` seconds
-  * `position <position>` - Seeks to `<position>` in the current track
+    * `forward <seconds>` - Seeks forward by `<seconds>` seconds
+    * `backward <seconds>` - Seeks backward by `<seconds>` seconds
+    * `position <position>` - Seeks to `<position>` in the current track
 * `/queue` - Shows/manipulates the current queue
   * Subcommands:
-  * `show` - Shows the current queue
-  * `clear` - Clears the current queue
-  * `remove <index>` - Removes the track at `<index>` from the queue
-  * `shuffle` - Shuffles the queue
+    * `show` - Shows the current queue
+    * `clear` - Clears the current queue
+    * `remove <index>` - Removes the track at `<index>` from the queue
+    * `shuffle` - Shuffles the queue
 
 ## Development Plans
 For a detailed list of planned features, improvements, and bug fixes, please refer to the [TODO.md](TODO.md) file.
