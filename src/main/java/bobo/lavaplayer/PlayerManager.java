@@ -108,47 +108,29 @@ public class PlayerManager {
     }
 
     /**
-     * Loads and plays a track.
+     * Loads and plays a track, and replies to the slash command interaction.
      *
-     * @param event The event that triggered this action.
+     * @param event The slash command interaction event.
      * @param trackURL The URL of the track to play.
      * @param trackType The type of track to play.
      */
     public void loadAndPlay(@Nonnull SlashCommandInteractionEvent event, String trackURL, TrackType trackType) {
         InteractionHook hook = event.getHook();
         MessageChannel channel = event.getMessageChannel();
-        Guild guild = event.getGuildChannel().getGuild();
+        Guild guild = event.getGuild();
         Member member = event.getMember();
         final GuildMusicManager musicManager = this.getMusicManager(guild);
         TrackScheduler scheduler = musicManager.scheduler;
 
-        if (Objects.requireNonNull(Objects.requireNonNull(Objects.requireNonNull(event.getMember()).getVoiceState()).getChannel()).getType() == ChannelType.STAGE) {
+        if (member.getVoiceState().getChannel().getType() == ChannelType.STAGE) {
             guild.requestToSpeak();
         }
 
         this.audioPlayerManager.loadItemOrdered(musicManager, trackURL, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
-                int position = scheduler.queue.size() + 1 + (scheduler.currentTrack != null ? 1 : 0);
-                StringBuilder message = new StringBuilder("Adding ");
-                switch (trackType) {
-                    case TRACK, FILE -> {
-                        AudioTrackInfo info = track.getInfo();
-                        message.append(markdownLinkNoEmbed(info.title, info.uri))
-                                .append(" by ")
-                                .append(markdownBold(info.author));
-                    }
-                    case TTS -> {
-                        message.append(markdownBold("TTS Message"));
-                        TTSCommand.addGuild(guild);
-                        TTSCommand.addTTSMessage(event.getGuild(), track, decodeUrl(trackURL.replace("ftts://", "")));
-                    }
-                }
-                message.append(" to queue position ")
-                        .append(markdownBold(position))
-                        .append(".");
-
-                hook.editOriginal(message.toString()).queue(_ -> scheduler.queue(track, member, channel, trackType));
+                String message = PlayerManager.trackLoaded(guild, scheduler, track, trackURL, trackType);
+                hook.editOriginal(message).queue(_ -> scheduler.queue(track, member, channel, trackType));
             }
 
             @Override
@@ -165,34 +147,13 @@ public class PlayerManager {
                     return;
                 }
 
-                String message = getMessage(playlist, tracks);
+                String message = PlayerManager.getMessage(scheduler, playlist, trackURL, tracks);
 
                 hook.editOriginal(message).queue(_ -> {
                     for (final AudioTrack track : tracks) {
                         scheduler.queue(track, member, channel, TrackType.TRACK);
                     }
                 });
-            }
-
-            @Nonnull
-            private String getMessage(AudioPlaylist playlist, List<AudioTrack> tracks) {
-                int trackCount = tracks.size();
-                int position = scheduler.queue.size() + 1 + (scheduler.currentTrack != null ? 1 : 0);
-
-                AtomicBoolean isAlbum = new AtomicBoolean();
-                SpotifyLink.URL_PATTERN
-                        .matcher(trackURL)
-                        .results()
-                        .findFirst()
-                        .ifPresent(matchResult -> isAlbum.set(matchResult.group("type").equals("album")));
-
-                return String.format("Adding **%s** tracks from %s %s to queue positions **%d-%d**.",
-                        trackCount,
-                        isAlbum.get() ? "album" : "playlist",
-                        markdownLinkNoEmbed(playlist.getName(), trackURL),
-                        position,
-                        position + trackCount - 1
-                );
             }
 
             @Override
@@ -222,6 +183,124 @@ public class PlayerManager {
                 }
             }
         });
+    }
+
+    /**
+     * Loads and plays a track, and sends a message to the message channel.
+     *
+     * @param channel The message channel.
+     * @param member The member who requested the track.
+     * @param trackURL The URL of the track to play.
+     * @param trackType The type of track to play.
+     */
+    public void loadAndPlay(@Nonnull MessageChannel channel, Member member, String trackURL, TrackType trackType) {
+        Guild guild = member.getGuild();
+        final GuildMusicManager musicManager = this.getMusicManager(guild);
+        TrackScheduler scheduler = musicManager.scheduler;
+
+        this.audioPlayerManager.loadItemOrdered(musicManager, trackURL, new AudioLoadResultHandler() {
+            @Override
+            public void trackLoaded(AudioTrack track) {
+                String message = PlayerManager.trackLoaded(guild, scheduler, track, trackURL, trackType);
+                channel.sendMessage(message).queue(_ -> scheduler.queue(track, member, channel, trackType));
+            }
+
+            @Override
+            public void playlistLoaded(AudioPlaylist playlist) {
+                List<AudioTrack> tracks = playlist.getTracks();
+                if (tracks.isEmpty()) {
+                    noMatches();
+                    return;
+                }
+
+                // If the playlist is a search result, play the first track in the search results
+                if (playlist.isSearchResult()) {
+                    trackLoaded(playlist.getTracks().getFirst());
+                    return;
+                }
+
+                String message = PlayerManager.getMessage(scheduler, playlist, trackURL, tracks);
+
+                channel.sendMessage(message).queue(_ -> {
+                    for (final AudioTrack track : tracks) {
+                        scheduler.queue(track, member, channel, TrackType.TRACK);
+                    }
+                });
+            }
+
+
+
+            @Override
+            public void noMatches() {
+                String query;
+                if (trackURL.startsWith("scsearch:")) {
+                    query = trackURL.replace("scsearch:", "");
+                } else {
+                    query = trackURL;
+                }
+                channel.sendMessage(trackType == TrackType.TTS ? "No speakable text found" : "Nothing found by " + markdownBold(query)).queue();
+            }
+
+            @Override
+            public void loadFailed(FriendlyException e) {
+                String errorMessage = e.getMessage();
+                if (errorMessage.equals("Sign in to confirm you’re not a bot")) {
+                    String youtubeTitle = YouTubeUtil.getTitle(trackURL);
+                    if (youtubeTitle == null) {
+                        channel.sendMessage("Could not load: " + markdownBold(errorMessage)).queue();
+                        return;
+                    }
+
+                    loadAndPlay(channel, member, "scsearch:" + youtubeTitle, trackType);
+                } else {
+                    channel.sendMessage("Could not load: " + markdownBold(errorMessage)).queue();
+                }
+            }
+        });
+    }
+
+    private static String trackLoaded(Guild guild, TrackScheduler scheduler, AudioTrack track, String trackURL, TrackType trackType) {
+        int position = scheduler.queue.size() + 1 + (scheduler.currentTrack != null ? 1 : 0);
+        StringBuilder message = new StringBuilder("Adding ");
+        switch (trackType) {
+            case TRACK, FILE -> {
+                AudioTrackInfo info = track.getInfo();
+                message.append(markdownLinkNoEmbed(info.title, info.uri))
+                        .append(" by ")
+                        .append(markdownBold(info.author));
+            }
+            case TTS -> {
+                message.append(markdownBold("TTS Message"));
+                TTSCommand.addGuild(guild);
+                TTSCommand.addTTSMessage(guild, track, decodeUrl(trackURL.replace("ftts://", "")));
+            }
+        }
+        message.append(" to queue position ")
+                .append(markdownBold(position))
+                .append(".");
+
+        return message.toString();
+    }
+
+    @Nonnull
+    private static String getMessage(TrackScheduler scheduler, AudioPlaylist playlist, String trackURL, List<AudioTrack> tracks) {
+        int trackCount = tracks.size();
+        int position = scheduler.queue.size() + 1 + (scheduler.currentTrack != null ? 1 : 0);
+
+        AtomicBoolean isAlbum = new AtomicBoolean();
+        SpotifyLink.URL_PATTERN
+                .matcher(trackURL)
+                .results()
+                .findFirst()
+                .ifPresent(matchResult -> isAlbum.set(matchResult.group("type").equals("album")));
+
+        return String.format("Adding **%s** tracks from %s %s to queue positions **%d-%d**.",
+                trackCount,
+                isAlbum.get() ? "album" : "playlist",
+                markdownLinkNoEmbed(playlist.getName(), trackURL),
+                position,
+                position + trackCount - 1
+        );
     }
 
     /**

@@ -5,7 +5,6 @@ import bobo.commands.general.RandomCommand;
 import bobo.commands.owner.SetActivityCommand;
 import bobo.commands.voice.JoinCommand;
 import bobo.commands.voice.music.QueueCommand;
-import bobo.commands.voice.music.SearchCommand;
 import bobo.commands.voice.music.TTSCommand;
 import bobo.lavaplayer.PlayerManager;
 import bobo.utils.AudioReceiveListener;
@@ -19,7 +18,6 @@ import net.dv8tion.jda.api.events.guild.GuildLeaveEvent;
 import net.dv8tion.jda.api.events.guild.voice.GuildVoiceUpdateEvent;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.events.session.ReadyEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.slf4j.Logger;
@@ -152,20 +150,6 @@ public class Listener extends ListenerAdapter {
         } catch (SQLException e) {
             logger.error("Failed to delete guild from tables.", e);
         }
-    }
-
-    /**
-     * Handles reaction events for the search command
-     *
-     * @param event the message reaction add event
-     */
-    @Override
-    public void onMessageReactionAdd(@Nonnull MessageReactionAddEvent event) {
-        if (event.retrieveUser().complete().isBot()) {
-            return;
-        }
-
-        SearchCommand.handleReaction(event);
     }
 
     /**

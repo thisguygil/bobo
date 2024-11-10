@@ -5,25 +5,24 @@ import bobo.utils.*;
 import bobo.utils.api_clients.SoundCloudAPI;
 import bobo.utils.api_clients.SpotifyLink;
 import bobo.utils.api_clients.YouTubeUtil;
+import com.github.ygimenez.method.Pages;
+import com.github.ygimenez.model.*;
 import com.google.api.services.youtube.model.SearchResult;
 import com.google.api.services.youtube.model.SearchResultSnippet;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.events.message.react.MessageReactionAddEvent;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-import net.dv8tion.jda.api.requests.RestAction;
 import org.apache.commons.text.StringEscapeUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import se.michaelthelin.spotify.SpotifyApi;
 import se.michaelthelin.spotify.model_objects.specification.*;
 
-import javax.annotation.Nonnull;
 import java.util.*;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -32,9 +31,9 @@ import java.util.concurrent.TimeUnit;
 import static bobo.utils.StringUtils.*;
 
 public class SearchCommand extends AbstractMusic {
+    private static final Logger logger = LoggerFactory.getLogger(SearchCommand.class);
+
     private static final ScheduledExecutorService scheduledService = Executors.newScheduledThreadPool(1);
-    private static final Map<Long, SlashCommandInteractionEvent> MESSAGE_EVENT_MAP = new HashMap<>();
-    private static final Map<SlashCommandInteractionEvent, String[]> EVENT_LINKS_MAP = new HashMap<>();
     private static final List<Emoji> EMOJIS = List.of(
             Emoji.fromUnicode("❌"),
             Emoji.fromUnicode("1️⃣"),
@@ -132,7 +131,7 @@ public class SearchCommand extends AbstractMusic {
             handleYoutubeSearch(videoSearch, videoLinks, query, "video");
         } catch (Exception e) {
             hook.editOriginal("An error occurred while searching for videos.").queue();
-            e.printStackTrace();
+            logger.error("An error occurred while searching for YouTube videos.");
         }
     }
 
@@ -159,25 +158,23 @@ public class SearchCommand extends AbstractMusic {
             handleYoutubeSearch(playlistSearch, playlistLinks, query, "playlist");
         } catch (Exception e) {
             hook.editOriginal("An error occurred while searching for playlists.").queue();
-            e.printStackTrace();
+            logger.error("An error occurred while searching for YouTube playlists.");
         }
     }
 
     private void handleYoutubeSearch(List<SearchResult> searchResults, String[] links, String query, String type) {
-        EVENT_LINKS_MAP.put(event, links);
-
         StringBuilder message = new StringBuilder("Found " + type + "s from search: " + markdownBold(query) + "\n");
         for (int i = 0; i < links.length; i++) {
             SearchResultSnippet snippet = searchResults.get(i).getSnippet();
-            message.append(markdownBold((i + 1) + ":"))
-                    .append(" ")
+            message.append(i + 1)
+                    .append(". ")
                     .append(markdownLinkNoEmbed(snippet.getTitle(), links[i]))
                     .append(" by ")
                     .append(markdownLinkNoEmbed(snippet.getChannelTitle(), "https://www.youtube.com/channel/" + snippet.getChannelId()))
                     .append("\n");
         }
 
-        handleResult(message.toString(), type, links.length);
+        handleResult(message.toString(), type, links);
     }
 
     /**
@@ -221,20 +218,18 @@ public class SearchCommand extends AbstractMusic {
                     }
                 }
 
-                message.append(markdownBold((i + 1) + ":"))
-                        .append(" ")
+                message.append(i + 1)
+                        .append(". ")
                         .append(markdownLinkNoEmbed(track.getName(), trackUrl))
                         .append(" by ")
                         .append(artistString)
                         .append("\n");
             }
 
-            EVENT_LINKS_MAP.put(event, trackLinks);
-
-            handleResult(message.toString(), "track", trackLinks.length);
+            handleResult(message.toString(), "track", trackLinks);
         } catch (Exception e) {
             hook.editOriginal("An error occurred while searching for tracks.").queue();
-            e.printStackTrace();
+            logger.error("An error occurred while searching for Spotify tracks.");
         }
     }
 
@@ -260,20 +255,18 @@ public class SearchCommand extends AbstractMusic {
                 String playlistUrl = playlist.getExternalUrls().get("spotify");
                 User owner = playlist.getOwner();
                 playlistLinks[i] = playlistUrl;
-                message.append(markdownBold((i + 1) + ":"))
-                        .append(" ")
+                message.append(i + 1)
+                        .append(". ")
                         .append(markdownLinkNoEmbed(playlist.getName(), playlistUrl))
                         .append(" by ")
                         .append(markdownLinkNoEmbed(owner.getDisplayName(), owner.getExternalUrls().get("spotify")))
                         .append("\n");
             }
 
-            EVENT_LINKS_MAP.put(event, playlistLinks);
-
-            handleResult(message.toString(), "playlist", playlistLinks.length);
+            handleResult(message.toString(), "playlist", playlistLinks);
         } catch (Exception e) {
             hook.editOriginal("An error occurred while searching for playlists.").queue();
-            e.printStackTrace();
+            logger.error("An error occurred while searching for Spotify playlists.");
         }
     }
 
@@ -314,20 +307,18 @@ public class SearchCommand extends AbstractMusic {
                     }
                 }
 
-                message.append(markdownBold((i + 1) + ":"))
-                        .append(" ")
+                message.append(i + 1)
+                        .append(". ")
                         .append(markdownLinkNoEmbed(album.getName(), albumUrl))
                         .append(" by ")
                         .append(artistString)
                         .append("\n");
             }
 
-            EVENT_LINKS_MAP.put(event, albumLinks);
-
-            handleResult(message.toString(), "album", albumLinks.length);
+            handleResult(message.toString(), "album", albumLinks);
         } catch (Exception e) {
             hook.editOriginal("An error occurred while searching for albums.").queue();
-            e.printStackTrace();
+            logger.error("An error occurred while searching for Spotify albums.");
         }
     }
 
@@ -361,19 +352,17 @@ public class SearchCommand extends AbstractMusic {
             artists[i] = collection.getJSONObject(i).getJSONObject("user").getString("username");
         }
 
-        EVENT_LINKS_MAP.put(event, links);
-
         StringBuilder message = new StringBuilder("Found " + type + "s from search: " + markdownBold(query) + "\n");
         for (int i = 0; i < links.length; i++) {
-            message.append(markdownBold((i + 1) + ":"))
-                    .append(" ")
+            message.append(i + 1)
+                    .append(". ")
                     .append(markdownLinkNoEmbed(titles[i], links[i]))
                     .append(" by ")
                     .append(artists[i])
                     .append("\n");
         }
 
-        handleResult(message.toString(), type, links.length);
+        handleResult(message.toString(), type, links);
     }
 
     /**
@@ -381,102 +370,68 @@ public class SearchCommand extends AbstractMusic {
      *
      * @param message The message to send.
      * @param type The type of search.
-     * @param numLinks The number of links.
+     * @param links The links to the search results.
      */
-    private void handleResult(String message, String type, int numLinks) {
-        message += String.format("\nPlease select a %s to play by selecting the proper reaction, or the %s reaction to cancel.", type, EMOJIS.get(0));
-        hook.editOriginal(StringEscapeUtils.unescapeHtml4(message)).queue(success -> addReactions(success, numLinks));
-        MESSAGE_EVENT_MAP.put(event.getHook().retrieveOriginal().complete().getIdLong(), event);
+    private void handleResult(String message, String type, String[] links) {
+        message += String.format("Which %s would you like to play? Press the corresponding button, or %s to cancel.", type, EMOJIS.getFirst());
+
+        EmojiMapping<ThrowingConsumer<ButtonWrapper>> buttons = getButtons(links);
+
+        hook.editOriginal(StringEscapeUtils.unescapeHtml4(message)).queue(success -> {
+            Pages.buttonize(success, buttons, true, false);
+            scheduledService.schedule(() -> Pages.clearButtons(success), 1, TimeUnit.MINUTES); // Clear buttons after 1 minute
+        });
+        event.getHook().retrieveOriginal().queue();
     }
 
     /**
-     * Handles reaction to search message.
+     * Gets the buttons for the search results.
      *
-     * @param reactionEvent the reaction event
+     * @param links The links to the search results.
+     * @return The buttons.
      */
-    public static void handleReaction(@Nonnull MessageReactionAddEvent reactionEvent) {
-        SlashCommandInteractionEvent commandEvent = MESSAGE_EVENT_MAP.get(reactionEvent.getMessageIdLong());
-        if (commandEvent == null) {
-            return;
-        }
+    private static EmojiMapping<ThrowingConsumer<ButtonWrapper>> getButtons(String[] links) {
+        ThrowingConsumer<ButtonWrapper> handleButton = (wrapper) -> {
+            Emoji emoji = wrapper.getButton().getEmoji();
+            if (emoji == null) {
+                System.out.println("emoji is null");
+                return; // Should never happen
+            }
 
-        if (!reactionEvent.retrieveUser().complete().equals(commandEvent.getUser())) {
-            return;
-        }
+            int index;
+            if (emoji.equals(EMOJIS.getFirst())) {
+                wrapper.getMessage().delete().queue();
+                return;
+            } else if (emoji.equals(EMOJIS.get(1))) {
+                index = 0;
+            } else if (emoji.equals(EMOJIS.get(2))) {
+                index = 1;
+            } else if (emoji.equals(EMOJIS.get(3))) {
+                index = 2;
+            } else if (emoji.equals(EMOJIS.get(4))) {
+                index = 3;
+            } else if (emoji.equals(EMOJIS.get(5))) {
+                index = 4;
+            } else {
+                return; // Should never happen
+            }
 
-        Emoji reaction = reactionEvent.getReaction().getEmoji();
-        int index;
-        if (reaction.equals(EMOJIS.getFirst())) {
-            long messageId = reactionEvent.getMessageIdLong();
-            MESSAGE_EVENT_MAP.remove(messageId);
-            EVENT_LINKS_MAP.remove(commandEvent);
-            reactionEvent.getChannel().deleteMessageById(messageId).queue();
-            return;
-        } else if (reaction.equals(EMOJIS.get(1))) {
-            index = 0;
-        } else if (reaction.equals(EMOJIS.get(2))) {
-            index = 1;
-        } else if (reaction.equals(EMOJIS.get(3))) {
-            index = 2;
-        } else if (reaction.equals(EMOJIS.get(4))) {
-            index = 3;
-        } else if (reaction.equals(EMOJIS.get(5))) {
-            index = 4;
-        } else {
-            return;
-        }
+            if (!ensureConnected(wrapper.getMember())) {
+                return;
+            }
 
-        String[] links = EVENT_LINKS_MAP.get(commandEvent);
-        if (links == null) {
-            return;
-        }
+            PlayerManager.getInstance().loadAndPlay(wrapper.getChannel(), wrapper.getMember(), links[index], TrackType.TRACK);
+            Pages.clearButtons(wrapper.getMessage());
+        };
 
-        int numLinks = links.length;
-        if (index >= numLinks) {
-            return;
-        }
-
-        if (!ensureConnected(commandEvent)) {
-            return;
-        }
-
-        PlayerManager.getInstance().loadAndPlay(commandEvent, links[index], TrackType.TRACK);
-        cleanupResources(reactionEvent.getMessageIdLong(), commandEvent);
-    }
-
-    /**
-     * Adds the reactions to the message.
-     *
-     * @param message The message to add reactions to.
-     * @param numLinks The number of links to add reactions for.
-     */
-    private void addReactions(@Nonnull Message message, int numLinks) {
-        List<RestAction<Void>> actions = EMOJIS.stream()
-                .limit(numLinks + 1) // Add 1 for the cancel reaction
-                .map(message::addReaction)
-                .toList();
-
-        // Use flatMap to chain the reactions together so we can queue them all at once
-        RestAction<Void> chain = actions.stream()
-                .reduce((a, b) -> a.flatMap(_ -> b))
-                .orElseThrow();
-
-        chain.queue();
-
-        // Schedule a task to clean up resources after 1 minute
-        scheduledService.schedule(() -> cleanupResources(message.getIdLong(), event), 1, TimeUnit.MINUTES);
-    }
-
-    /**
-     * Cleans up resources.
-     *
-     * @param messageId The ID of the message.
-     * @param event The event.
-     */
-    private static void cleanupResources(long messageId, SlashCommandInteractionEvent event) {
-        event.getHook().retrieveOriginal().queue(message -> message.clearReactions().queue());
-        MESSAGE_EVENT_MAP.remove(messageId);
-        EVENT_LINKS_MAP.remove(event);
+        return switch (links.length) {
+            case 1 -> new EmojiMapping<>(Map.of(new EmojiId(EMOJIS.getFirst()), handleButton, new EmojiId(EMOJIS.get(1)), handleButton));
+            case 2 -> new EmojiMapping<>(Map.of(new EmojiId(EMOJIS.getFirst()), handleButton, new EmojiId(EMOJIS.get(1)), handleButton, new EmojiId(EMOJIS.get(2)), handleButton));
+            case 3 -> new EmojiMapping<>(Map.of(new EmojiId(EMOJIS.getFirst()), handleButton, new EmojiId(EMOJIS.get(1)), handleButton, new EmojiId(EMOJIS.get(2)), handleButton, new EmojiId(EMOJIS.get(3)), handleButton));
+            case 4 -> new EmojiMapping<>(Map.of(new EmojiId(EMOJIS.getFirst()), handleButton, new EmojiId(EMOJIS.get(1)), handleButton, new EmojiId(EMOJIS.get(2)), handleButton, new EmojiId(EMOJIS.get(3)), handleButton, new EmojiId(EMOJIS.get(4)), handleButton));
+            case 5 -> new EmojiMapping<>(Map.of(new EmojiId(EMOJIS.getFirst()), handleButton, new EmojiId(EMOJIS.get(1)), handleButton, new EmojiId(EMOJIS.get(2)), handleButton, new EmojiId(EMOJIS.get(3)), handleButton, new EmojiId(EMOJIS.get(4)), handleButton, new EmojiId(EMOJIS.get(5)), handleButton));
+            default -> throw new IllegalStateException("Unexpected value: " + links.length);
+        };
     }
 
     @Override

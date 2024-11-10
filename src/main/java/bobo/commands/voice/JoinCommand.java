@@ -3,6 +3,7 @@ package bobo.commands.voice;
 import bobo.Bobo;
 import bobo.utils.api_clients.SQLConnection;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.StageChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
@@ -55,6 +56,21 @@ public class JoinCommand extends AbstractVoice {
         AudioChannelUnion voiceChannel = event.getMember().getVoiceState().getChannel();
         if (voiceChannel == null) {
             event.getHook().editOriginal("You must be connected to a voice channel to use this command.").queue();
+            return false;
+        }
+
+        return join(voiceChannel);
+    }
+
+    /**
+     * Joins the voice channel of the member given.
+     *
+     * @param member The member whose voice channel to join.
+     * @return Whether the bot successfully joined the voice channel.
+     */
+    public static boolean join(@Nonnull Member member) {
+        AudioChannelUnion voiceChannel = member.getVoiceState().getChannel();
+        if (voiceChannel == null) {
             return false;
         }
 

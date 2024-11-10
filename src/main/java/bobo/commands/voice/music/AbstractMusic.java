@@ -8,6 +8,7 @@ import bobo.utils.TrackRecord;
 import bobo.lavaplayer.TrackScheduler;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
@@ -64,6 +65,28 @@ public abstract class AbstractMusic extends AbstractVoice {
                 return false;
             } else if (memberChannel != audioManager.getConnectedChannel()) {
                 return JoinCommand.join(event);
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Ensures that the user is connected to a voice channel, moving the bot to the user's channel if necessary.
+     *
+     * @param member The member whose voice channel to check.
+     * @return {@code true} if the user is connected to a voice channel, {@code false} otherwise.
+     */
+    protected static boolean ensureConnected(Member member) {
+        AudioManager audioManager = member.getGuild().getAudioManager();
+        if (!audioManager.isConnected()) {
+            return JoinCommand.join(member);
+        } else {
+            AudioChannelUnion memberChannel = member.getVoiceState().getChannel();
+            if (memberChannel == null) {
+                return false;
+            } else if (memberChannel != audioManager.getConnectedChannel()) {
+                return JoinCommand.join(member);
             }
         }
 
