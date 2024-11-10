@@ -1,6 +1,5 @@
 package bobo.commands.general;
 
-import bobo.Config;
 import bobo.utils.api_clients.GoogleCustomSearchService;
 import com.github.ygimenez.method.Pages;
 import com.github.ygimenez.model.InteractPage;
@@ -25,9 +24,6 @@ import static bobo.utils.StringUtils.markdownLink;
 
 public class GoogleCommand extends AbstractGeneral {
     private static final Logger logger = LoggerFactory.getLogger(GoogleCommand.class);
-
-    private static final String GOOGLE_API_KEY = Config.get("GOOGLE_API_KEY");
-    private static final String SEARCH_ENGINE_ID = Config.get("SEARCH_ENGINE_ID");
 
     /**
      * Creates a new Google command.
