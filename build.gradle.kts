@@ -22,7 +22,7 @@ repositories {
 
 dependencies {
     // Discord API
-    implementation("net.dv8tion:JDA:5.1.2")
+    implementation("net.dv8tion:JDA:5.2.1")
 
     // LavaPlayer
     implementation("dev.arbjerg:lavaplayer:2.2.2")
