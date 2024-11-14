@@ -55,6 +55,11 @@ public class LoopCommand extends AbstractMusic {
      * Loops the currently playing track.
      */
     private void track() {
+        if (currentTrack.track().getInfo().isStream) {
+            hook.editOriginal("Cannot loop a live stream.").queue();
+            return;
+        }
+
         switch (scheduler.looping) {
             case NONE, QUEUE -> {
                 scheduler.looping = looping.TRACK;
