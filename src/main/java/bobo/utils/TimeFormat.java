@@ -7,7 +7,7 @@ public final class TimeFormat {
     private TimeFormat() {} // Prevent instantiation
 
     /**
-     * Formats the given time in milliseconds to a string in the format HH:MM:SS.
+     * Formats the given time in milliseconds to a string in the format HH:MM:SS, or MM:SS if the time is less than an hour.
      *
      * @param timeInMillis The time in milliseconds.
      * @return The formatted time.
@@ -19,7 +19,7 @@ public final class TimeFormat {
         timeInMillis %= TimeUnit.MINUTES.toMillis(1);
         final long seconds = timeInMillis / TimeUnit.SECONDS.toMillis(1);
 
-        return String.format("%02d:%02d:%02d", hours, minutes, seconds);
+        return hours > 0 ? String.format("%02d:%02d:%02d", hours, minutes, seconds) : String.format("%02d:%02d", minutes, seconds);
     }
 
     /**
