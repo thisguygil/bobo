@@ -133,10 +133,10 @@ public class CommandManager {
         AbstractSlashCommand command = getSlashCommand(event.getName());
         if (command != null) {
             command.handle(event);
-            logger.info("Slash command '{}' executed by '{}'.", event.getName(), event.getUser().getName());
+            logger.info("Slash command '{}' executed by '{}'.", event.getFullCommandName(), event.getUser().getName());
         } else {
             event.reply("Error retrieving command.").queue();
-            logger.error("Slash command '{}' not found.", event.getName());
+            logger.error("Slash command '{}' not found.", event.getFullCommandName());
         }
     }
 
