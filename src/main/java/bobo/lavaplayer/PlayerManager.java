@@ -2,6 +2,7 @@ package bobo.lavaplayer;
 
 import bobo.Config;
 import bobo.commands.voice.music.TTSCommand;
+import bobo.utils.TimeFormat;
 import bobo.utils.api_clients.SpotifyLink;
 import bobo.utils.TrackType;
 import bobo.utils.api_clients.YouTubeUtil;
@@ -129,8 +130,7 @@ public class PlayerManager {
         this.audioPlayerManager.loadItemOrdered(musicManager, trackURL, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
-                String message = PlayerManager.trackLoaded(guild, scheduler, track, trackURL, trackType);
-                hook.editOriginal(message).queue(_ -> scheduler.queue(track, member, channel, trackType));
+                hook.editOriginal(PlayerManager.trackLoaded(guild, scheduler, track, trackURL, trackType)).queue(_ -> scheduler.queue(track, member, channel, trackType));
             }
 
             @Override
@@ -147,8 +147,7 @@ public class PlayerManager {
                     return;
                 }
 
-                String message = PlayerManager.getMessage(scheduler, playlist, trackURL, tracks);
-
+                String message = PlayerManager.playlistLoadedMessage(scheduler, playlist, trackURL, tracks);
                 hook.editOriginal(message).queue(_ -> {
                     for (final AudioTrack track : tracks) {
                         scheduler.queue(track, member, channel, TrackType.TRACK);
@@ -158,13 +157,7 @@ public class PlayerManager {
 
             @Override
             public void noMatches() {
-                String query;
-                if (trackURL.startsWith("scsearch:")) {
-                    query = trackURL.replace("scsearch:", "");
-                } else {
-                    query = trackURL;
-                }
-                hook.editOriginal(trackType == TrackType.TTS ? "No speakable text found" : "Nothing found by " + markdownBold(query)).queue();
+                hook.editOriginal(PlayerManager.noMatches(trackURL, trackType)).queue();
             }
 
             @Override
@@ -198,11 +191,14 @@ public class PlayerManager {
         final GuildMusicManager musicManager = this.getMusicManager(guild);
         TrackScheduler scheduler = musicManager.scheduler;
 
+        if (member.getVoiceState().getChannel().getType() == ChannelType.STAGE) {
+            guild.requestToSpeak();
+        }
+
         this.audioPlayerManager.loadItemOrdered(musicManager, trackURL, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
-                String message = PlayerManager.trackLoaded(guild, scheduler, track, trackURL, trackType);
-                channel.sendMessage(message).queue(_ -> scheduler.queue(track, member, channel, trackType));
+                channel.sendMessage(PlayerManager.trackLoaded(guild, scheduler, track, trackURL, trackType)).queue(_ -> scheduler.queue(track, member, channel, trackType));
             }
 
             @Override
@@ -219,8 +215,7 @@ public class PlayerManager {
                     return;
                 }
 
-                String message = PlayerManager.getMessage(scheduler, playlist, trackURL, tracks);
-
+                String message = PlayerManager.playlistLoadedMessage(scheduler, playlist, trackURL, tracks);
                 channel.sendMessage(message).queue(_ -> {
                     for (final AudioTrack track : tracks) {
                         scheduler.queue(track, member, channel, TrackType.TRACK);
@@ -228,17 +223,9 @@ public class PlayerManager {
                 });
             }
 
-
-
             @Override
             public void noMatches() {
-                String query;
-                if (trackURL.startsWith("scsearch:")) {
-                    query = trackURL.replace("scsearch:", "");
-                } else {
-                    query = trackURL;
-                }
-                channel.sendMessage(trackType == TrackType.TTS ? "No speakable text found" : "Nothing found by " + markdownBold(query)).queue();
+                channel.sendMessage(PlayerManager.noMatches(trackURL, trackType)).queue();
             }
 
             @Override
@@ -259,15 +246,27 @@ public class PlayerManager {
         });
     }
 
+    /**
+     * Gets the message for when a track is loaded.
+     *
+     * @param guild The guild.
+     * @param scheduler The track scheduler.
+     * @param track The audio track.
+     * @param trackURL The URL of the track.
+     * @param trackType The type of track.
+     * @return The message for when a track is loaded.
+     */
     private static String trackLoaded(Guild guild, TrackScheduler scheduler, AudioTrack track, String trackURL, TrackType trackType) {
         int position = scheduler.queue.size() + 1 + (scheduler.currentTrack != null ? 1 : 0);
         StringBuilder message = new StringBuilder("Adding ");
         switch (trackType) {
             case TRACK, FILE -> {
                 AudioTrackInfo info = track.getInfo();
-                message.append(markdownLinkNoEmbed(info.title, info.uri))
-                        .append(" by ")
-                        .append(markdownBold(info.author));
+                message.append(String.format("%s (%s) by %s",
+                        markdownLinkNoEmbed(info.title, info.uri),
+                        markdownCode(info.isStream ? "LIVE" : TimeFormat.formatTime(info.length)),
+                        markdownBold(info.author)
+                ));
             }
             case TTS -> {
                 message.append(markdownBold("TTS Message"));
@@ -275,15 +274,20 @@ public class PlayerManager {
                 TTSCommand.addTTSMessage(guild, track, decodeUrl(trackURL.replace("ftts://", "")));
             }
         }
-        message.append(" to queue position ")
-                .append(markdownBold(position))
-                .append(".");
-
+        message.append(String.format(" to queue position %s.", markdownBold(position)));
         return message.toString();
     }
 
-    @Nonnull
-    private static String getMessage(TrackScheduler scheduler, AudioPlaylist playlist, String trackURL, List<AudioTrack> tracks) {
+    /**
+     * Gets the message for when a playlist is loaded.
+     *
+     * @param scheduler The track scheduler.
+     * @param playlist The audio playlist.
+     * @param trackURL The URL of the track.
+     * @param tracks The list of audio tracks.
+     * @return The message for when a playlist is loaded.
+     */
+    private static String playlistLoadedMessage(TrackScheduler scheduler, AudioPlaylist playlist, String trackURL, List<AudioTrack> tracks) {
         int trackCount = tracks.size();
         int position = scheduler.queue.size() + 1 + (scheduler.currentTrack != null ? 1 : 0);
 
@@ -294,13 +298,30 @@ public class PlayerManager {
                 .findFirst()
                 .ifPresent(matchResult -> isAlbum.set(matchResult.group("type").equals("album")));
 
-        return String.format("Adding **%s** tracks from %s %s to queue positions **%d-%d**.",
-                trackCount,
+        return String.format("Adding %s tracks from %s %s to queue positions **%d-%d**.",
+                markdownBold(trackCount),
                 isAlbum.get() ? "album" : "playlist",
                 markdownLinkNoEmbed(playlist.getName(), trackURL),
                 position,
                 position + trackCount - 1
         );
+    }
+
+    /**
+     * Get the message for when no matches are found.
+     *
+     * @param trackURL The URL of the track.
+     * @param trackType The type of track.
+     * @return The message for when no matches are found.
+     */
+    private static String noMatches(String trackURL, TrackType trackType) {
+        String query;
+        if (trackURL.startsWith("scsearch:")) {
+            query = trackURL.replace("scsearch:", "");
+        } else {
+            query = trackURL;
+        }
+        return trackType == TrackType.TTS ? "No speakable text found" : "Nothing found by " + markdownBold(query);
     }
 
     /**

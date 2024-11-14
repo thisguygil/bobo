@@ -163,15 +163,14 @@ public class SearchCommand extends AbstractMusic {
     }
 
     private void handleYoutubeSearch(List<SearchResult> searchResults, String[] links, String query, String type) {
-        StringBuilder message = new StringBuilder("Found " + type + "s from search: " + markdownBold(query) + "\n");
+        StringBuilder message = new StringBuilder(String.format("Found %ss from search: **%s**\n", type, query));
         for (int i = 0; i < links.length; i++) {
             SearchResultSnippet snippet = searchResults.get(i).getSnippet();
-            message.append(i + 1)
-                    .append(". ")
-                    .append(markdownLinkNoEmbed(snippet.getTitle(), links[i]))
-                    .append(" by ")
-                    .append(markdownLinkNoEmbed(snippet.getChannelTitle(), "https://www.youtube.com/channel/" + snippet.getChannelId()))
-                    .append("\n");
+            message.append(String.format("%d. %s by %s\n",
+                    i + 1,
+                    markdownLinkNoEmbed(snippet.getTitle(), links[i]),
+                    markdownLinkNoEmbed(snippet.getChannelTitle(), "https://www.youtube.com/channel/" + snippet.getChannelId())
+            ));
         }
 
         handleResult(message.toString(), type, links);
@@ -209,7 +208,6 @@ public class SearchCommand extends AbstractMusic {
                 String trackUrl = track.getExternalUrls().get("spotify");
                 trackLinks[i] = trackUrl;
 
-                // Build a string for the artists
                 StringBuilder artistString = new StringBuilder();
                 for (int j = 0; j < artists[i].length; j++) {
                     artistString.append(markdownLinkNoEmbed(artists[i][j].getName(), artists[i][j].getExternalUrls().get("spotify")));
@@ -218,12 +216,12 @@ public class SearchCommand extends AbstractMusic {
                     }
                 }
 
-                message.append(i + 1)
-                        .append(". ")
-                        .append(markdownLinkNoEmbed(track.getName(), trackUrl))
-                        .append(" by ")
-                        .append(artistString)
-                        .append("\n");
+                message.append(String.format("%d. %s (%s) by %s\n",
+                        i + 1,
+                        markdownLinkNoEmbed(track.getName(), trackUrl),
+                        markdownCode(TimeFormat.formatTime(track.getDurationMs())),
+                        artistString
+                ));
             }
 
             handleResult(message.toString(), "track", trackLinks);
@@ -255,12 +253,11 @@ public class SearchCommand extends AbstractMusic {
                 String playlistUrl = playlist.getExternalUrls().get("spotify");
                 User owner = playlist.getOwner();
                 playlistLinks[i] = playlistUrl;
-                message.append(i + 1)
-                        .append(". ")
-                        .append(markdownLinkNoEmbed(playlist.getName(), playlistUrl))
-                        .append(" by ")
-                        .append(markdownLinkNoEmbed(owner.getDisplayName(), owner.getExternalUrls().get("spotify")))
-                        .append("\n");
+                message.append(String.format("%d. %s by %s\n",
+                        i + 1,
+                        markdownLinkNoEmbed(playlist.getName(), playlistUrl),
+                        markdownLinkNoEmbed(owner.getDisplayName(), owner.getExternalUrls().get("spotify"))
+                ));
             }
 
             handleResult(message.toString(), "playlist", playlistLinks);
@@ -307,12 +304,11 @@ public class SearchCommand extends AbstractMusic {
                     }
                 }
 
-                message.append(i + 1)
-                        .append(". ")
-                        .append(markdownLinkNoEmbed(album.getName(), albumUrl))
-                        .append(" by ")
-                        .append(artistString)
-                        .append("\n");
+                message.append(String.format("%d. %s by %s\n",
+                        i + 1,
+                        markdownLinkNoEmbed(album.getName(), albumUrl),
+                        artistString
+                ));
             }
 
             handleResult(message.toString(), "album", albumLinks);
@@ -352,14 +348,13 @@ public class SearchCommand extends AbstractMusic {
             artists[i] = collection.getJSONObject(i).getJSONObject("user").getString("username");
         }
 
-        StringBuilder message = new StringBuilder("Found " + type + "s from search: " + markdownBold(query) + "\n");
+        StringBuilder message = new StringBuilder(String.format("Found %ss from search: %s\n", type, markdownBold(query)));
         for (int i = 0; i < links.length; i++) {
-            message.append(i + 1)
-                    .append(". ")
-                    .append(markdownLinkNoEmbed(titles[i], links[i]))
-                    .append(" by ")
-                    .append(artists[i])
-                    .append("\n");
+            message.append(String.format("%d. %s by %s\n",
+                    i + 1,
+                    markdownLinkNoEmbed(titles[i], links[i]),
+                    artists[i]
+            ));
         }
 
         handleResult(message.toString(), type, links);
@@ -394,7 +389,6 @@ public class SearchCommand extends AbstractMusic {
         ThrowingConsumer<ButtonWrapper> handleButton = (wrapper) -> {
             Emoji emoji = wrapper.getButton().getEmoji();
             if (emoji == null) {
-                System.out.println("emoji is null");
                 return; // Should never happen
             }
 

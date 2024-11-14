@@ -22,7 +22,7 @@ import java.awt.*;
 import java.util.*;
 import java.util.List;
 
-import static bobo.utils.StringUtils.markdownBold;
+import static bobo.utils.StringUtils.*;
 
 public class QueueCommand extends AbstractMusic {
     /**
@@ -63,7 +63,7 @@ public class QueueCommand extends AbstractMusic {
     private void show() {
         // Initialize all necessary variables
         final List<TrackRecord> trackList = new ArrayList<>(queue);
-        trackList.add(0, new TrackRecord(currentTrack.track(), null, null, currentTrack.trackType())); // Null values are not used
+        trackList.addFirst(new TrackRecord(currentTrack.track(), null, null, currentTrack.trackType())); // Null values are not used
         StringBuilder tracksField = new StringBuilder();
         int trackCounter = 1;
         Member member = event.getMember();
@@ -98,9 +98,9 @@ public class QueueCommand extends AbstractMusic {
         }
 
         if (pages.size() == 1) { // Don't paginate if there's only one page
-            hook.editOriginalEmbeds((MessageEmbed) pages.get(0).getContent()).queue();
+            hook.editOriginalEmbeds((MessageEmbed) pages.getFirst().getContent()).queue();
         } else {
-            hook.editOriginalEmbeds((MessageEmbed) pages.get(0).getContent()).queue(success -> Pages.paginate(success, pages, true));
+            hook.editOriginalEmbeds((MessageEmbed) pages.getFirst().getContent()).queue(success -> Pages.paginate(success, pages, true));
         }
     }
 
@@ -160,35 +160,45 @@ public class QueueCommand extends AbstractMusic {
      * Removes a track from the queue.
      */
     private void remove() {
-        int position = Objects.requireNonNull(event.getOption("position")).getAsInt();
+        int position = event.getOption("position").getAsInt();
         if (position < 1 || position > queue.size() + 1) {
             hook.editOriginal("Please enter an integer corresponding to a track's position in the queue.").queue();
             return;
         }
 
+        TrackRecord current = null;
+        boolean wasLooping = scheduler.looping == LoopCommand.looping.TRACK;
         if (position == 1) {
             if (queue.isEmpty()) {
                 scheduler.looping = LoopCommand.looping.NONE;
             }
 
-            if (scheduler.looping == LoopCommand.looping.TRACK) {
+            if (wasLooping) {
                 scheduler.looping = LoopCommand.looping.NONE;
             }
             scheduler.nextTrack();
             tryNextTTSMessage(currentTrack);
+            current = currentTrack;
         } else {
             int count = 1;
             Iterator<TrackRecord> iterator = queue.iterator();
-            TrackRecord currentTrack = null;
-            while (iterator.hasNext()) {
-                checkCountPosition(count, position, currentTrack, iterator);
+            while (!checkCountPosition(count, position, current, iterator)) {
+                current = iterator.next();
                 count++;
-                currentTrack = iterator.next();
             }
-            checkCountPosition(count, position, currentTrack, iterator);
         }
 
-        hook.editOriginal("Removed track at position " + markdownBold(position)).queue();
+        AudioTrackInfo info = current.track().getInfo();
+        String message = String.format("Removed track at position %s: %s (%s) by %s. %s",
+                markdownBold(position),
+                markdownLinkNoEmbed(info.title, info.uri),
+                timeLeft(current.track(), 0), // Use 0 so it doesn't say "left - looping"
+                markdownBold(info.author),
+                position == 1 && wasLooping ? "Looping has been turned off." : ""
+        );
+
+
+        hook.editOriginal(message).queue();
     }
 
     /**
@@ -202,17 +212,20 @@ public class QueueCommand extends AbstractMusic {
     }
 
     /**
-     * Checks the count position.
+     * Checks the current position, removing the track if it matches. Returns true if the track was removed.
      * @param count the count
      * @param position the position
      * @param track the track
      * @param iterator the iterator
+     * @return true if the track was removed
      */
-    private void checkCountPosition(int count, int position, TrackRecord track, Iterator<TrackRecord> iterator) {
+    private boolean checkCountPosition(int count, int position, TrackRecord track, Iterator<TrackRecord> iterator) {
         if (count == position) {
             tryNextTTSMessage(track);
             iterator.remove();
+            return true;
         }
+        return false;
     }
 
     /**
@@ -224,13 +237,36 @@ public class QueueCommand extends AbstractMusic {
     private String formatTrackInfo(int index, TrackRecord record) {
         AudioTrack track = record.track();
         AudioTrackInfo info = track.getInfo();
-        String timeLeft = String.format("[%s]\n", (index == 1 ? TimeFormat.formatTime(track.getDuration() - track.getPosition()) + " left" + (scheduler.looping == LoopCommand.looping.TRACK ? " - looping" : "") : TimeFormat.formatTime(track.getDuration())));
         String trackDetails = "";
         switch (record.trackType()) {
-            case TRACK, FILE -> trackDetails = String.format("**%d**. [%s](%s) by **%s** %s", index, info.title, info.uri, info.author, timeLeft);
-            case TTS -> trackDetails = String.format("**%d**. TTS Message: \"%s\" %s", index, info.title, timeLeft);
+            case TRACK, FILE -> trackDetails = String.format("%d. %s (%s) by %s",
+                    index,
+                    markdownLinkNoEmbed(info.title, info.uri),
+                    timeLeft(track, index),
+                    markdownBold(info.author)
+            );
+            case TTS -> trackDetails = String.format("%d. TTS Message: \"%s\" ",
+                    index,
+                    info.title
+            );
         }
-        return trackDetails;
+        return trackDetails + "\n";
+    }
+
+    /**
+     * Returns the formatted string for the time left on a track.
+     * @param track the track
+     * @param index the index
+     * @return the time left
+     */
+    private String timeLeft(AudioTrack track, int index) {
+        if (track.getInfo().isStream) {
+            return markdownCode("LIVE");
+        } else if (index == 1) {
+            return markdownCode(TimeFormat.formatTime(track.getDuration() - track.getPosition())) + " left" + (scheduler.looping == LoopCommand.looping.TRACK ? " - looping" : "");
+        } else {
+            return markdownCode(TimeFormat.formatTime(track.getDuration()));
+        }
     }
 
     @Override
