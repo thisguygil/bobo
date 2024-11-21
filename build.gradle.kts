@@ -37,28 +37,28 @@ dependencies {
     implementation("com.google.api-client:google-api-client:2.7.0")
     implementation("com.google.apis:google-api-services-customsearch:v1-rev20240821-2.0.0")
     implementation("com.google.oauth-client:google-oauth-client-jetty:1.36.0")
-    implementation("com.google.apis:google-api-services-youtube:v3-rev20240909-2.0.0")
-    implementation("com.google.guava:guava:33.3.0-jre")
+    implementation("com.google.apis:google-api-services-youtube:v3-rev20241105-2.0.0")
+    implementation("com.google.guava:guava:33.3.1-jre")
 
     // Image Processing
     implementation("net.coobird:thumbnailator:0.4.20")
-    implementation("com.twelvemonkeys.imageio:imageio-webp:3.11.0")
+    implementation("com.twelvemonkeys.imageio:imageio-webp:3.12.0")
 
     // Database
-    implementation("mysql:mysql-connector-java:8.0.33")
+    implementation("com.mysql:mysql-connector-j:9.1.0")
 
     // Logging
-    implementation("ch.qos.logback:logback-classic:1.5.8")
+    implementation("ch.qos.logback:logback-classic:1.5.12")
 
     // Other API Wrappers
     implementation("se.michaelthelin.spotify:spotify-web-api-java:8.4.1")
-    implementation("io.github.sashirestela:simple-openai:3.9.0")
+    implementation("io.github.sashirestela:simple-openai:3.9.2")
 
     // Other Java Utilities
     implementation("jakarta.annotation:jakarta.annotation-api:3.0.0")
     implementation("org.apache.commons:commons-text:1.12.0")
     implementation("org.apache.commons:commons-lang3:3.17.0")
-    implementation("org.apache.httpcomponents.client5:httpclient5:5.3.1")
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.4.1")
     implementation("commons-validator:commons-validator:1.9.0")
     implementation("org.json:json:20240303")
 }
