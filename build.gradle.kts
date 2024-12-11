@@ -26,7 +26,7 @@ dependencies {
 
     // LavaPlayer
     implementation("dev.arbjerg:lavaplayer:2.2.2")
-    implementation("dev.lavalink.youtube:v2:1.8.2")
+    implementation("dev.lavalink.youtube:v2:1.11.1")
     implementation("com.github.topi314.lavasrc:lavasrc:4.2.0")
     implementation("com.github.topi314.lavalyrics:lavalyrics:1.0.0")
 
@@ -50,9 +50,12 @@ dependencies {
     // Logging
     implementation("ch.qos.logback:logback-classic:1.5.12")
 
+    // Local Testing
+    implementation("io.github.cdimascio:dotenv-kotlin:6.4.2")
+
     // Other API Wrappers
-    implementation("se.michaelthelin.spotify:spotify-web-api-java:8.4.1")
-    implementation("io.github.sashirestela:simple-openai:3.9.2")
+    implementation("se.michaelthelin.spotify:spotify-web-api-java:9.0.0")
+    implementation("io.github.sashirestela:simple-openai:3.10.0")
 
     // Other Java Utilities
     implementation("jakarta.annotation:jakarta.annotation-api:3.0.0")

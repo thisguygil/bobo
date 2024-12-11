@@ -1,6 +1,6 @@
 # Stage 1: Build the bot
 # Create a container with a Gradle image to build the bot
-FROM gradle:8.10.2-jdk23 AS build
+FROM gradle:8.11.1-jdk23 AS build
 
 # Set the working directory inside the container
 WORKDIR /app
@@ -30,6 +30,9 @@ COPY start.sh /app/
 
 # Make the start script executable
 RUN chmod +x /app/start.sh
+
+# Set the environment variable to use system environment variables
+ENV USE_SYSTEM_ENV=true
 
 # Run the bot
 ENTRYPOINT ["/app/start.sh"]
