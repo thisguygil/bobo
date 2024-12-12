@@ -64,7 +64,7 @@ public class Listener extends ListenerAdapter {
         if (event.isFromType(ChannelType.PRIVATE)) {
             MessageChannel channel = Bobo.getJDA().getChannelById(MessageChannel.class, Config.get("DM_LOG_CHANNEL_ID"));
             if (channel != null) {
-                message.forwardTo(channel).queue();
+                channel.sendMessage("DM from " + author.getAsMention()).queue(success -> message.forwardTo(channel).queue());
                 logger.info("DM Message from {} logged in #{}", author.getName(), channel.getName());
             }
         } else if (event.isFromType(ChannelType.GUILD_PRIVATE_THREAD)) {

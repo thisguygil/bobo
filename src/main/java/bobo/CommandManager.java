@@ -32,6 +32,7 @@ public class CommandManager {
         messageCommands.add(new RestartCommand());
         messageCommands.add(new SetActivityCommand());
         messageCommands.add(new SQLCommand());
+        messageCommands.add(new DMCommand());
 
         // Server Admin commands
         slashCommands.add(new ConfigCommand());

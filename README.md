@@ -39,6 +39,7 @@ Can be used by the bot owner only (as message commands) - configured with the ow
     * `listening <activity>` - Sets Bobo's activity to `listening to <activity>`
     * `watching <activity>` - Sets Bobo's activity to `watching <activity>`
     * `competing <activity>` - Sets Bobo's activity to `competing in <activity>`
+* `!dm <user-id> <message>` - Sends a direct message to a user specified by their Discord user ID
 
 ### Server Admin commands
 Can be used by server admins only
