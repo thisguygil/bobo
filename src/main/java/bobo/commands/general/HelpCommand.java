@@ -27,8 +27,6 @@ public class HelpCommand extends AbstractGeneral {
 
     @Override
     protected void handleGeneralCommand() {
-        event.deferReply().queue();
-
         boolean owner = event.getUser().getId().equals(Config.get("OWNER_ID"));
         StringBuilder message = new StringBuilder();
         List<AbstractSlashCommand> slashCommands = ((Listener) Bobo.getJDA().getRegisteredListeners().get(0)).getManager().getSlashCommands();
@@ -102,5 +100,10 @@ public class HelpCommand extends AbstractGeneral {
     @Override
     protected List<Permission> getGeneralCommandPermissions() {
         return new ArrayList<>();
+    }
+
+    @Override
+    public Boolean shouldBeEphemeral() {
+        return false;
     }
 }

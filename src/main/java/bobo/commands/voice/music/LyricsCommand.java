@@ -24,8 +24,6 @@ public class LyricsCommand extends AbstractMusic {
 
     @Override
     protected void handleMusicCommand() {
-        event.deferReply().queue();
-
         if (currentTrack == null) {
             hook.editOriginal("There is nothing currently playing.").queue();
             return;
@@ -124,5 +122,10 @@ public class LyricsCommand extends AbstractMusic {
     @Override
     protected List<Permission> getMusicCommandPermissions() {
         return new ArrayList<>();
+    }
+
+    @Override
+    public Boolean shouldBeEphemeral() {
+        return false;
     }
 }

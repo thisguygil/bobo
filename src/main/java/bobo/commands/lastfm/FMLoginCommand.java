@@ -40,8 +40,6 @@ public class FMLoginCommand extends AbstractLastFM {
 
     @Override
     protected void handleLastFMCommand() {
-        event.deferReply().setEphemeral(true).queue();
-
         String userId = event.getUser().getId();
 
         // Make sure user isn't already logged in
@@ -193,5 +191,10 @@ public class FMLoginCommand extends AbstractLastFM {
     @Override
     protected List<Permission> getLastFMCommandPermissions() {
         return new ArrayList<>();
+    }
+
+    @Override
+    public Boolean shouldBeEphemeral() {
+        return true;
     }
 }

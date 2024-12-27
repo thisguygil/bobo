@@ -36,8 +36,6 @@ public class TrackCommand extends AbstractLastFM {
 
     @Override
     protected void handleLastFMCommand() {
-        event.deferReply().queue();
-
         String username = getUserName(event.getUser().getId());
         assert username != null;
         Member member = event.getMember();
@@ -167,5 +165,10 @@ public class TrackCommand extends AbstractLastFM {
     @Override
     protected List<Permission> getLastFMCommandPermissions() {
         return new ArrayList<>(List.of(Permission.MESSAGE_ATTACH_FILES));
+    }
+
+    @Override
+    public Boolean shouldBeEphemeral() {
+        return false;
     }
 }

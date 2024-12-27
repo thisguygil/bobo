@@ -20,8 +20,6 @@ public class RepeatCommand extends AbstractMusic {
 
     @Override
     protected void handleMusicCommand() {
-        event.deferReply().queue();
-
         if (!ensureConnected(event)) {
             return;
         }
@@ -88,5 +86,10 @@ public class RepeatCommand extends AbstractMusic {
     @Override
     protected List<Permission> getMusicCommandPermissions() {
         return new ArrayList<>();
+    }
+
+    @Override
+    public Boolean shouldBeEphemeral() {
+        return false;
     }
 }

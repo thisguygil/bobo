@@ -18,8 +18,6 @@ public class LeaveCommand extends AbstractVoice {
 
     @Override
     protected void handleVoiceCommand() {
-        event.deferReply().queue();
-
         if (!event.getGuildChannel().getGuild().getAudioManager().isConnected()) {
             hook.editOriginal("I must already be connected to a voice channel to use this command.").queue();
             return;
@@ -53,5 +51,10 @@ public class LeaveCommand extends AbstractVoice {
     @Override
     protected List<Permission> getVoiceCommandPermissions() {
         return new ArrayList<>();
+    }
+
+    @Override
+    public Boolean shouldBeEphemeral() {
+        return false;
     }
 }

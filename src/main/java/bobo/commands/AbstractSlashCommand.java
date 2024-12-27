@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -58,6 +59,14 @@ public abstract class AbstractSlashCommand {
      * @return The help message of the command.
      */
     public abstract String getHelp();
+
+    /**
+     * Gets whether the reply should be ephemeral, or null if it could be either.
+     *
+     * @return Whether the reply should be ephemeral, or null if it could be either.
+     */
+    @Nullable
+    public abstract Boolean shouldBeEphemeral();
 
     /**
      * Gets the permissions of the command.

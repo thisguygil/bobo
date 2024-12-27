@@ -41,10 +41,7 @@ public class GoogleCommand extends AbstractGeneral {
 
     @Override
     protected void handleGeneralCommand() {
-        event.deferReply().queue();
-
         String subcommand = event.getSubcommandName();
-
         switch (subcommand) {
             case "search" -> search();
             case "images" -> searchImages();
@@ -169,5 +166,10 @@ public class GoogleCommand extends AbstractGeneral {
     @Override
     protected List<Permission> getGeneralCommandPermissions() {
         return new ArrayList<>();
+    }
+
+    @Override
+    public Boolean shouldBeEphemeral() {
+        return false;
     }
 }

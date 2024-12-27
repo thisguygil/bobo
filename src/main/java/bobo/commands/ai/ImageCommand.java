@@ -28,7 +28,6 @@ public class ImageCommand extends AbstractAI {
 
     @Override
     protected void handleAICommand() {
-        event.deferReply().queue();
         var currentHook = hook;
         String prompt = Objects.requireNonNull(event.getOption("prompt")).getAsString();
 
@@ -75,5 +74,10 @@ public class ImageCommand extends AbstractAI {
     @Override
     protected List<Permission> getAICommandPermissions() {
         return new ArrayList<>(List.of(Permission.MESSAGE_ATTACH_FILES));
+    }
+
+    @Override
+    public Boolean shouldBeEphemeral() {
+        return false;
     }
 }

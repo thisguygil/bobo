@@ -12,7 +12,7 @@ public abstract class AbstractMessageCommand {
     public static final String PREFIX = Config.get("PREFIX");
     protected MessageReceivedEvent event;
     protected String command;
-    protected String[] args;
+    protected List<String> args;
 
     /**
      * Creates a new message command.
@@ -24,17 +24,10 @@ public abstract class AbstractMessageCommand {
      *
      * @param event The event that triggered this action.
      */
-    public void handle(@Nonnull MessageReceivedEvent event) {
+    public void handle(@Nonnull MessageReceivedEvent event, String command, List<String> args) {
         this.event = event;
-
-        String message = event.getMessage().getContentRaw();
-        this.command = message.split("\\s+")[0].substring(PREFIX.length());
-
-        if (message.length() > PREFIX.length() + command.length()) {
-            this.args = message.substring(PREFIX.length() + command.length() + 1).split("\\s+");
-        } else { // No arguments
-            this.args = null;
-        }
+        this.command = command;
+        this.args = args;
 
         handleCommand();
     }

@@ -26,8 +26,6 @@ public class NowPlayingCommand extends AbstractMusic {
 
     @Override
     protected void handleMusicCommand() {
-        event.deferReply().queue();
-
         if (currentTrack == null) {
             hook.editOriginal("There is nothing currently playing.").queue();
             return;
@@ -108,5 +106,10 @@ public class NowPlayingCommand extends AbstractMusic {
     @Override
     protected List<Permission> getMusicCommandPermissions() {
         return new ArrayList<>(List.of(Permission.MESSAGE_ATTACH_FILES, Permission.MESSAGE_EMBED_LINKS));
+    }
+
+    @Override
+    public Boolean shouldBeEphemeral() {
+        return false;
     }
 }

@@ -27,8 +27,6 @@ public class FMLogoutCommand extends AbstractLastFM {
 
     @Override
     protected void handleLastFMCommand() {
-        event.deferReply().setEphemeral(true).queue();
-
         String userId = event.getUser().getId();
 
         try (Connection connection = SQLConnection.getConnection()) {
@@ -56,5 +54,10 @@ public class FMLogoutCommand extends AbstractLastFM {
     @Override
     protected List<Permission> getLastFMCommandPermissions() {
         return new ArrayList<>();
+    }
+
+    @Override
+    public Boolean shouldBeEphemeral() {
+        return true;
     }
 }

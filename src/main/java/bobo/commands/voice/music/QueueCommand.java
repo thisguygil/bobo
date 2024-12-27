@@ -42,8 +42,6 @@ public class QueueCommand extends AbstractMusic {
 
     @Override
     protected void handleMusicCommand() {
-        event.deferReply().queue();
-
         if (currentTrack == null) {
             hook.editOriginal("The queue is currently empty.").queue();
             return;
@@ -290,5 +288,10 @@ public class QueueCommand extends AbstractMusic {
     @Override
     protected List<Permission> getMusicCommandPermissions() {
         return new ArrayList<>();
+    }
+
+    @Override
+    public Boolean shouldBeEphemeral() {
+        return false;
     }
 }

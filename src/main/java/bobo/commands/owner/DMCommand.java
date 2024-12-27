@@ -3,12 +3,12 @@ package bobo.commands.owner;
 public class DMCommand extends AbstractOwner {
     @Override
     protected void handleOwnerCommand() {
-        if (args.length < 2) {
+        if (args.size() < 2) {
             event.getChannel().sendMessage("Invalid usage. Use `/help dm` for more information.").queue();
             return;
         }
 
-        String userId = args[0];
+        String userId = args.getFirst();
         String message = String.join(" ", args).substring(userId.length() + 1);
 
         event.getJDA().retrieveUserById(userId).queue(user -> {
@@ -28,6 +28,6 @@ public class DMCommand extends AbstractOwner {
     public String getHelp() {
         return """
                 DMs a user.
-                Usage: `!dm <user-id> <message>`""";
+                Usage: `""" + PREFIX + "dm <user-id> <message>`";
     }
 }

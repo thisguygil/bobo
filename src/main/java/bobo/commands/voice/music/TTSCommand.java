@@ -31,8 +31,6 @@ public class TTSCommand extends AbstractMusic {
 
     @Override
     protected void handleMusicCommand() {
-        event.deferReply().queue();
-
         if (!ensureConnected(event)) {
             return;
         }
@@ -122,5 +120,10 @@ public class TTSCommand extends AbstractMusic {
     @Override
     protected List<Permission> getMusicCommandPermissions() {
         return new ArrayList<>();
+    }
+
+    @Override
+    public Boolean shouldBeEphemeral() {
+        return false;
     }
 }

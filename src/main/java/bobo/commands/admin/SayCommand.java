@@ -16,8 +16,6 @@ public class SayCommand extends AbstractAdmin {
 
     @Override
     protected void handleAdminCommand() {
-        event.deferReply().setEphemeral(true).queue();
-
         event.getChannel().sendMessage(Objects.requireNonNull(event.getOption("content")).getAsString()).queue();
         hook.editOriginal("Message sent").queue();
     }
@@ -32,5 +30,10 @@ public class SayCommand extends AbstractAdmin {
         return super.getHelp() + " " + """
                 Make Bobo say what you tell it to.
                 Usage: `/say <content>`""";
+    }
+
+    @Override
+    public Boolean shouldBeEphemeral() {
+        return true;
     }
 }

@@ -58,8 +58,6 @@ public class FortniteCommand extends AbstractGeneral {
 
     @Override
     protected void handleGeneralCommand() {
-        event.deferReply().queue();
-
         var currentHook = hook;
         String subcommand = event.getSubcommandName();
         switch (subcommand) {
@@ -217,5 +215,10 @@ public class FortniteCommand extends AbstractGeneral {
     @Override
     protected List<Permission> getGeneralCommandPermissions() {
         return new ArrayList<>(List.of(Permission.MESSAGE_ATTACH_FILES));
+    }
+
+    @Override
+    public Boolean shouldBeEphemeral() {
+        return false;
     }
 }

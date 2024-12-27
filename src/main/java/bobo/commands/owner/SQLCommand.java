@@ -20,7 +20,7 @@ public class SQLCommand extends AbstractOwner {
 
     @Override
     protected void handleOwnerCommand() {
-        if (args.length == 0) {
+        if (args.isEmpty()) {
             event.getChannel().sendMessage("Invalid usage. Use `/help sql` for more information.").queue();
             return;
         }

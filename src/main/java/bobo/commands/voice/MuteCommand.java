@@ -23,15 +23,13 @@ public class MuteCommand extends AbstractVoice {
 
     @Override
     protected void handleVoiceCommand() {
-        event.deferReply().queue();
-
         if (!event.getGuildChannel().getGuild().getAudioManager().isConnected()) {
             hook.editOriginal("I am not connected to a voice channel.").queue();
             return;
         }
 
         Guild guild = event.getGuildChannel().getGuild();
-        boolean isMuted = Objects.requireNonNull(guild.getSelfMember().getVoiceState()).isMuted();
+        boolean isMuted = guild.getSelfMember().getVoiceState().isMuted();
         guild.getAudioManager().setSelfMuted(!isMuted);
         hook.editOriginal((isMuted ? "Unm" : "M") + "uted.").queue();
     }
@@ -46,5 +44,10 @@ public class MuteCommand extends AbstractVoice {
     @Override
     protected List<Permission> getVoiceCommandPermissions() {
         return new ArrayList<>();
+    }
+
+    @Override
+    public Boolean shouldBeEphemeral() {
+        return false;
     }
 }

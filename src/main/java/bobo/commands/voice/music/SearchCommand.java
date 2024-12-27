@@ -73,8 +73,6 @@ public class SearchCommand extends AbstractMusic {
 
     @Override
     protected void handleMusicCommand() {
-        event.deferReply().queue();
-
         String platform = event.getOption("platform").getAsString();
         String searchType = event.getOption("type").getAsString();
         String query = event.getOption("query").getAsString();
@@ -442,5 +440,10 @@ public class SearchCommand extends AbstractMusic {
     @Override
     protected List<Permission> getMusicCommandPermissions() {
         return new ArrayList<>(List.of(Permission.MESSAGE_ADD_REACTION, Permission.MESSAGE_EMBED_LINKS));
+    }
+
+    @Override
+    public Boolean shouldBeEphemeral() {
+        return false;
     }
 }

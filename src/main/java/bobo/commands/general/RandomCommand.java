@@ -60,8 +60,6 @@ public class RandomCommand extends AbstractGeneral {
 
     @Override
     protected void handleGeneralCommand() {
-        event.deferReply().queue();
-
         switch (Objects.requireNonNull(event.getSubcommandName())) {
             case "quote" -> randomQuote();
             case "clip" -> randomClip();
@@ -344,5 +342,10 @@ public class RandomCommand extends AbstractGeneral {
     @Override
     protected List<Permission> getGeneralCommandPermissions() {
         return new ArrayList<>(List.of(Permission.MESSAGE_HISTORY, Permission.MESSAGE_ATTACH_FILES));
+    }
+
+    @Override
+    public Boolean shouldBeEphemeral() {
+        return false;
     }
 }

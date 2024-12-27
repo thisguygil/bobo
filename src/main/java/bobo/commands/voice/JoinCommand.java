@@ -31,8 +31,6 @@ public class JoinCommand extends AbstractVoice {
 
     @Override
     protected void handleVoiceCommand() {
-        event.deferReply().queue();
-
         AudioManager manager = event.getGuildChannel().getGuild().getAudioManager();
         AudioChannelUnion memberChannel = Objects.requireNonNull(Objects.requireNonNull(event.getMember()).getVoiceState()).getChannel();
         if (manager.isConnected() && memberChannel != null && memberChannel == manager.getConnectedChannel()) {
@@ -148,5 +146,10 @@ public class JoinCommand extends AbstractVoice {
     @Override
     protected List<Permission> getVoiceCommandPermissions() {
         return new ArrayList<>();
+    }
+
+    @Override
+    public Boolean shouldBeEphemeral() {
+        return false;
     }
 }

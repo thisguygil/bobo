@@ -50,8 +50,6 @@ public class ConfigCommand extends AbstractAdmin {
 
     @Override
     protected void handleAdminCommand() {
-        event.deferReply().queue();
-
         String guildId = event.getGuildChannel().getGuild().getId();
         String setting = event.getOption("setting").getAsString();
         OptionMapping channelOption = event.getOption("channel");
@@ -213,5 +211,10 @@ public class ConfigCommand extends AbstractAdmin {
                 No channel input clears the setting.
                 """;
 
+    }
+
+    @Override
+    public Boolean shouldBeEphemeral() {
+        return false;
     }
 }

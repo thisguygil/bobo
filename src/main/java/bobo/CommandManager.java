@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class CommandManager {
@@ -131,13 +132,20 @@ public class CommandManager {
      * @param event The event that triggered this action.
      */
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
-        AbstractSlashCommand command = getSlashCommand(event.getName());
+        String commandName = event.getName();
+        AbstractSlashCommand command = getSlashCommand(commandName);
+
         if (command != null) {
+            logger.info("Slash command '{}' executed by '{}'.", commandName, event.getUser().getName());
+            Boolean ephemeral = command.shouldBeEphemeral();
+            if (ephemeral != null) {
+                event.deferReply().setEphemeral(ephemeral).queue();
+            } // else the command should reply (or defer) in its handle method and decide whether it should be ephemeral there
+
             command.handle(event);
-            logger.info("Slash command '{}' executed by '{}'.", event.getFullCommandName(), event.getUser().getName());
         } else {
+            logger.error("Slash command '{}' not found.", commandName);
             event.reply("Error retrieving command.").queue();
-            logger.error("Slash command '{}' not found.", event.getFullCommandName());
         }
     }
 
@@ -147,11 +155,17 @@ public class CommandManager {
      * @param event The event that triggered this action.
      */
     public void handle(@Nonnull MessageReceivedEvent event) {
-        String[] args = event.getMessage().getContentRaw().split("\\s+");
-        AbstractMessageCommand command = getMessageCommand(args[0].substring(1));
+        String prefix = Config.get("PREFIX");
+
+        String[] split = event.getMessage().getContentRaw().split("\\s+");
+        List<String> args = new ArrayList<>(Arrays.asList(split).subList(1, split.length));
+
+        String baseCommand = split[0].substring(prefix.length());
+        AbstractMessageCommand command = getMessageCommand(baseCommand);
+
         if (command != null) {
-            command.handle(event);
-            logger.info("Message command '{}' executed by '{}'.", args[0].substring(1), event.getAuthor().getName());
+            logger.info("Message command '{}' executed by '{}'.", baseCommand, event.getAuthor().getName());
+            command.handle(event, baseCommand, args);
         } // Do nothing if command is not found, as it may be a regular message or a different bot's command
     }
 }

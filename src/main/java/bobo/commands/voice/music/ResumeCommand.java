@@ -16,8 +16,6 @@ public class ResumeCommand extends AbstractMusic {
 
     @Override
     protected void handleMusicCommand() {
-        event.deferReply().queue();
-
         if (currentTrack == null) {
             hook.editOriginal("There is nothing currently paused.").queue();
             return;
@@ -46,5 +44,10 @@ public class ResumeCommand extends AbstractMusic {
     @Override
     protected List<Permission> getMusicCommandPermissions() {
         return new ArrayList<>();
+    }
+
+    @Override
+    public Boolean shouldBeEphemeral() {
+        return false;
     }
 }

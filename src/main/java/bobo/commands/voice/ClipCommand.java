@@ -50,8 +50,6 @@ public class ClipCommand extends AbstractVoice {
 
     @Override
     protected void handleVoiceCommand() {
-        event.deferReply().queue();
-
         Guild guild = event.getGuildChannel().getGuild();
         AudioReceiveHandler receiveHandler = guild.getAudioManager().getReceivingHandler();
 
@@ -123,5 +121,10 @@ public class ClipCommand extends AbstractVoice {
     @Override
     protected List<Permission> getVoiceCommandPermissions() {
         return new ArrayList<>(List.of(Permission.MESSAGE_ATTACH_FILES));
+    }
+
+    @Override
+    public Boolean shouldBeEphemeral() {
+        return false;
     }
 }

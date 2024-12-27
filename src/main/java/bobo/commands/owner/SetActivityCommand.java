@@ -23,29 +23,29 @@ public class SetActivityCommand extends AbstractOwner {
 
     @Override
     protected void handleOwnerCommand() {
-        if (args.length < 2) {
+        if (args.size() < 2) {
             event.getChannel().sendMessage("Invalid usage. Use `/help set-activity` for more information.").queue();
             return;
         }
 
-        String activityType = args[0];
+        String activityType = args.getFirst();
         String activityName;
         String streamURL = null;
 
         if (activityType.equals("streaming")) {
-            if (args.length < 3) {
+            if (args.size() < 3) {
                 event.getChannel().sendMessage("Invalid usage. Use `/help set-activity` for more information.").queue();
                 return;
             }
 
-            streamURL = args[args.length - 1];
+            streamURL = args.getLast();
 
             if (!Activity.isValidStreamingUrl(streamURL)) {
                 event.getChannel().sendMessage("Invalid stream URL: " + streamURL).queue();
                 return;
             }
 
-            activityName = String.join(" ", args).substring(activityType.length() + 1, args.length - streamURL.length() - 1);
+            activityName = String.join(" ", args).substring(activityType.length() + 1, args.size() - streamURL.length() - 1);
         } else {
             activityName = String.join(" ", args).substring(activityType.length() + 1);
         }

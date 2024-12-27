@@ -29,8 +29,6 @@ public class ChatCommand extends AbstractAI {
 
     @Override
     protected void handleAICommand() {
-        event.deferReply().queue();
-
         Member member = event.getMember();
         assert member != null;
         String memberName = member.getUser().getGlobalName();
@@ -175,5 +173,10 @@ public class ChatCommand extends AbstractAI {
     @Override
     protected List<Permission> getAICommandPermissions() {
         return new ArrayList<>(List.of(Permission.CREATE_PUBLIC_THREADS, Permission.MESSAGE_SEND_IN_THREADS));
+    }
+
+    @Override
+    public Boolean shouldBeEphemeral() {
+        return false;
     }
 }

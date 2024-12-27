@@ -23,15 +23,13 @@ public class DeafenCommand extends AbstractVoice {
 
     @Override
     protected void handleVoiceCommand() {
-        event.deferReply().queue();
-
         if (!event.getGuildChannel().getGuild().getAudioManager().isConnected()) {
             hook.editOriginal("I am not connected to a voice channel.").queue();
             return;
         }
 
         Guild guild = event.getGuildChannel().getGuild();
-        boolean isDeafened = Objects.requireNonNull(guild.getSelfMember().getVoiceState()).isDeafened();
+        boolean isDeafened = guild.getSelfMember().getVoiceState().isDeafened();
         guild.getAudioManager().setSelfDeafened(!isDeafened);
         hook.editOriginal((isDeafened ? "Und" : "D") + "eafened.").queue();
     }
@@ -46,5 +44,10 @@ public class DeafenCommand extends AbstractVoice {
     @Override
     protected List<Permission> getVoiceCommandPermissions() {
         return new ArrayList<>();
+    }
+
+    @Override
+    public Boolean shouldBeEphemeral() {
+        return false;
     }
 }

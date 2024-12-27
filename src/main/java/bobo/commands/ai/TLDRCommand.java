@@ -31,8 +31,6 @@ public class TLDRCommand extends AbstractAI {
 
     @Override
     protected void handleAICommand() {
-        event.deferReply().queue();
-
         OptionMapping minutesOption = event.getOption("minutes");
         Integer minutes = null;
         if (minutesOption != null) {
@@ -178,5 +176,10 @@ public class TLDRCommand extends AbstractAI {
     @Override
     protected List<Permission> getAICommandPermissions() {
         return new ArrayList<>(List.of(Permission.MESSAGE_HISTORY));
+    }
+
+    @Override
+    public Boolean shouldBeEphemeral() {
+        return false;
     }
 }
