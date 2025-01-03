@@ -5,6 +5,7 @@ import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
 import javax.annotation.Nonnull;
@@ -12,7 +13,7 @@ import javax.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractSlashCommand {
+public abstract class ASlashCommand implements ICommand {
     protected SlashCommandInteractionEvent event;
     protected InteractionHook hook;
 
@@ -21,7 +22,7 @@ public abstract class AbstractSlashCommand {
      *
      * @param commandData The command data.
      */
-    public AbstractSlashCommand(@Nonnull CommandData commandData) {
+    public ASlashCommand(@Nonnull CommandData commandData) {
         Bobo.getJDA()
                 .upsertCommand(
                         commandData.setGuildOnly(true)
@@ -34,31 +35,17 @@ public abstract class AbstractSlashCommand {
      *
      * @param event The event that triggered this action.
      */
-    public void handle(@Nonnull SlashCommandInteractionEvent event) {
+    public CommandResponse handle(@Nonnull SlashCommandInteractionEvent event) {
         this.event = event;
         this.hook = event.getHook();
 
-        handleCommand();
+        return handleCommand();
     }
 
     /**
      * Handles the command.
      */
-    protected abstract void handleCommand();
-
-    /**
-     * Gets the name of the command.
-     *
-     * @return The name of the command.
-     */
-    public abstract String getName();
-
-    /**
-     * Gets the help message of the command.
-     *
-     * @return The help message of the command.
-     */
-    public abstract String getHelp();
+    protected abstract CommandResponse handleCommand();
 
     /**
      * Gets whether the reply should be ephemeral, or null if it could be either.
@@ -85,4 +72,26 @@ public abstract class AbstractSlashCommand {
      * @return The command permissions.
      */
     protected abstract List<Permission> getCommandPermissions();
+
+    /**
+     * Helper method to get the value of an option.
+     *
+     * @param optionName The name of the option.
+     * @param defaultValue The default value of the option.
+     * @return The value of the option.
+     */
+    protected String getOptionValue(String optionName, String defaultValue) {
+        OptionMapping option = event.getOption(optionName);
+        return option != null ? option.getAsString() : defaultValue;
+    }
+
+    /**
+     * Helper method to get the value of an option.
+     *
+     * @param optionName The name of the option.
+     * @return The value of the option.
+     */
+    protected String getOptionValue(String optionName) {
+        return getOptionValue(optionName, null);
+    }
 }

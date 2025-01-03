@@ -1,5 +1,6 @@
 package bobo.commands.owner;
 
+import bobo.commands.CommandResponse;
 import bobo.utils.api_clients.SQLConnection;
 
 import java.sql.Connection;
@@ -7,7 +8,7 @@ import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 
-public class SQLCommand extends AbstractOwner {
+public class SQLCommand extends AOwnerCommand {
     /**
      * Creates a new sql command.
      */
@@ -19,18 +20,19 @@ public class SQLCommand extends AbstractOwner {
     }
 
     @Override
-    protected void handleOwnerCommand() {
-        if (args.isEmpty()) {
-            event.getChannel().sendMessage("Invalid usage. Use `/help sql` for more information.").queue();
-            return;
+    protected CommandResponse handleOwnerCommand() {
+        String statementStr;
+        try {
+            statementStr = getMultiwordOptionValue(0);
+        } catch (RuntimeException e) {
+            return new CommandResponse("Please provide a statement to execute.");
         }
 
-        String statementStr = String.join(" ", args);
         try (Connection connection = SQLConnection.getConnection()) {
             try (Statement statement = connection.createStatement()) {
                 if (isUpdateQuery(statementStr)) {
                     int affectedRows = statement.executeUpdate(statementStr);
-                    event.getChannel().sendMessage("Query executed successfully. Rows affected: " + affectedRows).queue();
+                    return new CommandResponse("Query executed successfully. Rows affected: " + affectedRows);
                 } else {
                     ResultSet resultSet = statement.executeQuery(statementStr);
                     StringBuilder result = new StringBuilder("Query Results:\n");
@@ -54,14 +56,14 @@ public class SQLCommand extends AbstractOwner {
                     }
 
                     if (result.length() > 2000) {
-                        event.getChannel().sendMessage("The result is too long to display.").queue();
+                        return new CommandResponse("The result is too long to display.");
                     } else {
-                        event.getChannel().sendMessage(result.toString()).queue();
+                        return new CommandResponse(result.toString());
                     }
                 }
             }
         } catch (Exception e) {
-            event.getChannel().sendMessage("Error executing statement: " + e.getMessage()).queue();
+            return new CommandResponse("Error executing statement: " + e.getMessage());
         }
     }
 
@@ -81,5 +83,10 @@ public class SQLCommand extends AbstractOwner {
         return """
                 Executes a given SQL statement.
                 Usage: `""" + PREFIX + "sql <statement>`";
+    }
+
+    @Override
+    public Boolean shouldNotShowTyping() {
+        return false;
     }
 }

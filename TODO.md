@@ -13,8 +13,4 @@
   * More efficient and scalable than [Lavaplayer](https://github.com/lavalink-devs/lavaplayer) (currently using) and has more features, but is more complex to set up
   * The current music commands are tightly coupled with Lavaplayer
 * Add more asynchronous command processing
-  * Can currently only process one command at a time, a problem if multiple commands are being used at the same time
-    * Commands are dropped if they aren't acknowledged in time (3 seconds)
-  * Moving the reply deferral (which extends the 3-second timer) outside the command's handle method would mitigate the issue of commands being dropped, but wouldn't help with the bigger issue - still single-threaded (with some exceptions) and needs to wait for the previous command to finish execution to continue
-* Merge command types (slash, message) into one command system
-  * Would allow for more flexibility in command handling and able to use the same command's code for both types
+  * Can currently only process one command at a time, a problem if multiple long-running commands are being used at the same time

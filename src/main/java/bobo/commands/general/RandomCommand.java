@@ -1,6 +1,8 @@
 package bobo.commands.general;
 
 import bobo.Bobo;
+import bobo.commands.CommandResponse;
+import bobo.commands.CommandResponseBuilder;
 import bobo.utils.AudioReceiveListener;
 import bobo.utils.api_clients.SQLConnection;
 import net.dv8tion.jda.api.JDA;
@@ -37,7 +39,7 @@ import java.util.regex.Pattern;
  * <p>
  * There can be multiple quotes in one message, and blank space does not matter.
  */
-public class RandomCommand extends AbstractGeneral {
+public class RandomCommand extends AGeneralCommand {
     private static final Logger logger = LoggerFactory.getLogger(RandomCommand.class);
 
     public static final Map<Guild, List<Message>> guildQuoteListMap = new HashMap<>();
@@ -59,35 +61,40 @@ public class RandomCommand extends AbstractGeneral {
     }
 
     @Override
-    protected void handleGeneralCommand() {
-        switch (Objects.requireNonNull(event.getSubcommandName())) {
+    protected CommandResponse handleGeneralCommand() {
+        String subcommand;
+        try {
+            subcommand = getSubcommandName(0);
+        } catch (Exception e) {
+            return new CommandResponse("Invalid usage. Use `/help random` for more information.");
+        }
+
+        return switch (subcommand) {
             case "quote" -> randomQuote();
             case "clip" -> randomClip();
-        }
+            default -> new CommandResponse("Invalid usage. Use `/help random` for more information.");
+        };
     }
 
     /**
      * Gets a random quote from the configured quotes channel.
      */
-    private void randomQuote() {
-        Guild guild = event.getGuild();
-        assert guild != null;
+    private CommandResponse randomQuote() {
+        Guild guild = getGuild();
+
         try {
             loadGuildQuotes(guild);
         } catch (SQLException e) {
             logger.warn("Failed to load quotes for guild {}.", guild.getId());
-            hook.editOriginal("An error occurred while getting the quote.").queue();
-            return;
+            return new CommandResponse("An error occurred while getting the quote.");
         }
 
         List<Message> guildList = guildQuoteListMap.get(guild);
         if (guildList == null) {
-            hook.editOriginal("No quotes channel has been configured for this server. Configure one with **/config quotes**").queue();
-            return;
+            return new CommandResponse("No quotes channel has been configured for this server. Configure one with `/config quotes`");
         }
         if (guildList.isEmpty()) {
-            hook.editOriginal("No quotes have been added to the quotes channel.").queue();
-            return;
+            return new CommandResponse("No quotes have been added to the quotes channel.");
         }
 
         int randomIndex = (int) (Math.random() * guildList.size());
@@ -96,7 +103,7 @@ public class RandomCommand extends AbstractGeneral {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
         String time = randomMessage.getTimeCreated().format(formatter);
 
-        hook.editOriginal(messageContent + "\n" + time).queue();
+        return new CommandResponse(messageContent + "\n" + time);
     }
 
     /**
@@ -170,25 +177,22 @@ public class RandomCommand extends AbstractGeneral {
     /**
      * Gets a random clip from the configured clips channel
      */
-    private void randomClip() {
-        Guild guild = event.getGuild();
-        assert guild != null;
+    private CommandResponse randomClip() {
+        Guild guild = getGuild();
+
         try {
             loadGuildClips(guild);
         } catch (SQLException e) {
             logger.error("Failed to get clip.");
-            hook.editOriginal("An error occurred while getting the clip.").queue();
-            return;
+            return new CommandResponse("An error occurred while getting the clip.");
         }
 
         List<Message> guildList = guildClipListMap.get(guild);
         if (guildList == null) {
-            hook.editOriginal("No clips channel has been configured for this server. Configure one with **/config clips**").queue();
-            return;
+            return new CommandResponse("No clips channel has been configured for this server. Configure one with `/config clips`");
         }
         if (guildList.isEmpty()) {
-            hook.editOriginal("No clips have been added to the clips channel.").queue();
-            return;
+            return new CommandResponse("No clips have been added to the clips channel.");
         }
 
         int randomIndex = (int) (Math.random() * guildList.size());
@@ -212,10 +216,11 @@ public class RandomCommand extends AbstractGeneral {
             FileUpload voiceMessageUpload = FileUpload.fromData(fileData, attachment.getFileName())
                     .asVoiceMessage(mediaType, waveform, duration);
 
-            hook.editOriginalAttachments(voiceMessageUpload).queue();
+            return new CommandResponseBuilder().addAttachment(voiceMessageUpload)
+                    .build();
         } catch (Exception e) {
             logger.error("Failed to send clip as attachment.", e);
-            hook.editOriginal("Failed to send the clip.").queue();
+            return new CommandResponse("Failed to send the clip.");
         }
     }
 
@@ -345,7 +350,7 @@ public class RandomCommand extends AbstractGeneral {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return false;
     }
 }

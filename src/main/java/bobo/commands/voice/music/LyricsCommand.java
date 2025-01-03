@@ -1,5 +1,7 @@
 package bobo.commands.voice.music;
 
+import bobo.commands.CommandResponse;
+import bobo.commands.CommandResponseBuilder;
 import bobo.utils.api_clients.SpotifyLink;
 import com.github.topi314.lavalyrics.LyricsManager;
 import com.github.topi314.lavalyrics.lyrics.AudioLyrics;
@@ -17,16 +19,15 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LyricsCommand extends AbstractMusic {
+public class LyricsCommand extends AMusicCommand {
     public LyricsCommand() {
         super(Commands.slash("lyrics", "Get the lyrics of the currently playing track."));
     }
 
     @Override
-    protected void handleMusicCommand() {
+    protected CommandResponse handleMusicCommand() {
         if (currentTrack == null) {
-            hook.editOriginal("There is nothing currently playing.").queue();
-            return;
+            return new CommandResponse("There is nothing currently playing.");
         }
 
         LyricsManager lyricsManager = playerManager.getLyricsManager();
@@ -34,13 +35,11 @@ public class LyricsCommand extends AbstractMusic {
         try {
             lyrics = lyricsManager.loadLyrics(currentTrack.track());
         } catch (Exception e) {
-            hook.editOriginal("An error occurred while fetching the lyrics.").queue();
-            return;
+            return new CommandResponse("An error occurred while fetching the lyrics.");
         }
 
         if (lyrics == null || lyrics.getLines() == null) {
-            hook.editOriginal("No lyrics found for the current track.").queue();
-            return;
+            return new CommandResponse("No lyrics found for the current track.");
         }
 
         StringBuilder lyricsText = new StringBuilder();
@@ -50,13 +49,11 @@ public class LyricsCommand extends AbstractMusic {
         }
 
         if (lyricsText.isEmpty()) {
-            hook.editOriginal("No lyrics found for the current track.").queue();
-            return;
+            return new CommandResponse("No lyrics found for the current track.");
         }
 
         List<EmbedBuilder> embedBuilders = new ArrayList<>();
-        Member member = event.getMember();
-        assert member != null;
+        Member member = getMember();
         AudioTrackInfo info = currentTrack.track().getInfo();
         while (lyricsText.length() > 4096) { // Discord embed description limit; split the lyrics into multiple pages if necessary
             embedBuilders.add(createEmbed(member, info, lyricsText.substring(0, 4096)));
@@ -75,9 +72,13 @@ public class LyricsCommand extends AbstractMusic {
         }
 
         if (pages.size() == 1) { // Don't paginate if there's only one page
-            hook.editOriginalEmbeds((MessageEmbed) pages.get(0).getContent()).queue();
+            return new CommandResponse((MessageEmbed) pages.getFirst().getContent());
         } else {
-            hook.editOriginalEmbeds((MessageEmbed) pages.get(0).getContent()).queue(success -> Pages.paginate(success, pages, true));
+            return new CommandResponseBuilder().addEmbed((MessageEmbed) pages.getFirst().getContent())
+                    .setPostExecutionAsMessage(
+                            success -> Pages.paginate(success, pages, true)
+                    )
+                    .build();
         }
     }
 
@@ -125,7 +126,7 @@ public class LyricsCommand extends AbstractMusic {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return false;
     }
 }

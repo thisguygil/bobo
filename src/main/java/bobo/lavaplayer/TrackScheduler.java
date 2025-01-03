@@ -2,8 +2,6 @@ package bobo.lavaplayer;
 
 import bobo.commands.voice.music.LoopCommand;
 import bobo.commands.voice.music.TTSCommand;
-import bobo.utils.TrackRecord;
-import bobo.utils.TrackType;
 import com.sedmelluq.discord.lavaplayer.player.AudioPlayer;
 import com.sedmelluq.discord.lavaplayer.player.event.AudioEventAdapter;
 import com.sedmelluq.discord.lavaplayer.tools.FriendlyException;

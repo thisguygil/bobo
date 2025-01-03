@@ -1,13 +1,14 @@
 package bobo.commands.voice.music;
 
-import bobo.utils.TrackType;
+import bobo.commands.CommandResponse;
+import bobo.lavaplayer.TrackType;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class SkipCommand extends AbstractMusic {
+public class SkipCommand extends AMusicCommand {
     /**
      * Creates a new skip command.
      */
@@ -16,19 +17,19 @@ public class SkipCommand extends AbstractMusic {
     }
 
     @Override
-    protected void handleMusicCommand() {
+    protected CommandResponse handleMusicCommand() {
         if (currentTrack == null) {
-            hook.editOriginal("There is nothing currently playing.").queue();
+            return new CommandResponse("There is nothing currently playing.");
         } else {
             boolean wasLoopingTrack = scheduler.looping == LoopCommand.looping.TRACK;
             if (wasLoopingTrack) {
                 scheduler.looping = LoopCommand.looping.NONE;
             }
             if (currentTrack.trackType() == TrackType.TTS) {
-                TTSCommand.nextTTSMessage(event.getGuild(), currentTrack.track());
+                TTSCommand.nextTTSMessage(getGuild(), currentTrack.track());
             }
             scheduler.nextTrack();
-            hook.editOriginal("Skipped." + (wasLoopingTrack ? " Looping has been turned off." : "")).queue();
+            return new CommandResponse("Skipped." + (wasLoopingTrack ? " Looping has been turned off." : ""));
         }
     }
 
@@ -50,7 +51,7 @@ public class SkipCommand extends AbstractMusic {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return false;
     }
 }

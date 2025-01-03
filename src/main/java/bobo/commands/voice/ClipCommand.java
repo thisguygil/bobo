@@ -1,24 +1,23 @@
 package bobo.commands.voice;
 
 import bobo.Bobo;
+import bobo.commands.CommandResponseBuilder;
 import bobo.utils.AudioReceiveListener;
+import bobo.commands.CommandResponse;
 import bobo.utils.api_clients.SQLConnection;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.audio.AudioReceiveHandler;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.utils.FileUpload;
 import okhttp3.MediaType;
-import org.apache.commons.lang3.tuple.Triple;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.io.IOException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -27,10 +26,11 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
-public class ClipCommand extends AbstractVoice {
+public class ClipCommand extends AVoiceCommand {
     private static final Logger logger = LoggerFactory.getLogger(ClipCommand.class);
+
+    public record ClipResult(File file, byte[] waveform, Integer duration) {}
 
     private static final String selectSQL = "SELECT channel_id FROM clips_channels WHERE guild_id = ?";
 
@@ -49,28 +49,24 @@ public class ClipCommand extends AbstractVoice {
     }
 
     @Override
-    protected void handleVoiceCommand() {
-        Guild guild = event.getGuildChannel().getGuild();
+    protected CommandResponse handleVoiceCommand() {
+        Guild guild = getGuild();
         AudioReceiveHandler receiveHandler = guild.getAudioManager().getReceivingHandler();
 
         if (receiveHandler == null) {
-            hook.editOriginal("I am not connected to a voice channel.").queue();
-            return;
+            return new CommandResponse("I'm not connected to a voice channel.");
         }
-        if (Objects.requireNonNull(guild.getSelfMember().getVoiceState()).isDeafened()) {
-            hook.editOriginal("I can't be deafened when using this command.").queue();
-            return;
+        if (guild.getSelfMember().getVoiceState().isDeafened()) {
+            return new CommandResponse("I can't be deafened when using this command.");
         }
 
-        OptionMapping nameOption = event.getOption("name");
-        String name = nameOption == null ? LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")) : nameOption.getAsString();
-        Triple<File, byte[], Integer> triple = ((AudioReceiveListener) receiveHandler).createClip(30, name);
-        if (triple == null) {
-            hook.editOriginal("Clip creation failed.").queue();
-            return;
+        String name = getMultiwordOptionValue("name", 0, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")));
+        ClipResult clipResult = ((AudioReceiveListener) receiveHandler).createClip(30, name);
+        if (clipResult == null) {
+            return new CommandResponse("Clip creation failed.");
         }
 
-        File file = triple.getLeft();
+        File file = clipResult.file();
         if (file != null) {
             GuildChannel channel;
             try (Connection connection = SQLConnection.getConnection();
@@ -87,26 +83,30 @@ public class ClipCommand extends AbstractVoice {
                 channel = null;
             }
 
-            byte[] waveform = triple.getMiddle();
+            byte[] waveform = clipResult.waveform();
             MediaType mediaType = MediaType.parse("audio/wav");
-            int duration = triple.getRight();
+            int duration = clipResult.duration();
 
-            try (FileUpload fileUpload = FileUpload.fromData(file)
-                    .asVoiceMessage(mediaType, waveform, duration)) {
-                if (channel != null && channel != event.getChannel()) {
-                    ((GuildMessageChannel) channel).sendFiles(fileUpload).queue();
-                }
-                hook.editOriginalAttachments(fileUpload).queue(_ -> {
-                    if (!file.delete()) {
-                        logger.error("Failed to delete file: {}", file.getName());
-                    }
-                });
-            } catch (IOException e) {
-                logger.error("Failed to upload file: {}", file.getName());
-                hook.editOriginal("Clip creation failed.").queue();
+            FileUpload fileUpload = FileUpload.fromData(file)
+                    .asVoiceMessage(mediaType, waveform, duration);
+            if (channel != null && channel != getChannel()) {
+                ((GuildMessageChannel) channel).sendFiles(fileUpload).queue();
             }
+
+            return new CommandResponseBuilder().addAttachment(fileUpload)
+                    .setPostExecutionAsMessage(success -> {
+                        if (!file.delete()) {
+                            logger.error("Failed to delete file: {}", file.getName());
+                        }
+                    })
+                    .setFailureHandler(failure -> {
+                        if (!file.delete()) {
+                            logger.error("Failed to delete file: {}", file.getName());
+                        }
+                    })
+                    .build();
         } else {
-            hook.editOriginal("Clip creation failed.").queue();
+            return new CommandResponse("Clip creation failed.");
         }
     }
 
@@ -124,7 +124,7 @@ public class ClipCommand extends AbstractVoice {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return false;
     }
 }

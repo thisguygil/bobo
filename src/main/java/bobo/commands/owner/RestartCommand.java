@@ -1,8 +1,10 @@
 package bobo.commands.owner;
 
 import bobo.Bobo;
+import bobo.commands.CommandResponse;
+import bobo.commands.CommandResponseBuilder;
 
-public class RestartCommand extends AbstractOwner {
+public class RestartCommand extends AOwnerCommand {
     /**
      * Creates a new restart command.
      */
@@ -14,9 +16,12 @@ public class RestartCommand extends AbstractOwner {
     }
 
     @Override
-    protected void handleOwnerCommand() {
+    protected CommandResponse handleOwnerCommand() {
         // Uses callback to ensure that the message is sent before the bot shuts down.
-        event.getChannel().sendMessage("Restarting...").queue(_ -> Bobo.restart(), _ -> Bobo.restart());
+        return new CommandResponseBuilder().setContent("Restarting...")
+                .setPostExecutionAsMessage(success -> Bobo.restart())
+                .setFailureHandler(failure -> Bobo.restart())
+                .build();
     }
 
     @Override
@@ -24,5 +29,10 @@ public class RestartCommand extends AbstractOwner {
         return """
                 Restarts the bot.
                 Usage: `""" + PREFIX + "restart`";
+    }
+
+    @Override
+    public Boolean shouldNotShowTyping() {
+        return false;
     }
 }

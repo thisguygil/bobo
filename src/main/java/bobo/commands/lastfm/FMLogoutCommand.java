@@ -1,8 +1,11 @@
 package bobo.commands.lastfm;
 
+import bobo.commands.CommandResponse;
 import bobo.utils.api_clients.SQLConnection;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,7 +13,9 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-public class FMLogoutCommand extends AbstractLastFM {
+public class FMLogoutCommand extends ALastFMCommand {
+    private static final Logger logger = LoggerFactory.getLogger(FMLogoutCommand.class);
+
     private static final String deleteTokenSQL = "DELETE FROM lastfmtokens WHERE user_id = ?";
 
     /**
@@ -26,8 +31,8 @@ public class FMLogoutCommand extends AbstractLastFM {
     }
 
     @Override
-    protected void handleLastFMCommand() {
-        String userId = event.getUser().getId();
+    protected CommandResponse handleLastFMCommand() {
+        String userId = getUser().getId();
 
         try (Connection connection = SQLConnection.getConnection()) {
             try (PreparedStatement preparedStatement = connection.prepareStatement(deleteTokenSQL)) {
@@ -35,12 +40,11 @@ public class FMLogoutCommand extends AbstractLastFM {
                 preparedStatement.executeUpdate();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
-            hook.editOriginal("An error occurred while logging out of Last.fm.").queue();
-            return;
+            logger.error("An error occurred while logging out of Last.fm. for user {}", userId, e);
+            return new CommandResponse("An error occurred while logging out of Last.fm.");
         }
 
-        hook.editOriginal("Successfully logged out of Last.fm.").queue();
+        return new CommandResponse("Successfully logged out of Last.fm.");
     }
 
     @Override
@@ -57,7 +61,7 @@ public class FMLogoutCommand extends AbstractLastFM {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return true;
     }
 }

@@ -1,14 +1,14 @@
 package bobo.commands.voice;
 
+import bobo.commands.CommandResponse;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
-public class DeafenCommand extends AbstractVoice {
+public class DeafenCommand extends AVoiceCommand {
     /**
      * Creates a new deafen command.
      */
@@ -22,16 +22,15 @@ public class DeafenCommand extends AbstractVoice {
     }
 
     @Override
-    protected void handleVoiceCommand() {
-        if (!event.getGuildChannel().getGuild().getAudioManager().isConnected()) {
-            hook.editOriginal("I am not connected to a voice channel.").queue();
-            return;
+    protected CommandResponse handleVoiceCommand() {
+        Guild guild = getGuild();
+        if (!guild.getAudioManager().isConnected()) {
+            return new CommandResponse("I am not connected to a voice channel.");
         }
 
-        Guild guild = event.getGuildChannel().getGuild();
         boolean isDeafened = guild.getSelfMember().getVoiceState().isDeafened();
         guild.getAudioManager().setSelfDeafened(!isDeafened);
-        hook.editOriginal((isDeafened ? "Und" : "D") + "eafened.").queue();
+        return new CommandResponse((isDeafened ? "Und" : "D") + "eafened.");
     }
 
     @Override
@@ -47,7 +46,7 @@ public class DeafenCommand extends AbstractVoice {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return false;
     }
 }

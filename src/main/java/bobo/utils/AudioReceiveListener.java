@@ -1,5 +1,6 @@
 package bobo.utils;
 
+import bobo.commands.voice.ClipCommand;
 import net.dv8tion.jda.api.audio.AudioReceiveHandler;
 import net.dv8tion.jda.api.audio.CombinedAudio;
 import org.apache.commons.lang3.tuple.Triple;
@@ -48,14 +49,14 @@ public class AudioReceiveListener implements AudioReceiveHandler {
     }
 
     /**
-     * Creates a {@link Triple} containing the file, waveform, and duration of the clip.
+     * Creates a {@link ClipCommand.ClipResult} containing the file, waveform, and duration of the clip.
      *
      * @param seconds the number of seconds to record
      * @param name    the name of the file
-     * @return the {@link Triple}, or null if the clip could not be created
+     * @return the {@link ClipCommand.ClipResult}, or null if the clip could not be created
      */
     @Nullable
-    public Triple<File, byte[], Integer> createClip(int seconds, String name) {
+    public ClipCommand.ClipResult createClip(int seconds, String name) {
         int packetCount = (seconds * 1000) / 20;
         File file;
         try {
@@ -83,7 +84,7 @@ public class AudioReceiveListener implements AudioReceiveHandler {
 
             file = new File(name + ".wav");
             AudioSystem.write(new AudioInputStream(new ByteArrayInputStream(decodedData), AudioReceiveHandler.OUTPUT_FORMAT, decodedData.length), AudioFileFormat.Type.WAVE, file);
-            return Triple.of(file, waveform, duration);
+            return new ClipCommand.ClipResult(file, waveform, duration);
         } catch (IOException | OutOfMemoryError e) {
             logger.error("Failed to create clip");
         }

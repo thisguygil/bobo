@@ -1,12 +1,12 @@
 package bobo.commands.lastfm;
 
+import bobo.commands.CommandResponse;
 import bobo.utils.api_clients.LastfmAPI;
 import bobo.utils.api_clients.MusicBrainzAPI;
 import bobo.utils.TimeFormat;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import org.json.JSONArray;
@@ -19,7 +19,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class TrackCommand extends AbstractLastFM {
+public class TrackCommand extends ALastFMCommand {
     /**
      * Creates a new track command.
      */
@@ -35,20 +35,22 @@ public class TrackCommand extends AbstractLastFM {
     }
 
     @Override
-    protected void handleLastFMCommand() {
-        String username = getUserName(event.getUser().getId());
-        assert username != null;
-        Member member = event.getMember();
-        assert member != null;
+    protected CommandResponse handleLastFMCommand() {
+        String username = getUserName(getUser().getId());
+        Member member = getMember();
 
-        String trackName, artistName;
-        OptionMapping trackOption = event.getOption("track");
+        String trackOption, trackName, artistName;
+        try {
+            trackOption = getMultiwordOptionValue("track", 0);
+        } catch (RuntimeException ignored) {
+            trackOption = null;
+        }
+        
         if (trackOption == null) {
             // Get the last played track with a GET request to user.getRecentTracks
             String response = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "user.getRecentTracks", "user", username, "limit", "1")), false);
             if (response == null) {
-                hook.editOriginal("An error occurred while getting your last played track.").queue();
-                return;
+                return new CommandResponse("An error occurred while getting your last played track.");
             }
 
             JSONObject responseObject = new JSONObject(response);
@@ -60,16 +62,14 @@ public class TrackCommand extends AbstractLastFM {
                     .getString("#text");
         } else {
             // Search the track information with a GET request to track.search
-            String response = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "track.search", "track", trackOption.getAsString(), "limit", "1")), false);
+            String response = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "track.search", "track", trackOption, "limit", "1")), false);
             if (response == null) {
-                hook.editOriginal("An error occurred while searching for the track.").queue();
-                return;
+                return new CommandResponse("An error occurred while searching for the track.");
             }
 
             JSONObject responseObject = new JSONObject(response);
             if (responseObject.getJSONObject("results").getInt("opensearch:totalResults") == 0) {
-                hook.editOriginal("No results found for the track.").queue();
-                return;
+                return new CommandResponse("No results found for the track.");
             }
 
             // Parse the track's name and artist
@@ -84,8 +84,7 @@ public class TrackCommand extends AbstractLastFM {
         // Get the track's information with a GET request to track.getInfo
         String trackResponse = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "track.getInfo", "track", trackName, "artist", artistName, "username", username)), false);
         if (trackResponse == null) {
-            hook.editOriginal("An error occurred while getting the track's information.").queue();
-            return;
+            return new CommandResponse("An error occurred while getting the track's information.");
         }
 
         // Parse the track's information
@@ -94,8 +93,7 @@ public class TrackCommand extends AbstractLastFM {
         try {
             trackObject = responseObject.getJSONObject("track");
         } catch (JSONException e) {
-            hook.editOriginal("No results found for the track. This usually happens for recently released tracks. Check back later.").queue();
-            return;
+            return new CommandResponse("No results found for the track. This usually happens for recently released tracks. Check back later.");
         }
         String trackUrl = trackObject.getString("url");
         String trackImage = null;
@@ -151,7 +149,7 @@ public class TrackCommand extends AbstractLastFM {
             embed.addField("Summary", trackSummary, false);
         }
 
-        hook.editOriginalEmbeds(embed.build()).queue();
+        return new CommandResponse(embed.build());
     }
 
     @Override
@@ -168,7 +166,7 @@ public class TrackCommand extends AbstractLastFM {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return false;
     }
 }

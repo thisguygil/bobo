@@ -1,5 +1,6 @@
 package bobo.commands.voice.music;
 
+import bobo.commands.CommandResponse;
 import bobo.utils.TimeFormat;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.Permission;
@@ -9,11 +10,10 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import static bobo.utils.StringUtils.markdownBold;
 
-public class SeekCommand extends AbstractMusic {
+public class SeekCommand extends AMusicCommand {
     /**
      * Creates a new seek command.
      */
@@ -36,65 +36,77 @@ public class SeekCommand extends AbstractMusic {
     }
 
     @Override
-    protected void handleMusicCommand() {
+    protected CommandResponse handleMusicCommand() {
         if (currentTrack == null) {
-            hook.editOriginal("There is nothing currently playing.").queue();
-            return;
+            return new CommandResponse("There is nothing currently playing.");
         }
 
-        String subcommand = event.getSubcommandName();
+        String subcommand = getSubcommandName(0);
         assert subcommand != null;
-        switch (subcommand) {
-            case "forward" -> seekForward();
-            case "backward" -> seekBackward();
-            case "position" -> seekPosition();
-        }
+        return switch (subcommand) {
+            case "forward" -> seekForward(source);
+            case "backward" -> seekBackward(source);
+            case "position" -> seekPosition(source);
+            default -> new CommandResponse("Invalid usage. Use `/help seek` for more information.");
+        };
     }
 
     /**
      * Seeks forward by specified number of seconds.
      */
-    private void seekForward() {
-        int seconds = Objects.requireNonNull(event.getOption("seconds")).getAsInt();
+    private CommandResponse seekForward(CommandSource source) {
+        int seconds;
+        try {
+            seconds = Integer.parseInt(getOptionValue("seconds", 1));
+        } catch (Exception e) {
+            return new CommandResponse("Invalid usage. Use `/help seek` for more information.");
+        }
         if (seconds <= 0) {
-            hook.editOriginal("Number of seconds must be positive.").queue();
-            return;
+            return new CommandResponse("Number of seconds must be positive.");
         }
 
         AudioTrack currentAudioTrack = currentTrack.track();
         currentAudioTrack.setPosition(currentAudioTrack.getPosition() + seconds * 1000L);
-        hook.editOriginal("Seeked forward by " + markdownBold(seconds) + " seconds.").queue();
+        return new CommandResponse("Seeked forward by " + markdownBold(seconds) + " seconds.");
     }
 
     /**
      * Seeks backward by specified number of seconds.
      */
-    private void seekBackward() {
-        int seconds = Objects.requireNonNull(event.getOption("seconds")).getAsInt();
+    private CommandResponse seekBackward(CommandSource source) {
+        int seconds;
+        try {
+            seconds = Integer.parseInt(getOptionValue("seconds", 1));
+        } catch (Exception e) {
+            return new CommandResponse("Invalid usage. Use `/help seek` for more information.");
+        }
         if (seconds <= 0) {
-            hook.editOriginal("Number of seconds must be positive.").queue();
-            return;
+            return new CommandResponse("Number of seconds must be positive.");
         }
 
         AudioTrack currentAudioTrack = currentTrack.track();
         currentAudioTrack.setPosition(currentAudioTrack.getPosition() - seconds * 1000L);
-        hook.editOriginal("Seeked backward by " + markdownBold(seconds) + " seconds.").queue();
+        return new CommandResponse("Seeked backward by " + markdownBold(seconds) + " seconds.");
     }
 
     /**
      * Seeks to specified position in the current track.
      */
-    private void seekPosition() {
-        String position = Objects.requireNonNull(event.getOption("position")).getAsString();
+    private CommandResponse seekPosition(CommandSource source) {
+        String position;
+        try {
+            position = getOptionValue("position", 1);
+        } catch (Exception e) {
+            return new CommandResponse("Invalid usage. Use `/help seek` for more information.");
+        }
         long time = TimeFormat.parseTime(position);
         if (time == -1) {
-            hook.editOriginal("Invalid time format. Format: **HH:MM:SS**").queue();
-            return;
+            return new CommandResponse("Invalid time format. Format: **HH:MM:SS**");
         }
 
         AudioTrack currentAudioTrack = currentTrack.track();
         currentAudioTrack.setPosition(time);
-        hook.editOriginal("Seeked to " + markdownBold(position)).queue();
+        return new CommandResponse("Seeked to " + markdownBold(position));
     }
 
     @Override
@@ -114,7 +126,7 @@ public class SeekCommand extends AbstractMusic {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return false;
     }
 }

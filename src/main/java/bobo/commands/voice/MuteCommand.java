@@ -1,14 +1,14 @@
 package bobo.commands.voice;
 
+import bobo.commands.CommandResponse;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
-public class MuteCommand extends AbstractVoice {
+public class MuteCommand extends AVoiceCommand {
     /**
      * Creates a new mute command.
      */
@@ -22,16 +22,15 @@ public class MuteCommand extends AbstractVoice {
     }
 
     @Override
-    protected void handleVoiceCommand() {
-        if (!event.getGuildChannel().getGuild().getAudioManager().isConnected()) {
-            hook.editOriginal("I am not connected to a voice channel.").queue();
-            return;
+    protected CommandResponse handleVoiceCommand() {
+        Guild guild = getGuild();
+        if (!guild.getAudioManager().isConnected()) {
+            return new CommandResponse("I am not connected to a voice channel.");
         }
 
-        Guild guild = event.getGuildChannel().getGuild();
         boolean isMuted = guild.getSelfMember().getVoiceState().isMuted();
         guild.getAudioManager().setSelfMuted(!isMuted);
-        hook.editOriginal((isMuted ? "Unm" : "M") + "uted.").queue();
+        return new CommandResponse((isMuted ? "Unm" : "M") + "uted.");
     }
 
     @Override
@@ -47,7 +46,7 @@ public class MuteCommand extends AbstractVoice {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return false;
     }
 }

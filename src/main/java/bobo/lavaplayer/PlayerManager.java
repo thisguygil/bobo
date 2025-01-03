@@ -2,9 +2,10 @@ package bobo.lavaplayer;
 
 import bobo.Config;
 import bobo.commands.voice.music.TTSCommand;
+import bobo.commands.CommandResponse;
+import bobo.commands.CommandResponseBuilder;
 import bobo.utils.TimeFormat;
 import bobo.utils.api_clients.SpotifyLink;
-import bobo.utils.TrackType;
 import bobo.utils.api_clients.YouTubeUtil;
 import com.github.topi314.lavalyrics.LyricsManager;
 import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
@@ -26,11 +27,10 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.ChannelType;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 
 import javax.annotation.Nonnull;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 import static bobo.utils.StringUtils.*;
@@ -108,76 +108,6 @@ public class PlayerManager {
     }
 
     /**
-     * Loads and plays a track, and replies to the slash command interaction.
-     *
-     * @param event The slash command interaction event.
-     * @param trackURL The URL of the track to play.
-     * @param trackType The type of track to play.
-     */
-    public void loadAndPlay(@Nonnull SlashCommandInteractionEvent event, String trackURL, TrackType trackType) {
-        InteractionHook hook = event.getHook();
-        MessageChannel channel = event.getMessageChannel();
-        Guild guild = event.getGuild();
-        Member member = event.getMember();
-        final GuildMusicManager musicManager = this.getMusicManager(guild);
-        TrackScheduler scheduler = musicManager.scheduler;
-
-        if (member.getVoiceState().getChannel().getType() == ChannelType.STAGE) {
-            guild.requestToSpeak();
-        }
-
-        this.audioPlayerManager.loadItemOrdered(musicManager, trackURL, new AudioLoadResultHandler() {
-            @Override
-            public void trackLoaded(AudioTrack track) {
-                hook.editOriginal(PlayerManager.trackLoaded(guild, scheduler, track, trackURL, trackType)).queue(_ -> scheduler.queue(track, member, channel, trackType));
-            }
-
-            @Override
-            public void playlistLoaded(AudioPlaylist playlist) {
-                List<AudioTrack> tracks = playlist.getTracks();
-                if (tracks.isEmpty()) {
-                    noMatches();
-                    return;
-                }
-
-                // If the playlist is a search result, play the first track in the search results
-                if (playlist.isSearchResult()) {
-                    trackLoaded(playlist.getTracks().getFirst());
-                    return;
-                }
-
-                String message = PlayerManager.playlistLoadedMessage(scheduler, playlist, trackURL, tracks);
-                hook.editOriginal(message).queue(_ -> {
-                    for (final AudioTrack track : tracks) {
-                        scheduler.queue(track, member, channel, TrackType.TRACK);
-                    }
-                });
-            }
-
-            @Override
-            public void noMatches() {
-                hook.editOriginal(PlayerManager.noMatches(trackURL, trackType)).queue();
-            }
-
-            @Override
-            public void loadFailed(FriendlyException e) {
-                String errorMessage = e.getMessage();
-                if (errorMessage.equals("Sign in to confirm you’re not a bot")) {
-                    String youtubeTitle = YouTubeUtil.getTitle(trackURL);
-                    if (youtubeTitle == null) {
-                        hook.editOriginal("Could not load: " + markdownBold(errorMessage)).queue();
-                        return;
-                    }
-
-                    loadAndPlay(event, "scsearch:" + youtubeTitle, trackType);
-                } else {
-                    hook.editOriginal("Could not load: " + markdownBold(errorMessage)).queue();
-                }
-            }
-        });
-    }
-
-    /**
      * Loads and plays a track, and sends a message to the message channel.
      *
      * @param channel The message channel.
@@ -185,19 +115,26 @@ public class PlayerManager {
      * @param trackURL The URL of the track to play.
      * @param trackType The type of track to play.
      */
-    public void loadAndPlay(@Nonnull MessageChannel channel, Member member, String trackURL, TrackType trackType) {
+    public CommandResponse loadAndPlay(@Nonnull MessageChannel channel, Member member, String trackURL, TrackType trackType) {
         Guild guild = member.getGuild();
         final GuildMusicManager musicManager = this.getMusicManager(guild);
         TrackScheduler scheduler = musicManager.scheduler;
+
+        CompletableFuture<CommandResponse> futureResponse = new CompletableFuture<>();
 
         if (member.getVoiceState().getChannel().getType() == ChannelType.STAGE) {
             guild.requestToSpeak();
         }
 
-        this.audioPlayerManager.loadItemOrdered(musicManager, trackURL, new AudioLoadResultHandler() {
+        CompletableFuture.runAsync(() -> this.audioPlayerManager.loadItemOrdered(musicManager, trackURL, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
-                channel.sendMessage(PlayerManager.trackLoaded(guild, scheduler, track, trackURL, trackType)).queue(_ -> scheduler.queue(track, member, channel, trackType));
+                CommandResponse finalResponse = new CommandResponseBuilder()
+                        .setContent(PlayerManager.trackLoaded(guild, scheduler, track, trackURL, trackType))
+                        .setPostExecutionAsMessage(_ -> scheduler.queue(track, member, channel, trackType))
+                        .build();
+
+                futureResponse.complete(finalResponse);
             }
 
             @Override
@@ -215,16 +152,25 @@ public class PlayerManager {
                 }
 
                 String message = PlayerManager.playlistLoadedMessage(scheduler, playlist, trackURL, tracks);
-                channel.sendMessage(message).queue(_ -> {
-                    for (final AudioTrack track : tracks) {
-                        scheduler.queue(track, member, channel, TrackType.TRACK);
-                    }
-                });
+                CommandResponse finalResponse = new CommandResponseBuilder()
+                        .setContent(message)
+                        .setPostExecutionAsMessage(_ -> {
+                            for (final AudioTrack track : tracks) {
+                                scheduler.queue(track, member, channel, TrackType.TRACK);
+                            }
+                        })
+                        .build();
+
+                futureResponse.complete(finalResponse);
             }
 
             @Override
             public void noMatches() {
-                channel.sendMessage(PlayerManager.noMatches(trackURL, trackType)).queue();
+                CommandResponse finalResponse = new CommandResponseBuilder()
+                        .setContent(PlayerManager.noMatches(trackURL, trackType))
+                        .build();
+
+                futureResponse.complete(finalResponse);
             }
 
             @Override
@@ -233,16 +179,29 @@ public class PlayerManager {
                 if (errorMessage.equals("Sign in to confirm you’re not a bot")) {
                     String youtubeTitle = YouTubeUtil.getTitle(trackURL);
                     if (youtubeTitle == null) {
-                        channel.sendMessage("Could not load: " + markdownBold(errorMessage)).queue();
-                        return;
-                    }
+                        CommandResponse finalResponse = new CommandResponseBuilder()
+                                .setContent("Could not load: " + markdownBold(errorMessage))
+                                .build();
 
-                    loadAndPlay(channel, member, "scsearch:" + youtubeTitle, trackType);
+                        futureResponse.complete(finalResponse);
+                    } else {
+                        loadAndPlay(channel, member, "scsearch:" + youtubeTitle, trackType);
+                    }
                 } else {
-                    channel.sendMessage("Could not load: " + markdownBold(errorMessage)).queue();
+                    CommandResponse finalResponse = new CommandResponseBuilder()
+                            .setContent("Could not load: " + markdownBold(errorMessage))
+                            .build();
+
+                    futureResponse.complete(finalResponse);
                 }
             }
-        });
+        }));
+
+        try {
+            return futureResponse.get();
+        } catch (Exception e) {
+            return new CommandResponse("An error occurred while loading the track.");
+        }
     }
 
     /**

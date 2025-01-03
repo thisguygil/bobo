@@ -26,11 +26,11 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import java.sql.*;
 
-import static bobo.commands.AbstractMessageCommand.PREFIX;
 import static bobo.commands.admin.ConfigCommand.*;
 
 public class Listener extends ListenerAdapter {
     private static final Logger logger = LoggerFactory.getLogger(Listener.class);
+    private static final String PREFIX = Config.get("PREFIX");
 
     private final CommandManager manager = new CommandManager();
 
@@ -72,7 +72,9 @@ public class Listener extends ListenerAdapter {
         }
 
         if (message.getContentRaw().startsWith(PREFIX)) {
-            manager.handle(event);
+            if (message.isFromGuild()) {
+                manager.handle(event);
+            }
         }
     }
 

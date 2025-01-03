@@ -1,15 +1,19 @@
 package bobo.commands.owner;
 
-public class DMCommand extends AbstractOwner {
+import bobo.commands.CommandResponse;
+
+public class DMCommand extends AOwnerCommand {
     @Override
-    protected void handleOwnerCommand() {
-        if (args.size() < 2) {
-            event.getChannel().sendMessage("Invalid usage. Use `/help dm` for more information.").queue();
-            return;
+    protected CommandResponse handleOwnerCommand() {
+        String userId, message;
+        try {
+            userId = getOptionValue(0);
+            message = getMultiwordOptionValue(1);
+        } catch (RuntimeException e) {
+            return new CommandResponse("Invalid usage. Use `/help dm` for more information.");
         }
 
-        String userId = args.getFirst();
-        String message = String.join(" ", args).substring(userId.length() + 1);
+        CommandResponse response = new CommandResponse("Sending message to user...");
 
         event.getJDA().retrieveUserById(userId).queue(user -> {
             user.openPrivateChannel().queue(channel -> channel.sendMessage(message).queue(
@@ -17,6 +21,8 @@ public class DMCommand extends AbstractOwner {
                     error -> event.getChannel().sendMessage("Failed to send message to " + user.getAsMention()).queue()
             ));
         }, error -> event.getChannel().sendMessage("User not found.").queue());
+
+        return response;
     }
 
     @Override
@@ -29,5 +35,10 @@ public class DMCommand extends AbstractOwner {
         return """
                 DMs a user.
                 Usage: `""" + PREFIX + "dm <user-id> <message>`";
+    }
+
+    @Override
+    public Boolean shouldNotShowTyping() {
+        return false;
     }
 }

@@ -1,4 +1,4 @@
-package bobo.utils;
+package bobo.lavaplayer;
 
 /**
  * Enum representing types of playable tracks.

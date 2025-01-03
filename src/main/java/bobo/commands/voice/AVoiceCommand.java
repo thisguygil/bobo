@@ -1,30 +1,31 @@
 package bobo.commands.voice;
 
-import bobo.commands.AbstractSlashCommand;
+import bobo.commands.ADualCommand;
+import bobo.commands.CommandResponse;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
 import java.util.List;
 
-public abstract class AbstractVoice extends AbstractSlashCommand {
+public abstract class AVoiceCommand extends ADualCommand {
     /**
      * Creates a new voice command.
      *
      * @param commandData The command data.
      */
-    public AbstractVoice(CommandData commandData) {
+    public AVoiceCommand(CommandData commandData) {
         super(commandData);
     }
 
     @Override
-    public void handleCommand() {
-        handleVoiceCommand();
+    protected CommandResponse handleCommand() {
+        return handleVoiceCommand();
     }
 
     /**
      * Handles the voice command.
      */
-    protected abstract void handleVoiceCommand();
+    protected abstract CommandResponse handleVoiceCommand();
 
     @Override
     protected List<Permission> getCommandPermissions() {

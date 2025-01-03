@@ -1,11 +1,13 @@
 package bobo.commands.voice.music;
 
+import bobo.commands.CommandResponse;
 import bobo.utils.StringUtils;
-import bobo.utils.TrackType;
+import bobo.lavaplayer.TrackType;
 import bobo.utils.api_clients.YouTubeUtil;
 import com.google.api.services.youtube.model.SearchResult;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
@@ -14,9 +16,8 @@ import org.apache.commons.validator.routines.UrlValidator;
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
-public class PlayCommand extends AbstractMusic {
+public class PlayCommand extends AMusicCommand {
     /**
      * Creates a new play command.
      */
@@ -32,39 +33,47 @@ public class PlayCommand extends AbstractMusic {
     }
 
     @Override
-    protected void handleMusicCommand() {
-        if (!ensureConnected(event)) {
-            return;
+    protected CommandResponse handleMusicCommand() {
+        if (!ensureConnected(getMember())) {
+            return new CommandResponse("You must be connected to a voice channel to use this command.");
         }
 
-        String subcommandName = event.getSubcommandName();
-        assert subcommandName != null;
-        switch (subcommandName) {
+        String subcommandName;
+        try {
+            subcommandName = getSubcommandName(0);
+        } catch (Exception e) {
+            return new CommandResponse("Please provide a subcommand.");
+        }
+
+        return switch (subcommandName) {
                 case "track" -> playTrack();
                 case "file" -> playFile();
-                default -> throw new IllegalStateException("Unexpected value: " + subcommandName);
-        }
+                default -> new CommandResponse("Invalid usage. Use `/help play` for more information.");
+        };
     }
 
     /**
      * Plays a track.
      */
-    private void playTrack() {
-        String track = Objects.requireNonNull(event.getOption("track")).getAsString();
+    private CommandResponse playTrack() {
+        String track;
+        try {
+            track = getMultiwordOptionValue("track", 1);
+        } catch (Exception e) {
+            return new CommandResponse("Please provide a track to play.");
+        }
         if ((new UrlValidator()).isValid(track)) {
-            playerManager.loadAndPlay(event, track, TrackType.TRACK);
+            return playerManager.loadAndPlay((MessageChannel) getChannel(), getMember(), track, TrackType.TRACK);
         } else {
             try {
                 List<SearchResult> videoSearch = YouTubeUtil.searchForVideos(track);
                 if (videoSearch == null) {
-                    hook.editOriginal("Nothing found by " + StringUtils.markdownBold(track) + ".").queue();
-                    return;
+                    return new CommandResponse("Nothing found by " + StringUtils.markdownBold(track) + ".");
                 }
 
-                playerManager.loadAndPlay(event, "https://www.youtube.com/watch?v=" + videoSearch.get(0).getId().getVideoId(), TrackType.TRACK);
+                return playerManager.loadAndPlay((MessageChannel) getChannel(), getMember(), "https://www.youtube.com/watch?v=" + videoSearch.getFirst().getId().getVideoId(), TrackType.TRACK);
             } catch (Exception e) {
-                hook.editOriginal("Nothing found by " + StringUtils.markdownBold(track) + ".").queue();
-                e.printStackTrace();
+                return new CommandResponse("Nothing found by " + StringUtils.markdownBold(track) + ".");
             }
         }
     }
@@ -72,14 +81,17 @@ public class PlayCommand extends AbstractMusic {
     /**
      * Plays an audio/video file.
      */
-    private void playFile() {
-        Message.Attachment attachment = Objects.requireNonNull(event.getOption("file")).getAsAttachment();
-        if (!isAudioFile(attachment.getFileName())) {
-            hook.editOriginal("Please attach a valid audio file.").queue();
-            return;
+    private CommandResponse playFile() {
+        if (source == CommandSource.MESSAGE_COMMAND) {
+            return new CommandResponse("This subcommand can only be used as a slash command.");
         }
 
-        playerManager.loadAndPlay(event, attachment.getUrl(), TrackType.FILE);
+        Message.Attachment attachment = slashEvent.getOption("file").getAsAttachment();
+        if (!isAudioFile(attachment.getFileName())) {
+            return new CommandResponse("Please attach a valid audio file.");
+        }
+
+        return playerManager.loadAndPlay((MessageChannel) getChannel(), getMember(), attachment.getUrl(), TrackType.FILE);
     }
 
     /**
@@ -120,7 +132,7 @@ public class PlayCommand extends AbstractMusic {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return false;
     }
 }

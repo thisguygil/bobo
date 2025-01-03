@@ -1,14 +1,16 @@
 package bobo.commands.ai;
 
 import bobo.Config;
-import bobo.commands.AbstractSlashCommand;
+import bobo.commands.ADualCommand;
+import bobo.commands.ASlashCommand;
+import bobo.commands.CommandResponse;
 import io.github.sashirestela.openai.SimpleOpenAI;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
 import java.util.List;
 
-public abstract class AbstractAI extends AbstractSlashCommand {
+public abstract class AAICommand extends ADualCommand {
     protected static final SimpleOpenAI openAI = SimpleOpenAI.builder()
             .apiKey(Config.get("OPENAI_API_KEY"))
             .build();
@@ -18,19 +20,19 @@ public abstract class AbstractAI extends AbstractSlashCommand {
      *
      * @param commandData The command data.
      */
-    public AbstractAI(CommandData commandData) {
+    public AAICommand(CommandData commandData) {
         super(commandData);
     }
 
     @Override
-    public void handleCommand() {
-        handleAICommand();
+    protected CommandResponse handleCommand() {
+        return handleAICommand();
     }
 
     /**
      * Handles the AI command.
      */
-    protected abstract void handleAICommand();
+    protected abstract CommandResponse handleAICommand();
 
     @Override
     public String getHelp() {

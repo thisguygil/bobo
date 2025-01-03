@@ -1,6 +1,7 @@
 package bobo.commands.ai;
 
 import bobo.Config;
+import bobo.commands.CommandResponse;
 import io.github.sashirestela.openai.common.content.ContentPart;
 import io.github.sashirestela.openai.domain.chat.Chat;
 import io.github.sashirestela.openai.domain.chat.ChatMessage;
@@ -8,6 +9,7 @@ import io.github.sashirestela.openai.domain.chat.ChatRequest;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -16,7 +18,7 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import javax.annotation.Nonnull;
 import java.util.*;
 
-public class ChatCommand extends AbstractAI {
+public class ChatCommand extends AAICommand {
     private static final String CHAT_MODEL = Config.get("CHAT_MODEL");
     private static final Map<ThreadChannel, List<ChatMessage>> CHANNEL_MESSAGE_MAP = new HashMap<>();
 
@@ -28,20 +30,17 @@ public class ChatCommand extends AbstractAI {
     }
 
     @Override
-    protected void handleAICommand() {
-        Member member = event.getMember();
-        assert member != null;
-        String memberName = member.getUser().getGlobalName();
-        assert memberName != null;
+    protected CommandResponse handleAICommand() {
+        Member member = getMember();
+        String memberName = getUser().getGlobalName();
 
-        ThreadChannel threadChannel = event.getChannel()
-                .asTextChannel()
+        ThreadChannel threadChannel = ((TextChannel) getChannel())
                 .createThreadChannel(memberName + "'s conversation", true)
                 .complete();
         threadChannel.addThreadMember(member).queue();
 
         startConversation(threadChannel);
-        hook.editOriginal("Started a conversation with " + memberName + " in " + threadChannel.getAsMention()).queue();
+        return new CommandResponse("Started a conversation with " + memberName + " in " + threadChannel.getAsMention());
     }
 
     /**
@@ -176,7 +175,7 @@ public class ChatCommand extends AbstractAI {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return false;
     }
 }

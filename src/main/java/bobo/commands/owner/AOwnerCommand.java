@@ -1,29 +1,32 @@
 package bobo.commands.owner;
 
 import bobo.Config;
-import bobo.commands.AbstractMessageCommand;
+import bobo.commands.AMessageCommand;
+import bobo.commands.CommandResponse;
 import net.dv8tion.jda.api.Permission;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractOwner extends AbstractMessageCommand {
+public abstract class AOwnerCommand extends AMessageCommand {
     /**
      * Creates a new owner command.
      */
-    public AbstractOwner() {}
+    public AOwnerCommand() {}
 
     @Override
-    protected void handleCommand() {
+    protected CommandResponse handleCommand() {
         if (event.getAuthor().getId().equals(Config.get("OWNER_ID"))) {
-            handleOwnerCommand();
-        } // Else do nothing
+            return handleOwnerCommand();
+        } else {
+            return new CommandResponse("You do not have the required permissions to execute this command.");
+        }
     }
 
     /**
      * Handles the owner command.
      */
-    protected abstract void handleOwnerCommand();
+    protected abstract CommandResponse handleOwnerCommand();
 
     @Override
     protected List<Permission> getCommandPermissions() {

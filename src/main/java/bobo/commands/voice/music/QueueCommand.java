@@ -1,9 +1,11 @@
 package bobo.commands.voice.music;
 
+import bobo.commands.CommandResponse;
+import bobo.commands.CommandResponseBuilder;
 import bobo.lavaplayer.TrackScheduler;
-import bobo.utils.TrackRecord;
+import bobo.lavaplayer.TrackRecord;
 import bobo.utils.TimeFormat;
-import bobo.utils.TrackType;
+import bobo.lavaplayer.TrackType;
 import com.github.ygimenez.method.Pages;
 import com.github.ygimenez.model.InteractPage;
 import com.github.ygimenez.model.Page;
@@ -24,7 +26,7 @@ import java.util.List;
 
 import static bobo.utils.StringUtils.*;
 
-public class QueueCommand extends AbstractMusic {
+public class QueueCommand extends AMusicCommand {
     /**
      * Creates a new queue command.
      */
@@ -41,30 +43,39 @@ public class QueueCommand extends AbstractMusic {
     }
 
     @Override
-    protected void handleMusicCommand() {
+    protected CommandResponse handleMusicCommand() {
         if (currentTrack == null) {
-            hook.editOriginal("The queue is currently empty.").queue();
-            return;
+            return new CommandResponse("The queue is currently empty.");
         }
 
-        switch (Objects.requireNonNull(event.getSubcommandName())) {
+        String subcommandName;
+        try {
+            subcommandName = getSubcommandName(0);
+        } catch (Exception e) {
+            return new CommandResponse("Please provide a subcommand.");
+        }
+
+        return switch (subcommandName) {
             case "show" -> show();
             case "shuffle" -> shuffle();
             case "clear" -> clear();
             case "remove" -> remove();
-        }
+            default -> new CommandResponse("Invalid usage. Use `/help queue` for more information.");
+        };
     }
 
     /**
      * Shows the current queue.
+     *
+     * @return the command response
      */
-    private void show() {
+    private CommandResponse show() {
         // Initialize all necessary variables
         final List<TrackRecord> trackList = new ArrayList<>(queue);
         trackList.addFirst(new TrackRecord(currentTrack.track(), null, null, currentTrack.trackType())); // Null values are not used
         StringBuilder tracksField = new StringBuilder();
         int trackCounter = 1;
-        Member member = event.getMember();
+        Member member = getMember();
         assert member != null;
 
         // Add all tracks to the pages
@@ -96,9 +107,13 @@ public class QueueCommand extends AbstractMusic {
         }
 
         if (pages.size() == 1) { // Don't paginate if there's only one page
-            hook.editOriginalEmbeds((MessageEmbed) pages.getFirst().getContent()).queue();
+            return new CommandResponse((MessageEmbed) pages.getFirst().getContent());
         } else {
-            hook.editOriginalEmbeds((MessageEmbed) pages.getFirst().getContent()).queue(success -> Pages.paginate(success, pages, true));
+            return new CommandResponseBuilder().addEmbed((MessageEmbed) pages.getFirst().getContent())
+                    .setPostExecutionAsMessage(
+                            success -> Pages.paginate(success, pages, true)
+                    )
+                    .build();
         }
     }
 
@@ -118,22 +133,24 @@ public class QueueCommand extends AbstractMusic {
 
     /**
      * Shuffles the queue.
+     *
+     * @return the command response
      */
-    private void shuffle() {
+    private CommandResponse shuffle() {
         List<TrackRecord> trackList = new ArrayList<>();
         queue.drainTo(trackList);
         Collections.shuffle(trackList);
         queue.clear();
         queue.addAll(trackList);
-        hook.editOriginal("Shuffled.").queue();
+        return new CommandResponse("Shuffled.");
     }
 
     /**
      * Clears the queue.
      */
-    private void clear() {
-        clearQueue(event.getGuild(), scheduler);
-        hook.editOriginal("Queue cleared.").queue();
+    private CommandResponse clear() {
+        clearQueue(getGuild(), scheduler);
+        return new CommandResponse("Queue cleared.");
     }
 
     /**
@@ -156,12 +173,18 @@ public class QueueCommand extends AbstractMusic {
 
     /**
      * Removes a track from the queue.
+     *
+     * @return the command response
      */
-    private void remove() {
-        int position = event.getOption("position").getAsInt();
+    private CommandResponse remove() {
+        int position;
+        try {
+            position = Integer.parseInt(getOptionValue("position", 1));
+        } catch (Exception e) {
+            return new CommandResponse("Please enter an integer corresponding to a track's position in the queue.");
+        }
         if (position < 1 || position > queue.size() + 1) {
-            hook.editOriginal("Please enter an integer corresponding to a track's position in the queue.").queue();
-            return;
+            return new CommandResponse("Please enter an integer corresponding to a track's position in the queue.");
         }
 
         TrackRecord current = null;
@@ -196,7 +219,7 @@ public class QueueCommand extends AbstractMusic {
         );
 
 
-        hook.editOriginal(message).queue();
+        return new CommandResponse(message);
     }
 
     /**
@@ -205,7 +228,7 @@ public class QueueCommand extends AbstractMusic {
      */
     private void tryNextTTSMessage(TrackRecord track) {
         if (track.trackType() == TrackType.TTS) {
-            TTSCommand.nextTTSMessage(event.getGuild(), track.track());
+            TTSCommand.nextTTSMessage(getGuild(), track.track());
         }
     }
 
@@ -291,7 +314,7 @@ public class QueueCommand extends AbstractMusic {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return false;
     }
 }

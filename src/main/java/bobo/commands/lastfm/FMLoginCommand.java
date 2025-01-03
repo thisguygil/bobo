@@ -1,11 +1,14 @@
 package bobo.commands.lastfm;
 
+import bobo.commands.CommandResponse;
 import bobo.utils.api_clients.LastfmAPI;
 import bobo.utils.api_clients.SQLConnection;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -20,7 +23,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class FMLoginCommand extends AbstractLastFM {
+public class FMLoginCommand extends ALastFMCommand {
+    private static final Logger logger = LoggerFactory.getLogger(FMLoginCommand.class);
+
     private static final String createTokenSQL = "CREATE TABLE IF NOT EXISTS lastfmtokens (user_id VARCHAR(255) PRIMARY KEY, token VARCHAR(255) NOT NULL)";
     private static final String insertTokenSQL = "INSERT INTO lastfmtokens (user_id, token) VALUES (?, ?) ON DUPLICATE KEY UPDATE token = ?";
     private static final String selectSessionKeySQL = "SELECT session_key FROM lastfmlogins WHERE user_id = ?";
@@ -39,29 +44,22 @@ public class FMLoginCommand extends AbstractLastFM {
     }
 
     @Override
-    protected void handleLastFMCommand() {
-        String userId = event.getUser().getId();
+    protected CommandResponse handleLastFMCommand() {
+        String userId = getUser().getId();
 
         // Make sure user isn't already logged in
         if (getUserName(userId) != null) {
-            hook.editOriginal("You are already logged in to Last.fm.").queue();
-            return;
+            return new CommandResponse("You are already logged in to Last.fm.");
         }
 
         // Send GET request to get token
         String response = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "auth.getToken")), false);
         if (response == null) {
-            hook.editOriginal("An error occurred while getting the token.").queue();
-            return;
+            return new CommandResponse("An error occurred while getting the token.");
         }
 
         JSONObject responseObject = new JSONObject(response);
         String token = responseObject.getString("token");
-
-        // Send link back to discord to log in
-        hook.editOriginal("Log in to Last.fm [here](" + "https://www.last.fm/api/auth?api_key=" + API_KEY + "&token=" + token + ").").queue();
-
-        // TODO: Add some sort of listener/callback to ensure the user actually logs in after running the command. For now, we will assume they do.
 
         // Create (if not exists) and insert into the table the map of the user id to its token
         try (Connection connection = SQLConnection.getConnection()) {
@@ -76,8 +74,13 @@ public class FMLoginCommand extends AbstractLastFM {
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Failed to insert token for user {}", userId);
         }
+
+        // Send link back to Discord to log in
+        return new CommandResponse("Log in to Last.fm [here](" + "https://www.last.fm/api/auth?api_key=" + API_KEY + "&token=" + token + ").");
+
+        // TODO: Add some sort of listener/callback to ensure the user actually logs in after running the command, where if they don't log in within a certain amount of time, the token is deleted from the database. For now, we will just assume the user logs in.
     }
 
     /**
@@ -96,7 +99,7 @@ public class FMLoginCommand extends AbstractLastFM {
                 sessionKey = resultSet.getString("session_key");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Failed to get Last.fm session key for user {}", userId);
         }
 
         return sessionKey;
@@ -151,7 +154,7 @@ public class FMLoginCommand extends AbstractLastFM {
                 }
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Failed to parse Last.fm session info for user {}", userId);
             return null;
         }
 
@@ -174,7 +177,7 @@ public class FMLoginCommand extends AbstractLastFM {
                 token = resultSet.getString("token");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Failed to get Last.fm token for user {}", userId);
         }
 
         return token;
@@ -194,7 +197,7 @@ public class FMLoginCommand extends AbstractLastFM {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return true;
     }
 }

@@ -1,11 +1,10 @@
 package bobo.commands.admin;
 
+import bobo.commands.CommandResponse;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
-import java.util.Objects;
-
-public class SayCommand extends AbstractAdmin {
+public class SayCommand extends AAdminCommand {
     /**
      * Creates a new say command.
      */
@@ -15,9 +14,9 @@ public class SayCommand extends AbstractAdmin {
     }
 
     @Override
-    protected void handleAdminCommand() {
-        event.getChannel().sendMessage(Objects.requireNonNull(event.getOption("content")).getAsString()).queue();
-        hook.editOriginal("Message sent").queue();
+    protected CommandResponse handleAdminCommand() {
+        event.getChannel().sendMessage(getOptionValue("content")).queue();
+        return new CommandResponse("Message sent");
     }
 
     @Override

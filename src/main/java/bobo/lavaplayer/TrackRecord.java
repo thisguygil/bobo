@@ -1,4 +1,4 @@
-package bobo.utils;
+package bobo.lavaplayer;
 
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.entities.Member;

@@ -1,6 +1,9 @@
 package bobo.commands.voice.music;
 
+import bobo.commands.CommandResponse;
+import bobo.commands.CommandResponseBuilder;
 import bobo.lavaplayer.PlayerManager;
+import bobo.lavaplayer.TrackType;
 import bobo.utils.*;
 import bobo.utils.api_clients.SoundCloudAPI;
 import bobo.utils.api_clients.SpotifyLink;
@@ -10,6 +13,7 @@ import com.github.ygimenez.model.*;
 import com.google.api.services.youtube.model.SearchResult;
 import com.google.api.services.youtube.model.SearchResultSnippet;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -30,7 +34,7 @@ import java.util.concurrent.TimeUnit;
 
 import static bobo.utils.StringUtils.*;
 
-public class SearchCommand extends AbstractMusic {
+public class SearchCommand extends AMusicCommand {
     private static final Logger logger = LoggerFactory.getLogger(SearchCommand.class);
 
     private static final ScheduledExecutorService scheduledService = Executors.newScheduledThreadPool(1);
@@ -72,51 +76,50 @@ public class SearchCommand extends AbstractMusic {
     }
 
     @Override
-    protected void handleMusicCommand() {
-        String platform = event.getOption("platform").getAsString();
-        String searchType = event.getOption("type").getAsString();
-        String query = event.getOption("query").getAsString();
-
-        switch (platform) {
-            case "youtube" -> {
-                switch (searchType) {
-                    case "track" -> searchYoutubeTrack(query);
-                    case "playlist" -> searchYoutubePlaylist(query);
-                    case "album" -> event.reply("Searching albums is not supported on YouTube.").queue();
-                    default -> throw new IllegalStateException("Unexpected value: " + searchType);
-                }
-            }
-            case "spotify" -> {
-                switch (searchType) {
-                    case "track" -> searchSpotifyTrack(query);
-                    case "playlist" -> searchSpotifyPlaylist(query);
-                    case "album" -> searchSpotifyAlbum(query);
-                    default -> throw new IllegalStateException("Unexpected value: " + searchType);
-                }
-            }
-            case "soundcloud" -> {
-                switch (searchType) {
-                    case "track" -> searchSoundcloud(query, "track");
-                    case "playlist" -> searchSoundcloud(query, "playlist");
-                    case "album" -> searchSoundcloud(query, "album");
-                    default -> throw new IllegalStateException("Unexpected value: " + searchType);
-                }
-            }
-            default -> throw new IllegalStateException("Unexpected value: " + platform);
+    protected CommandResponse handleMusicCommand() {
+        String platform, searchType, query;
+        try {
+            platform = getOptionValue("platform", 0);
+            searchType = getOptionValue("type", 1);
+            query = getMultiwordOptionValue("query", 2);
+        } catch (Exception e) {
+            return new CommandResponse("Invalid usage. Use `/help search` for more information.");
         }
+
+        return switch (platform) {
+            case "youtube" -> switch (searchType) {
+                case "track" -> searchYoutubeTrack(query);
+                case "playlist" -> searchYoutubePlaylist(query);
+                case "album" -> new CommandResponse("Searching albums is not supported on YouTube.");
+                default -> new CommandResponse("Invalid usage. Use `/help search` for more information.");
+            };
+            case "spotify" -> switch (searchType) {
+                case "track" -> searchSpotifyTrack(query);
+                case "playlist" -> searchSpotifyPlaylist(query);
+                case "album" -> searchSpotifyAlbum(query);
+                default -> new CommandResponse("Invalid usage. Use `/help search` for more information.");
+            };
+            case "soundcloud" -> switch (searchType) {
+                case "track" -> searchSoundcloud(query, "track");
+                case "playlist" -> searchSoundcloud(query, "playlist");
+                case "album" -> searchSoundcloud(query, "album");
+                default -> new CommandResponse("Invalid usage. Use `/help search` for more information.");
+            };
+            default -> new CommandResponse("Invalid usage. Use `/help search` for more information.");
+        };
     }
 
     /**
      * Searches YouTube for tracks.
      *
      * @param query The query to search for.
+     * @return The command response.
      */
-    private void searchYoutubeTrack(String query) {
+    private CommandResponse searchYoutubeTrack(String query) {
         try {
             List<SearchResult> videoSearch = YouTubeUtil.searchForVideos(query);
             if (videoSearch == null) {
-                hook.editOriginal("No videos found.").queue();
-                return;
+                return new CommandResponse("No videos found.");
             }
 
             String[] videoLinks = new String[videoSearch.size()];
@@ -126,24 +129,25 @@ public class SearchCommand extends AbstractMusic {
                 videoLinks[i] = "https://www.youtube.com/watch?v=" + videoId;
             }
 
-            handleYoutubeSearch(videoSearch, videoLinks, query, "video");
+            return handleYoutubeSearch(videoSearch, videoLinks, query, "video");
         } catch (Exception e) {
-            hook.editOriginal("An error occurred while searching for videos.").queue();
             logger.error("An error occurred while searching for YouTube videos.");
+            return new CommandResponse("An error occurred while searching for videos.");
         }
     }
+
 
     /**
      * Searches YouTube for playlists.
      *
      * @param query The query to search for.
+     * @return The command response.
      */
-    private void searchYoutubePlaylist(String query) {
+    private CommandResponse searchYoutubePlaylist(String query) {
         try {
             List<SearchResult> playlistSearch = YouTubeUtil.searchForPlaylists(query);
             if (playlistSearch == null) {
-                hook.editOriginal("No playlists found.").queue();
-                return;
+                return new CommandResponse("No playlists found.");
             }
 
             String[] playlistLinks = new String[playlistSearch.size()];
@@ -153,14 +157,23 @@ public class SearchCommand extends AbstractMusic {
                 playlistLinks[i] = "https://www.youtube.com/playlist?list=" + playlistId;
             }
 
-            handleYoutubeSearch(playlistSearch, playlistLinks, query, "playlist");
+            return handleYoutubeSearch(playlistSearch, playlistLinks, query, "playlist");
         } catch (Exception e) {
-            hook.editOriginal("An error occurred while searching for playlists.").queue();
             logger.error("An error occurred while searching for YouTube playlists.");
+            return new CommandResponse("An error occurred while searching for playlists.");
         }
     }
 
-    private void handleYoutubeSearch(List<SearchResult> searchResults, String[] links, String query, String type) {
+    /**
+     * Handles the search results from YouTube.
+     *
+     * @param searchResults The search results.
+     * @param links The links to the search results.
+     * @param query The query.
+     * @param type The type of search.
+     * @return The command response.
+     */
+    private CommandResponse handleYoutubeSearch(List<SearchResult> searchResults, String[] links, String query, String type) {
         StringBuilder message = new StringBuilder(String.format("Found %ss from search: **%s**\n", type, query));
         for (int i = 0; i < links.length; i++) {
             SearchResultSnippet snippet = searchResults.get(i).getSnippet();
@@ -171,23 +184,23 @@ public class SearchCommand extends AbstractMusic {
             ));
         }
 
-        handleResult(message.toString(), type, links);
+        return handleResult(message.toString(), type, links);
     }
 
     /**
      * Searches Spotify for tracks.
      *
      * @param query The query to search for.
+     * @return The command response.
      */
-    private void searchSpotifyTrack(String query) {
+    private CommandResponse searchSpotifyTrack(String query) {
         try {
             SpotifyApi spotifyApi = SpotifyLink.getSpotifyApi();
 
             // Get the tracks from the Spotify API
             Track[] tracks = spotifyApi.searchTracks(query).limit(5).build().execute().getItems();
             if (tracks.length == 0) {
-                hook.editOriginal("No tracks found.").queue();
-                return;
+                return new CommandResponse("No tracks found.");
             }
 
             // Store each track's artist(s) in a 2D array
@@ -222,10 +235,10 @@ public class SearchCommand extends AbstractMusic {
                 ));
             }
 
-            handleResult(message.toString(), "track", trackLinks);
+            return handleResult(message.toString(), "track", trackLinks);
         } catch (Exception e) {
-            hook.editOriginal("An error occurred while searching for tracks.").queue();
             logger.error("An error occurred while searching for Spotify tracks.");
+            return new CommandResponse("An error occurred while searching for tracks.");
         }
     }
 
@@ -233,15 +246,15 @@ public class SearchCommand extends AbstractMusic {
      * Searches Spotify for playlists.
      *
      * @param query The query to search for.
+     * @return The command response.
      */
-    private void searchSpotifyPlaylist(String query) {
+    private CommandResponse searchSpotifyPlaylist(String query) {
         try {
             SpotifyApi spotifyApi = SpotifyLink.getSpotifyApi();
 
             PlaylistSimplified[] playlists = spotifyApi.searchPlaylists(query).limit(5).build().execute().getItems();
             if (playlists.length == 0) {
-                hook.editOriginal("No playlists found.").queue();
-                return;
+                return new CommandResponse("No playlists found.");
             }
 
             String[] playlistLinks = new String[playlists.length];
@@ -258,10 +271,10 @@ public class SearchCommand extends AbstractMusic {
                 ));
             }
 
-            handleResult(message.toString(), "playlist", playlistLinks);
+            return handleResult(message.toString(), "playlist", playlistLinks);
         } catch (Exception e) {
-            hook.editOriginal("An error occurred while searching for playlists.").queue();
             logger.error("An error occurred while searching for Spotify playlists.");
+            return new CommandResponse("An error occurred while searching for playlists.");
         }
     }
 
@@ -269,15 +282,15 @@ public class SearchCommand extends AbstractMusic {
      * Searches Spotify for albums.
      *
      * @param query The query to search for.
+     * @return The command response.
      */
-    private void searchSpotifyAlbum(String query) {
+    private CommandResponse searchSpotifyAlbum(String query) {
         try {
             SpotifyApi spotifyApi = SpotifyLink.getSpotifyApi();
 
             AlbumSimplified[] albums = spotifyApi.searchAlbums(query).limit(5).build().execute().getItems();
             if (albums.length == 0) {
-                hook.editOriginal("No tracks found.").queue();
-                return;
+                return new CommandResponse("No tracks found.");
             }
 
             ArtistSimplified[][] artists = new ArtistSimplified[albums.length][];
@@ -309,10 +322,10 @@ public class SearchCommand extends AbstractMusic {
                 ));
             }
 
-            handleResult(message.toString(), "album", albumLinks);
+            return handleResult(message.toString(), "album", albumLinks);
         } catch (Exception e) {
-            hook.editOriginal("An error occurred while searching for albums.").queue();
             logger.error("An error occurred while searching for Spotify albums.");
+            return new CommandResponse("An error occurred while searching for albums.");
         }
     }
 
@@ -321,18 +334,17 @@ public class SearchCommand extends AbstractMusic {
      *
      * @param query The query to search for.
      * @param type The type of search.
+     * @return The command response.
      */
-    private void searchSoundcloud(String query, String type) {
+    private CommandResponse searchSoundcloud(String query, String type) {
         String apiResponse = SoundCloudAPI.search(query, type + "s", 5);
         if (apiResponse == null) {
-            hook.editOriginal("An error occurred while searching for " + type + "s.").queue();
-            return;
+            return new CommandResponse("An error occurred while searching for " + type + "s.");
         }
 
         JSONObject response = new JSONObject(apiResponse);
         if (response.getInt("total_results") == 0) {
-            hook.editOriginal("No " + type + "s found.").queue();
-            return;
+            return new CommandResponse("No " + type + "s found.");
         }
 
         JSONArray collection = response.getJSONArray("collection");
@@ -355,7 +367,7 @@ public class SearchCommand extends AbstractMusic {
             ));
         }
 
-        handleResult(message.toString(), type, links);
+        return handleResult(message.toString(), type, links);
     }
 
     /**
@@ -364,26 +376,28 @@ public class SearchCommand extends AbstractMusic {
      * @param message The message to send.
      * @param type The type of search.
      * @param links The links to the search results.
+     * @return The command response.
      */
-    private void handleResult(String message, String type, String[] links) {
+    private CommandResponse handleResult(String message, String type, String[] links) {
         message += String.format("Which %s would you like to play? Press the corresponding button, or %s to cancel.", type, EMOJIS.getFirst());
 
-        EmojiMapping<ThrowingConsumer<ButtonWrapper>> buttons = getButtons(links);
+        EmojiMapping<ThrowingConsumer<ButtonWrapper>> buttons = doResults(links);
 
-        hook.editOriginal(StringEscapeUtils.unescapeHtml4(message)).queue(success -> {
-            Pages.buttonize(success, buttons, true, false);
-            scheduledService.schedule(() -> Pages.clearButtons(success), 1, TimeUnit.MINUTES); // Clear buttons after 1 minute
-        });
-        event.getHook().retrieveOriginal().queue();
+        return new CommandResponseBuilder().setContent(StringEscapeUtils.unescapeHtml4(message))
+                .setPostExecutionAsMessage(success -> {
+                    Pages.buttonize(success, buttons, true, false);
+                    scheduledService.schedule(() -> Pages.clearButtons(success), 1, TimeUnit.MINUTES); // Clear buttons after 1 minute
+                })
+                .build();
     }
 
     /**
-     * Gets the buttons for the search results.
+     * Sends the selected result to the music manager.
      *
      * @param links The links to the search results.
-     * @return The buttons.
+     * @return The buttons to deal with.
      */
-    private static EmojiMapping<ThrowingConsumer<ButtonWrapper>> getButtons(String[] links) {
+    private static EmojiMapping<ThrowingConsumer<ButtonWrapper>> doResults(String[] links) {
         ThrowingConsumer<ButtonWrapper> handleButton = (wrapper) -> {
             Emoji emoji = wrapper.getButton().getEmoji();
             if (emoji == null) {
@@ -412,7 +426,9 @@ public class SearchCommand extends AbstractMusic {
                 return;
             }
 
-            PlayerManager.getInstance().loadAndPlay(wrapper.getChannel(), wrapper.getMember(), links[index], TrackType.TRACK);
+            MessageChannel channel = wrapper.getChannel();
+            CommandResponse response = PlayerManager.getInstance().loadAndPlay(wrapper.getChannel(), wrapper.getMember(), links[index], TrackType.TRACK);
+            channel.sendMessage(response.asMessageCreateData()).queue(response.getPostExecutionAsMessage());
             Pages.clearButtons(wrapper.getMessage());
         };
 
@@ -443,7 +459,7 @@ public class SearchCommand extends AbstractMusic {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return false;
     }
 }

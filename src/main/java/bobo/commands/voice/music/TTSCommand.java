@@ -1,10 +1,12 @@
 package bobo.commands.voice.music;
 
+import bobo.commands.CommandResponse;
 import bobo.utils.StringUtils;
-import bobo.utils.TrackType;
+import bobo.lavaplayer.TrackType;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
@@ -12,7 +14,7 @@ import java.util.*;
 
 // NOTE: This classifies as a music command only due to the fact that it must use lavaplayer to play tts.
 // It should be a voice command, but it is not possible to play the tts without lavaplayer.
-public class TTSCommand extends AbstractMusic {
+public class TTSCommand extends AMusicCommand {
     private static final Map<Guild, Map<AudioTrack, String>> trackMessageMap = new HashMap<>();
     private static final Map<Guild, Map<AudioTrack, String>> previousTrackMessage = new HashMap<>();
 
@@ -30,15 +32,20 @@ public class TTSCommand extends AbstractMusic {
     }
 
     @Override
-    protected void handleMusicCommand() {
-        if (!ensureConnected(event)) {
-            return;
+    protected CommandResponse handleMusicCommand() {
+        if (!ensureConnected(getMember())) {
+            return new CommandResponse("You must be connected to a voice channel to use this command.");
         }
 
-        String message = event.getOption("message").getAsString();
+        String message;
+        try {
+            message = getMultiwordOptionValue("message", 0);
+        } catch (Exception e) {
+            return new CommandResponse("Please provide a message to say.");
+        }
         message = StringUtils.encodeUrl(message);
 
-        playerManager.loadAndPlay(event, "ftts://" + message, TrackType.TTS);
+        return playerManager.loadAndPlay((MessageChannel) getChannel(), getMember(), "ftts://" + message, TrackType.TTS);
     }
 
     /**
@@ -123,7 +130,7 @@ public class TTSCommand extends AbstractMusic {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return false;
     }
 }

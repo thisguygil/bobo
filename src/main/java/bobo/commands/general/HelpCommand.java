@@ -1,22 +1,24 @@
 package bobo.commands.general;
 
 import bobo.Bobo;
+import bobo.CommandManager;
 import bobo.Config;
 import bobo.Listener;
-import bobo.commands.AbstractMessageCommand;
-import bobo.commands.AbstractSlashCommand;
-import bobo.commands.owner.AbstractOwner;
+import bobo.commands.ADualCommand;
+import bobo.commands.AMessageCommand;
+import bobo.commands.ASlashCommand;
+import bobo.commands.CommandResponse;
+import bobo.commands.owner.AOwnerCommand;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static bobo.commands.AbstractMessageCommand.PREFIX;
+public class HelpCommand extends AGeneralCommand {
+    private static final String PREFIX = Config.get("PREFIX");
 
-public class HelpCommand extends AbstractGeneral {
     /**
      * Creates a new help command.
      */
@@ -26,18 +28,25 @@ public class HelpCommand extends AbstractGeneral {
     }
 
     @Override
-    protected void handleGeneralCommand() {
-        boolean owner = event.getUser().getId().equals(Config.get("OWNER_ID"));
+    protected CommandResponse handleGeneralCommand() {
+        boolean owner = getUser().getId().equals(Config.get("OWNER_ID"));
         StringBuilder message = new StringBuilder();
-        List<AbstractSlashCommand> slashCommands = ((Listener) Bobo.getJDA().getRegisteredListeners().get(0)).getManager().getSlashCommands();
-        List<AbstractMessageCommand> messageCommands = ((Listener) Bobo.getJDA().getRegisteredListeners().get(0)).getManager().getMessageCommands();
-        assert slashCommands != null;
-        OptionMapping input = event.getOption("command");
+        CommandManager manager = ((Listener) Bobo.getJDA().getRegisteredListeners().getFirst()).getManager();
+        List<ADualCommand> dualCommands = manager.getDualCommands();
+        List<ASlashCommand> slashCommands = manager.getSlashCommands();
+        List<AMessageCommand> messageCommands = manager.getMessageCommands();
+
+        String input;
+        try {
+            input = getOptionValue("command", 0);
+        } catch (RuntimeException e) {
+            input = null;
+        }
 
         if (input == null) {
             message.append("## List of commands\n")
                     .append("To get info on a specific command: `/help <command name>`\n");
-            for (AbstractSlashCommand command : slashCommands) {
+            for (ADualCommand command : dualCommands) {
                 if (!(command instanceof HelpCommand)) {
                     message.append("`/")
                             .append(command.getName())
@@ -45,8 +54,14 @@ public class HelpCommand extends AbstractGeneral {
                 }
             }
 
-            for (AbstractMessageCommand command : messageCommands) {
-                if (owner || (!(command instanceof AbstractOwner))) {
+            for (ASlashCommand command : slashCommands) {
+                message.append("`/")
+                        .append(command.getName())
+                        .append("`\n");
+            }
+
+            for (AMessageCommand command : messageCommands) {
+                if (owner || (!(command instanceof AOwnerCommand))) {
                     message.append("`")
                             .append(PREFIX)
                             .append(command.getName())
@@ -54,28 +69,37 @@ public class HelpCommand extends AbstractGeneral {
                 }
             }
         } else  {
-            String search = input.getAsString();
-            AbstractSlashCommand slashCommand = slashCommands.stream()
+            String search = input;
+            ADualCommand dualCommand = dualCommands.stream()
                     .filter(c -> c.getName().equals(search))
                     .findFirst()
                     .orElse(null);
-            AbstractMessageCommand messageCommand = messageCommands.stream()
+            ASlashCommand slashCommand = slashCommands.stream()
                     .filter(c -> c.getName().equals(search))
                     .findFirst()
                     .orElse(null);
-            if (slashCommand == null && messageCommand == null) {
+            AMessageCommand messageCommand = messageCommands.stream()
+                    .filter(c -> c.getName().equals(search))
+                    .findFirst()
+                    .orElse(null);
+            if (dualCommand == null && slashCommand == null && messageCommand == null) {
                 message.append("Nothing found for ")
                         .append(search);
             } else {
-                if (slashCommand != null) {
-                    if (!(slashCommand instanceof HelpCommand)) {
+                if (dualCommand != null) {
+                    if (!(dualCommand instanceof HelpCommand)) {
                         message.append("## Command: ")
-                                .append(slashCommand.getName())
+                                .append(dualCommand.getName())
                                 .append("\n")
-                                .append(slashCommand.getHelp());
+                                .append(dualCommand.getHelp());
                     }
+                } else if (slashCommand != null) {
+                    message.append("## Command: ")
+                            .append(slashCommand.getName())
+                            .append("\n")
+                            .append(slashCommand.getHelp());
                 } else {
-                    if (owner || (!(messageCommand instanceof AbstractOwner))) {
+                    if (owner || (!(messageCommand instanceof AOwnerCommand))) {
                         message.append("## Command: ")
                                 .append(messageCommand.getName())
                                 .append("\n")
@@ -84,7 +108,8 @@ public class HelpCommand extends AbstractGeneral {
                 }
             }
         }
-        hook.editOriginal(message.toString()).queue();
+
+        return new CommandResponse(message.toString());
     }
 
     @Override
@@ -94,7 +119,7 @@ public class HelpCommand extends AbstractGeneral {
 
     @Override
     public String getHelp() {
-        return "You just think you're so smart, don't you?";
+        return "You just think you're so clever, don't you?";
     }
 
     @Override
@@ -103,7 +128,7 @@ public class HelpCommand extends AbstractGeneral {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return false;
     }
 }

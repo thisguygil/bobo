@@ -1,30 +1,32 @@
 package bobo.commands.general;
 
-import bobo.commands.AbstractSlashCommand;
+import bobo.commands.ADualCommand;
+import bobo.commands.ASlashCommand;
+import bobo.commands.CommandResponse;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
 import java.util.List;
 
-public abstract class AbstractGeneral extends AbstractSlashCommand {
+public abstract class AGeneralCommand extends ADualCommand {
     /**
      * Creates a new general command.
      *
      * @param commandData The command data.
      */
-    public AbstractGeneral(CommandData commandData) {
+    public AGeneralCommand(CommandData commandData) {
         super(commandData);
     }
 
     @Override
-    public void handleCommand() {
-        handleGeneralCommand();
+    protected CommandResponse handleCommand() {
+        return handleGeneralCommand();
     }
 
     /**
      * Handles the general command.
      */
-    protected abstract void handleGeneralCommand();
+    protected abstract CommandResponse handleGeneralCommand();
 
     @Override
     protected List<Permission> getCommandPermissions() {

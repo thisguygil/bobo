@@ -1,5 +1,7 @@
 package bobo.commands.general;
 
+import bobo.commands.CommandResponse;
+import bobo.commands.CommandResponseBuilder;
 import bobo.utils.api_clients.GoogleCustomSearchService;
 import com.github.ygimenez.method.Pages;
 import com.github.ygimenez.model.InteractPage;
@@ -18,11 +20,10 @@ import org.slf4j.LoggerFactory;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 import static bobo.utils.StringUtils.markdownLink;
 
-public class GoogleCommand extends AbstractGeneral {
+public class GoogleCommand extends AGeneralCommand {
     private static final Logger logger = LoggerFactory.getLogger(GoogleCommand.class);
 
     /**
@@ -40,57 +41,69 @@ public class GoogleCommand extends AbstractGeneral {
     }
 
     @Override
-    protected void handleGeneralCommand() {
-        String subcommand = event.getSubcommandName();
-        switch (subcommand) {
+    protected CommandResponse handleGeneralCommand() {
+        String subcommand;
+        try {
+            subcommand = getSubcommandName(0);
+        } catch (Exception e) {
+            return new CommandResponse("Invalid usage. Use `/help google` for more information.");
+        }
+
+        return switch (subcommand) {
             case "search" -> search();
             case "images" -> searchImages();
-            default -> throw new IllegalArgumentException("Unexpected value: " + subcommand);
-        }
+            default -> new CommandResponse("Invalid usage. Use `/help google` for more information.");
+        };
     }
 
     /**
      * Searches the given query on Google.
      */
-    private void search() {
-        String query = Objects.requireNonNull(event.getOption("query")).getAsString();
-        List<Result> results;
+    private CommandResponse search() {
+        String query;
+        try {
+            query = getMultiwordOptionValue("query", 1);
+        } catch (Exception e) {
+            return new CommandResponse("Invalid usage. Use `/help google` for more information.");
+        }
 
+        List<Result> results;
         try {
             results = GoogleCustomSearchService.search(query, false);
             if (results == null || results.isEmpty()) {
-                hook.editOriginal("No results found for query: " + query).queue();
-                return;
+                return new CommandResponse("No results found for query: " + query);
             }
         } catch (Exception e) {
-            hook.editOriginal(e.getMessage()).queue();
             logger.error("Error occurred while searching Google for query: {}", query);
-            return;
+            return new CommandResponse(e.getMessage());
         }
 
-        displayResults(results, query, false);
+        return getResults(results, query, false);
     }
 
     /**
      * Searches for images on Google.
      */
-    private void searchImages() {
-        String query = Objects.requireNonNull(event.getOption("query")).getAsString();
-        List<Result> images;
+    private CommandResponse searchImages() {
+        String query;
+        try {
+            query = getMultiwordOptionValue("query", 1);
+        } catch (Exception e) {
+            return new CommandResponse("Invalid usage. Use `/help google` for more information.");
+        }
 
+        List<Result> images;
         try {
             images = GoogleCustomSearchService.search(query, true);
             if (images == null || images.isEmpty()) {
-                hook.editOriginal("No images found for query: " + query).queue();
-                return;
+                return new CommandResponse("No images found for query: " + query);
             }
         } catch (Exception e) {
-            hook.editOriginal(e.getMessage()).queue();
             logger.error("Error occurred while searching Google Images for query: {}", query);
-            return;
+            return new CommandResponse(e.getMessage());
         }
 
-        displayResults(images, query, true);
+        return getResults(images, query, true);
     }
 
     /**
@@ -100,9 +113,9 @@ public class GoogleCommand extends AbstractGeneral {
      * @param query         The search query.
      * @param isImageSearch Whether the search is for images.
      */
-    private void displayResults(List<Result> results, String query, boolean isImageSearch) {
+    private CommandResponse getResults(List<Result> results, String query, boolean isImageSearch) {
         final List<Page> pages = new ArrayList<>();
-        Member member = event.getMember();
+        Member member = getMember();
         assert member != null;
 
         if (isImageSearch) {
@@ -145,9 +158,11 @@ public class GoogleCommand extends AbstractGeneral {
         }
 
         if (pages.size() == 1) {
-            hook.editOriginalEmbeds((MessageEmbed) pages.getFirst().getContent()).queue();
+            return new CommandResponse((MessageEmbed) pages.getFirst().getContent());
         } else {
-            hook.editOriginalEmbeds((MessageEmbed) pages.getFirst().getContent()).queue(success -> Pages.paginate(success, pages, true));
+            return new CommandResponseBuilder().addEmbed((MessageEmbed) pages.getFirst().getContent())
+                    .setPostExecutionAsMessage(success -> Pages.paginate(success, pages, true))
+                    .build();
         }
     }
 
@@ -169,7 +184,7 @@ public class GoogleCommand extends AbstractGeneral {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return false;
     }
 }

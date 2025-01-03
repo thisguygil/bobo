@@ -1,11 +1,14 @@
 package bobo.commands.lastfm;
 
 import bobo.Config;
-import bobo.commands.AbstractSlashCommand;
+import bobo.commands.ADualCommand;
+import bobo.commands.CommandResponse;
 import bobo.utils.api_clients.SQLConnection;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 import java.time.LocalDate;
@@ -14,7 +17,9 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 
-public abstract class AbstractLastFM extends AbstractSlashCommand {
+public abstract class ALastFMCommand extends ADualCommand {
+    private static final Logger logger = LoggerFactory.getLogger(ALastFMCommand.class);
+
     protected static final String API_KEY = Config.get("LASTFM_API_KEY");
 
     private static final String createSQL = "CREATE TABLE IF NOT EXISTS lastfmlogins (user_id VARCHAR(255) PRIMARY KEY, session_key VARCHAR(255) NOT NULL, lastfm_username VARCHAR(255) NOT NULL)";
@@ -23,13 +28,12 @@ public abstract class AbstractLastFM extends AbstractSlashCommand {
     private static final String removeTokenSQL = "DELETE FROM lastfmtokens WHERE user_id = ?";
     private static final String selectUsernameSQL = "SELECT lastfm_username FROM lastfmlogins WHERE user_id = ?";
 
-
     /**
      * Creates a new LastFM command.
      *
      * @param commandData The command data.
      */
-    public AbstractLastFM(CommandData commandData) {
+    public ALastFMCommand(CommandData commandData) {
         super(commandData);
     }
 
@@ -37,10 +41,10 @@ public abstract class AbstractLastFM extends AbstractSlashCommand {
      * Ensure the user is logged in to Last.fm before handling the command, unless the command is fmlogin.
      */
     @Override
-    protected void handleCommand() {
+    protected CommandResponse handleCommand() {
         // If the command is not fmlogin, check if the user is logged in
         if (!getName().equals("fmlogin")) {
-            String userId = event.getUser().getId();
+            String userId = getUser().getId();
 
             // Check if the session key and username are already stored in the database
             try (Connection connection = SQLConnection.getConnection()) {
@@ -49,19 +53,17 @@ public abstract class AbstractLastFM extends AbstractSlashCommand {
                     ResultSet resultSet = preparedStatement.executeQuery();
                     if (resultSet.next()) {
                         // Logged in already
-                        handleLastFMCommand();
-                        return;
+                        return handleLastFMCommand();
                     }
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Failed to check if user {} is logged in to Last.fm", userId);
             }
 
             // Check if the user's one-use token is stored in the database
             Map<String, String> sessionKeyAndUsername = FMLoginCommand.getSessionKeyAndUsernameFromToken(userId);
             if (sessionKeyAndUsername == null) {
-                event.reply("You are not logged in to Last.fm. Log in by using the `/fmlogin` command").setEphemeral(true).queue();
-                return;
+                return new CommandResponse("You are not logged in to Last.fm. Log in by using the `/fmlogin` command", true);
             }
 
             // Store the session key and username in the database
@@ -77,7 +79,7 @@ public abstract class AbstractLastFM extends AbstractSlashCommand {
                     preparedStatement.executeUpdate();
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Failed to store Last.fm session key and username for user {}", userId);
             }
 
             // Remove the token from the database
@@ -87,14 +89,14 @@ public abstract class AbstractLastFM extends AbstractSlashCommand {
                     preparedStatement.executeUpdate();
                 }
             } catch (SQLException e) {
-                e.printStackTrace();
+                logger.error("Failed to remove Last.fm token for user {}", userId);
             }
         }
 
-        handleLastFMCommand();
+        return handleLastFMCommand();
     }
 
-    protected abstract void handleLastFMCommand();
+    protected abstract CommandResponse handleLastFMCommand();
 
     @Override
     public String getHelp() {
@@ -118,7 +120,7 @@ public abstract class AbstractLastFM extends AbstractSlashCommand {
                 username = resultSet.getString("lastfm_username");
             }
         } catch (SQLException e) {
-            e.printStackTrace();
+            logger.error("Failed to get Last.fm username for user {}", userId);
         }
 
         return username;

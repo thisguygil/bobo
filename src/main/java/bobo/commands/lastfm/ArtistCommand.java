@@ -1,11 +1,11 @@
 package bobo.commands.lastfm;
 
+import bobo.commands.CommandResponse;
 import bobo.utils.api_clients.LastfmAPI;
 import bobo.utils.api_clients.MusicBrainzAPI;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import org.json.JSONArray;
@@ -18,7 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class ArtistCommand extends AbstractLastFM {
+public class ArtistCommand extends ALastFMCommand {
     /**
      * Creates a new artist command.
      */
@@ -34,20 +34,22 @@ public class ArtistCommand extends AbstractLastFM {
     }
 
     @Override
-    protected void handleLastFMCommand() {
-        String username = getUserName(event.getUser().getId());
-        assert username != null;
-        Member member = event.getMember();
-        assert member != null;
+    protected CommandResponse handleLastFMCommand() {
+        String username = getUserName(getUser().getId());
+        Member member = getMember();
 
-        String artistName;
-        OptionMapping artistOption = event.getOption("artist");
+        String artistOption, artistName;
+        try {
+            artistOption = getMultiwordOptionValue("artist", 0);
+        } catch (RuntimeException ignored) {
+            artistOption = null;
+        }
+
         if (artistOption == null) {
             // Get the last played artist with a GET request to user.getRecentTracks
             String response = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "user.getRecentTracks", "user", username, "limit", "1")), false);
             if (response == null) {
-                hook.editOriginal("An error occurred while getting your last played artist.").queue();
-                return;
+                hook.editOriginal("An error occurred while getting your last played artist.");
             }
 
             JSONObject responseObject = new JSONObject(response);
@@ -58,16 +60,14 @@ public class ArtistCommand extends AbstractLastFM {
                     .getString("#text");
         } else {
             // Search the artist information with a GET request to artist.search
-            String response = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "artist.search", "artist", artistOption.getAsString(), "limit", "1")), false);
+            String response = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "artist.search", "artist", artistOption, "limit", "1")), false);
             if (response == null) {
-                hook.editOriginal("An error occurred while searching for the artist.").queue();
-                return;
+                return new CommandResponse("An error occurred while searching for the artist.");
             }
 
             JSONObject responseObject = new JSONObject(response);
             if (responseObject.getJSONObject("results").getInt("opensearch:totalResults") == 0) {
-                hook.editOriginal("No results found for the artist.").queue();
-                return;
+                return new CommandResponse("No results found for the artist.");
             }
 
             artistName = responseObject.getJSONObject("results")
@@ -80,8 +80,7 @@ public class ArtistCommand extends AbstractLastFM {
         // Get the artist's image with a GET request to artist.getInfo
         String response = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "artist.getInfo", "artist", artistName, "username", username)), false);
         if (response == null) {
-            hook.editOriginal("An error occurred while getting the artist's information.").queue();
-            return;
+            return new CommandResponse("An error occurred while getting the artist's information.");
         }
 
         // Parse the artist's information
@@ -90,8 +89,7 @@ public class ArtistCommand extends AbstractLastFM {
         try {
             artistObject = responseObject.getJSONObject("artist");
         } catch (JSONException e) {
-            hook.editOriginal("No results found for the artist. This usually happens for recently released artists. Check back later.").queue();
-            return;
+            return new CommandResponse("No results found for the artist. This usually happens for recently released artists. Check back later.");
         }
         String artistUrl = artistObject.getString("url");
         String artistImage = null;
@@ -156,7 +154,7 @@ public class ArtistCommand extends AbstractLastFM {
             embed.addField("Summary", artistSummary, false);
         }
 
-        hook.editOriginalEmbeds(embed.build()).queue();
+        return new CommandResponse(embed.build());
     }
 
     @Override
@@ -173,7 +171,7 @@ public class ArtistCommand extends AbstractLastFM {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return false;
     }
 }

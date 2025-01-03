@@ -1,6 +1,7 @@
 package bobo.commands.admin;
 
 import bobo.Bobo;
+import bobo.commands.CommandResponse;
 import bobo.commands.general.RandomCommand;
 import bobo.utils.api_clients.SQLConnection;
 import net.dv8tion.jda.api.entities.channel.unions.GuildChannelUnion;
@@ -15,7 +16,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Statement;
 
-public class ConfigCommand extends AbstractAdmin {
+public class ConfigCommand extends AAdminCommand {
     private static final String createClipsTableSQL = "CREATE TABLE IF NOT EXISTS clips_channels (guild_id VARCHAR(255) PRIMARY KEY, channel_id VARCHAR(255) NOT NULL)";
     private static final String insertOrUpdateClipsSQL = "INSERT INTO clips_channels (guild_id, channel_id) VALUES (?, ?) ON DUPLICATE KEY UPDATE channel_id = ?";
     private static final String createQuotesTableSQL = "CREATE TABLE IF NOT EXISTS quotes_channels (guild_id VARCHAR(255) PRIMARY KEY, channel_id VARCHAR(255) NOT NULL)";
@@ -49,25 +50,28 @@ public class ConfigCommand extends AbstractAdmin {
     }
 
     @Override
-    protected void handleAdminCommand() {
-        String guildId = event.getGuildChannel().getGuild().getId();
-        String setting = event.getOption("setting").getAsString();
-        OptionMapping channelOption = event.getOption("channel");
+    protected CommandResponse handleAdminCommand() {
+        String guildId = event.getGuild().getId();
+        String setting = getOptionValue("setting");
+
+        OptionMapping channelOption = event.getOption("channel"); // Can't use getOptionValue because it doesn't work with channels
         GuildChannelUnion channel;
         if (channelOption != null) {
             channel = channelOption.getAsChannel();
             String channelId = channel.getId();
-            switch (setting) {
+            return switch (setting) {
                 case "clips" -> configClips(guildId, channelId);
                 case "quotes" -> configQuotes(guildId, channelId);
                 case "fortnite-shop" -> configFortniteShop(guildId, channelId);
-            }
+                default -> new CommandResponse("Invalid usage. Use `/help config` for more information.");
+            };
         } else {
-            switch (setting) {
+            return switch (setting) {
                 case "clips" -> resetClips(guildId);
                 case "quotes" -> resetQuotes(guildId);
                 case "fortnite-shop" -> resetFortniteShop(guildId);
-            }
+                default -> new CommandResponse("Invalid usage. Use `/help config` for more information.");
+            };
         }
     }
 
@@ -77,7 +81,7 @@ public class ConfigCommand extends AbstractAdmin {
      * @param guildId the ID of the guild
      * @param channelId the ID of the channel
      */
-    private void configClips(String guildId, String channelId) {
+    private CommandResponse configClips(String guildId, String channelId) {
         try (Connection connection = SQLConnection.getConnection()) {
             try (Statement statement = connection.createStatement()) {
                 statement.execute(createClipsTableSQL);
@@ -90,10 +94,9 @@ public class ConfigCommand extends AbstractAdmin {
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
-            hook.editOriginal("An error occurred while configuring the clips channel.").queue();
-            return;
+            return new CommandResponse("An error occurred while configuring the clips channel.");
         }
-        hook.editOriginal("Clips channel set to <#" + channelId + ">.").queue();
+        return new CommandResponse("Clips channel set to <#" + channelId + ">.");
     }
 
     /**
@@ -102,7 +105,7 @@ public class ConfigCommand extends AbstractAdmin {
      * @param guildId the ID of the guild
      * @param channelId the ID of the channel
      */
-    private void configQuotes(String guildId, String channelId) {
+    private CommandResponse configQuotes(String guildId, String channelId) {
         try (Connection connection = SQLConnection.getConnection()) {
             try (Statement statement = connection.createStatement()) {
                 statement.execute(createQuotesTableSQL);
@@ -115,10 +118,9 @@ public class ConfigCommand extends AbstractAdmin {
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
-            hook.editOriginal("An error occurred while configuring the quotes channel.").queue();
-            return;
+            return new CommandResponse("An error occurred while configuring the quotes channel.");
         }
-        event.getHook().editOriginal("Quotes channel set to <#" + channelId + ">.").queue();
+        return new CommandResponse("Quotes channel set to <#" + channelId + ">.");
     }
 
     /**
@@ -127,7 +129,7 @@ public class ConfigCommand extends AbstractAdmin {
      * @param guildId the ID of the guild
      * @param channelId the ID of the channel
      */
-    private void configFortniteShop(String guildId, String channelId) {
+    private CommandResponse configFortniteShop(String guildId, String channelId) {
         try (Connection connection = SQLConnection.getConnection()) {
             try (Statement statement = connection.createStatement()) {
                 statement.execute(createFortniteShopTableSQL);
@@ -140,10 +142,9 @@ public class ConfigCommand extends AbstractAdmin {
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
-            hook.editOriginal("An error occurred while configuring the Fortnite Shop channel.").queue();
-            return;
+            return new CommandResponse("An error occurred while configuring the Fortnite Shop channel.");
         }
-        hook.editOriginal("The daily Fortnite Shop will be sent in <#" + channelId + "> every day at 0:01 UTC.").queue();
+        return new CommandResponse("The daily Fortnite Shop will be sent in <#" + channelId + "> every day at 0:01 UTC.");
     }
 
     /**
@@ -151,17 +152,16 @@ public class ConfigCommand extends AbstractAdmin {
      *
      * @param guildId the ID of the guild
      */
-    private void resetClips(String guildId) {
+    private CommandResponse resetClips(String guildId) {
         try (Connection connection = SQLConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(resetClipsSQL)) {
             statement.setString(1, guildId);
             statement.executeUpdate();
         } catch (SQLException e) {
-            hook.editOriginal("An error occurred while resetting the clips channel.").queue();
-            return;
+            return new CommandResponse("An error occurred while resetting the clips channel.");
         }
         RandomCommand.guildClipListMap.remove(Bobo.getJDA().getGuildById(guildId));
-        hook.editOriginal("Clips channel reset.").queue();
+        return new CommandResponse("Clips channel reset.");
     }
 
     /**
@@ -169,17 +169,16 @@ public class ConfigCommand extends AbstractAdmin {
      *
      * @param guildId the ID of the guild
      */
-    private void resetQuotes(String guildId) {
+    private CommandResponse resetQuotes(String guildId) {
         try (Connection connection = SQLConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(resetQuotesSQL)) {
             statement.setString(1, guildId);
             statement.executeUpdate();
         } catch (SQLException e) {
-            hook.editOriginal("An error occurred while resetting the quotes channel.").queue();
-            return;
+            return new CommandResponse("An error occurred while resetting the quotes channel.");
         }
         RandomCommand.guildQuoteListMap.remove(Bobo.getJDA().getGuildById(guildId));
-        hook.editOriginal("Quotes channel reset.").queue();
+        return new CommandResponse("Quotes channel reset.");
     }
 
     /**
@@ -187,16 +186,15 @@ public class ConfigCommand extends AbstractAdmin {
      *
      * @param guildId the ID of the guild
      */
-    private void resetFortniteShop(String guildId) {
+    private CommandResponse resetFortniteShop(String guildId) {
         try (Connection connection = SQLConnection.getConnection();
              PreparedStatement statement = connection.prepareStatement(resetFortniteShopSQL)) {
             statement.setString(1, guildId);
             statement.executeUpdate();
         } catch (SQLException e) {
-            hook.editOriginal("An error occurred while resetting the Fortnite Shop channel.").queue();
-            return;
+            return new CommandResponse("An error occurred while resetting the Fortnite Shop channel.");
         }
-        hook.editOriginal("Fortnite Shop channel reset.").queue();
+        return new CommandResponse("Fortnite Shop channel reset.");
     }
 
     @Override

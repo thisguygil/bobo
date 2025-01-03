@@ -1,31 +1,32 @@
 package bobo.commands.admin;
 
-import bobo.commands.AbstractSlashCommand;
+import bobo.commands.ASlashCommand;
+import bobo.commands.CommandResponse;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AbstractAdmin extends AbstractSlashCommand {
+public abstract class AAdminCommand extends ASlashCommand {
     /**
      * Creates a new admin command.
      *
      * @param commandData The command data.
      */
-    public AbstractAdmin(CommandData commandData) {
+    public AAdminCommand(CommandData commandData) {
         super(commandData);
     }
 
     @Override
-    public void handleCommand() {
-        handleAdminCommand();
+    protected CommandResponse handleCommand() {
+        return handleAdminCommand();
     }
 
     /**
      * Handles the admin command.
      */
-    protected abstract void handleAdminCommand();
+    protected abstract CommandResponse handleAdminCommand();
 
     @Override
     public String getHelp() {

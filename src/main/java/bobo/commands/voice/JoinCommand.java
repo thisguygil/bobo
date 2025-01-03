@@ -1,13 +1,13 @@
 package bobo.commands.voice;
 
 import bobo.Bobo;
+import bobo.commands.CommandResponse;
 import bobo.utils.api_clients.SQLConnection;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.StageChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.managers.AudioManager;
 import org.slf4j.Logger;
@@ -17,9 +17,8 @@ import javax.annotation.Nonnull;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
-public class JoinCommand extends AbstractVoice {
+public class JoinCommand extends AVoiceCommand {
     private static final Logger logger = LoggerFactory.getLogger(JoinCommand.class);
 
     /**
@@ -30,34 +29,22 @@ public class JoinCommand extends AbstractVoice {
     }
 
     @Override
-    protected void handleVoiceCommand() {
-        AudioManager manager = event.getGuildChannel().getGuild().getAudioManager();
-        AudioChannelUnion memberChannel = Objects.requireNonNull(Objects.requireNonNull(event.getMember()).getVoiceState()).getChannel();
+    protected CommandResponse handleVoiceCommand() {
+        AudioManager manager = getGuild().getAudioManager();
+        AudioChannelUnion memberChannel = getMember().getVoiceState().getChannel();
         if (manager.isConnected() && memberChannel != null && memberChannel == manager.getConnectedChannel()) {
-            hook.editOriginal("Already connected to " + memberChannel.getAsMention()).queue();
-            return;
+            return new CommandResponse("Already connected to " + memberChannel.getAsMention());
         }
 
-        if (join(event)) {
-            assert memberChannel != null;
-            hook.editOriginal("Joined " + memberChannel.getAsMention()).queue();
+        try {
+            if (join(getMember())) {
+                return new CommandResponse("Joined " + memberChannel.getAsMention());
+            } else {
+                return new CommandResponse("Failed to join " + memberChannel.getAsMention());
+            }
+        } catch (IllegalArgumentException e) {
+            return new CommandResponse(e.getMessage());
         }
-    }
-
-    /**
-     * Joins the voice channel of the user who sent the command.
-     *
-     * @param event The event that triggered this action.
-     * @return Whether the bot successfully joined the voice channel.
-     */
-    public static boolean join(@Nonnull SlashCommandInteractionEvent event) {
-        AudioChannelUnion voiceChannel = event.getMember().getVoiceState().getChannel();
-        if (voiceChannel == null) {
-            event.getHook().editOriginal("You must be connected to a voice channel to use this command.").queue();
-            return false;
-        }
-
-        return join(voiceChannel);
     }
 
     /**
@@ -69,7 +56,7 @@ public class JoinCommand extends AbstractVoice {
     public static boolean join(@Nonnull Member member) {
         AudioChannelUnion voiceChannel = member.getVoiceState().getChannel();
         if (voiceChannel == null) {
-            return false;
+            throw new IllegalArgumentException("You must be connected to a voice channel to use this command.");
         }
 
         return join(voiceChannel);
@@ -86,7 +73,7 @@ public class JoinCommand extends AbstractVoice {
             AudioManager audioManager = audioChannel.getGuild().getAudioManager();
             audioManager.openAudioConnection(audioChannel);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("Failed to join voice channel: {}", audioChannel.getName());
             return false;
         }
 
@@ -149,7 +136,7 @@ public class JoinCommand extends AbstractVoice {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return false;
     }
 }

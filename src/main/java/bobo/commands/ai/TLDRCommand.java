@@ -1,13 +1,13 @@
 package bobo.commands.ai;
 
 import bobo.Config;
+import bobo.commands.CommandResponse;
 import io.github.sashirestela.openai.domain.chat.ChatMessage;
 import io.github.sashirestela.openai.domain.chat.ChatRequest;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
@@ -17,7 +17,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
-public class TLDRCommand extends AbstractAI {
+public class TLDRCommand extends AAICommand {
     private static final String CHAT_MODEL = Config.get("CHAT_MODEL");
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
@@ -30,25 +30,31 @@ public class TLDRCommand extends AbstractAI {
     }
 
     @Override
-    protected void handleAICommand() {
-        OptionMapping minutesOption = event.getOption("minutes");
+    protected CommandResponse handleAICommand() {
+        Integer minutesOption;
+        try {
+            minutesOption = Integer.parseInt(getOptionValue("minutes", 0));
+        } catch (NumberFormatException e) {
+            return new CommandResponse("The number of minutes must be an integer.");
+        } catch (RuntimeException ignored) {
+            minutesOption = null;
+        }
+
         Integer minutes = null;
         if (minutesOption != null) {
-            minutes = minutesOption.getAsInt();
+            minutes = minutesOption;
             if (minutes <= 0) {
-                event.getHook().editOriginal("The number of minutes must be greater than zero.").queue();
-                return;
+                return new CommandResponse("The number of minutes must be greater than zero.");
             }
         }
 
-        List<Message> messages = fetchMessages(event.getChannel(), minutes);
+        List<Message> messages = fetchMessages((MessageChannelUnion) getChannel(), minutes);
         if (messages.size() < 10) {
-            hook.editOriginal("Not enough messages to summarize.").queue();
-            return;
+            return new CommandResponse("Not enough messages to summarize.");
         }
 
         String summary = summarizeMessages(messages);
-        hook.editOriginal(summary).queue();
+        return new CommandResponse(summary);
     }
 
     /**
@@ -179,7 +185,7 @@ public class TLDRCommand extends AbstractAI {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return false;
     }
 }

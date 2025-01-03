@@ -27,7 +27,10 @@ The `docker-compose` configuration also includes a MySQL database for storing us
 The Docker image can be found [here](https://hub.docker.com/repository/docker/thisguygil/bobo) on Docker Hub.
 
 ## Commands
-### Bot Owner commands
+
+### Privileged Commands
+
+#### Bot Owner Commands
 Can be used by the bot owner only (as message commands) - configured with the owner's [Discord user ID](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID) in the `.env` file
 * `!restart` - Restarts Bobo
 * `!sql <statement>` - Executes an SQL statement (useful for debugging, but be careful)
@@ -41,8 +44,8 @@ Can be used by the bot owner only (as message commands) - configured with the ow
     * `competing <activity>` - Sets Bobo's activity to `competing in <activity>`
 * `!dm <user-id> <message>` - Sends a direct message to a user specified by their Discord user ID
 
-### Server Admin commands
-Can be used by server admins only
+#### Server Admin Commands
+Can be used by server admins only (as slash commands)
 * `/say <message>` - Makes Bobo say `<message>` in the current channel
 * `/config <setting> <channel>` - Configures the server
   * Settings:
@@ -51,7 +54,10 @@ Can be used by server admins only
     * `Fortnite Shop channel`
   * No channel input clears the setting
 
-### General commands
+### Other Commands
+Can be used by anyone with the proper permissions (as slash commands or message commands)
+
+#### General Commands
 * `/help` - Shows the list of commands or gets info on a specific command
 * `/google <query>` - Searches Google for `<query>` and returns the first 10 results
 * `/random` - Gets a random quote/clip from the respective configured channel
@@ -67,7 +73,7 @@ Can be used by server admins only
       * `news` - Gets the current Fortnite (Battle Royale) news
       * `map` - Gets the current Fortnite map
 
-### Last.fm commands
+#### Last.fm Commands
 Requires the user to be logged into Last.fm
 * `/fmlogin` - Logs into Last.fm
 * `/fmlogout` - Logs out of Last.fm - to be used normally, or if the login becomes invalid/outdated (e.g. the user changes their username)
@@ -75,21 +81,21 @@ Requires the user to be logged into Last.fm
 * `/album <album>` - Gets information about a given album on Last.fm. No input defaults to last played album
 * `/artist <artist>` - Gets information about a given artist on Last.fm. No input defaults to last played artist
 
-### AI commands
+#### AI Commands
 * `/tldr <minutes>` - Summarizes the recent conversation in the channel. `<minutes>` is the number of minutes to look back in the channel, if not provided, searches until a 5-minute gap is found
 * `/chat` - Opens a thread to chat with ChatGPT
 * `/image` - Generates an image with DALL-E 3
 
-### Voice commands
-Can be used in voice channels only
+#### Voice Commands
+Can be used only while in an audio channel
 * `/join` - Joins the voice channel you are in
 * `/leave` - Leaves the voice channel
 * `/mute` - Mutes/unmutes Bobo in the voice channel
 * `/deafen` - Deafens/undeafens Bobo in the voice channel (Bobo will not be able to clip you)
 * `/clip` - Clips the last 30 seconds of audio from the voice channel you are in. The clip will also be sent to the configured clips channel, if one is set
 
-### Music commands
-Subset of voice commands
+#### Music Commands
+Subset of voice commands (and so can only be used while in an audio channel)
 * `/play` - Plays a track in the voice channel you are in
   * Subcommands:
     * `track <url/query>` - Plays given YouTube `<url>` or the first track result from `<query>`

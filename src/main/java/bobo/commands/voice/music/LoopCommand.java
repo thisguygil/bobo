@@ -1,5 +1,6 @@
 package bobo.commands.voice.music;
 
+import bobo.commands.CommandResponse;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -9,7 +10,7 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LoopCommand extends AbstractMusic {
+public class LoopCommand extends AMusicCommand {
     /**
      * The looping type.
      */
@@ -36,65 +37,72 @@ public class LoopCommand extends AbstractMusic {
     }
 
     @Override
-    protected void handleMusicCommand() {
+    protected CommandResponse handleMusicCommand() {
         if (currentTrack == null) {
-            hook.editOriginal("There is nothing currently playing.").queue();
-            return;
+            return new CommandResponse("There is nothing currently playing.");
         }
 
-        switch (event.getOption("value").getAsString()) {
-            case "track" -> track();
-            case "queue" -> queue();
-            case "off" -> off();
+        try {
+            return switch (getOptionValue("value", 0)) {
+                case "track" -> track();
+                case "queue" -> queue();
+                case "off" -> off();
+                default -> new CommandResponse("Invalid usage. Please use `/help loop` for more information.");
+            };
+        } catch (RuntimeException e) {
+            return new CommandResponse("Invalid usage. Please use `/help loop` for more information.");
         }
     }
 
     /**
      * Loops the currently playing track.
      */
-    private void track() {
+    private CommandResponse track() {
         if (currentTrack.track().getInfo().isStream) {
-            hook.editOriginal("Cannot loop a live stream.").queue();
-            return;
+            return new CommandResponse("Cannot loop a live stream.");
         }
 
         switch (scheduler.looping) {
             case NONE, QUEUE -> {
                 scheduler.looping = looping.TRACK;
-                hook.editOriginal("The track has been set to loop.").queue();
+                return new CommandResponse("The track has been set to loop.");
             }
             case TRACK -> {
                 scheduler.looping = looping.NONE;
-                hook.editOriginal("Looping has been turned off.").queue();
+                return new CommandResponse("Looping has been turned off.");
             }
         }
+
+        return new CommandResponse();
     }
 
     /**
      * Loops the entire queue.
      */
-    private void queue() {
+    private CommandResponse queue() {
         switch (scheduler.looping) {
             case NONE, TRACK -> {
                 scheduler.looping = looping.QUEUE;
-                hook.editOriginal("The queue has been set to loop.").queue();
+                return new CommandResponse("The queue has been set to loop.");
             }
             case QUEUE -> {
                 scheduler.looping = looping.NONE;
-                hook.editOriginal("Looping has been turned off.").queue();
+                return new CommandResponse("Looping has been turned off.");
             }
         }
+
+        return new CommandResponse();
     }
 
     /**
      * Turns off looping.
      */
-    private void off() {
-        switch (scheduler.looping) {
-            case NONE -> hook.editOriginal("Looping is already off.").queue();
+    private CommandResponse off() {
+        return switch (scheduler.looping) {
+            case NONE -> new CommandResponse("Looping is already off.");
             case TRACK, QUEUE -> {
                 scheduler.looping = looping.NONE;
-                hook.editOriginal("Looping has been turned off.").queue();
+                yield new CommandResponse("Looping has been turned off.");
             }
         };
     }
@@ -121,7 +129,7 @@ public class LoopCommand extends AbstractMusic {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return false;
     }
 }

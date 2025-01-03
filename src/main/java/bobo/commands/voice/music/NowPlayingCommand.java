@@ -1,9 +1,10 @@
 package bobo.commands.voice.music;
 
 import bobo.lavaplayer.GuildMusicManager;
+import bobo.commands.CommandResponse;
 import bobo.utils.api_clients.SpotifyLink;
 import bobo.utils.TimeFormat;
-import bobo.utils.TrackRecord;
+import bobo.lavaplayer.TrackRecord;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.api.EmbedBuilder;
@@ -16,7 +17,7 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class NowPlayingCommand extends AbstractMusic {
+public class NowPlayingCommand extends AMusicCommand {
     /**
      * Creates a new now-playing command.
      */
@@ -25,13 +26,12 @@ public class NowPlayingCommand extends AbstractMusic {
     }
 
     @Override
-    protected void handleMusicCommand() {
+    protected CommandResponse handleMusicCommand() {
         if (currentTrack == null) {
-            hook.editOriginal("There is nothing currently playing.").queue();
-            return;
+            return new CommandResponse("There is nothing currently playing.");
         }
 
-        hook.editOriginalEmbeds(createEmbed(currentTrack, musicManager)).queue();
+        return new CommandResponse(createEmbed(currentTrack, musicManager));
     }
 
     /**
@@ -109,7 +109,7 @@ public class NowPlayingCommand extends AbstractMusic {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return false;
     }
 }

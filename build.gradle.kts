@@ -22,7 +22,7 @@ repositories {
 
 dependencies {
     // Discord API
-    implementation("net.dv8tion:JDA:5.2.1")
+    implementation("net.dv8tion:JDA:5.2.2")
 
     // LavaPlayer
     implementation("dev.arbjerg:lavaplayer:2.2.2")
@@ -48,19 +48,18 @@ dependencies {
     implementation("com.mysql:mysql-connector-j:9.1.0")
 
     // Logging
-    implementation("ch.qos.logback:logback-classic:1.5.12")
+    implementation("ch.qos.logback:logback-classic:1.5.15")
 
     // Local Testing
-    implementation("io.github.cdimascio:dotenv-kotlin:6.4.2")
+    implementation("io.github.cdimascio:dotenv-kotlin:6.5.0")
 
     // Other API Wrappers
     implementation("se.michaelthelin.spotify:spotify-web-api-java:9.1.0")
-    implementation("io.github.sashirestela:simple-openai:3.12.0")
+    implementation("io.github.sashirestela:simple-openai:3.13.0")
 
     // Other Java Utilities
     implementation("jakarta.annotation:jakarta.annotation-api:3.0.0")
     implementation("org.apache.commons:commons-text:1.13.0")
-    implementation("org.apache.commons:commons-lang3:3.17.0")
     implementation("org.apache.httpcomponents.client5:httpclient5:5.4.1")
     implementation("commons-validator:commons-validator:1.9.0")
     implementation("org.json:json:20240303")

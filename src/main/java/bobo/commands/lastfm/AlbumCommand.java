@@ -1,11 +1,11 @@
 package bobo.commands.lastfm;
 
+import bobo.commands.CommandResponse;
 import bobo.utils.api_clients.LastfmAPI;
 import bobo.utils.api_clients.MusicBrainzAPI;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import org.json.JSONArray;
@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.Map;
 
-public class AlbumCommand extends AbstractLastFM {
+public class AlbumCommand extends ALastFMCommand {
     /**
      * Creates a new artist command.
      */
@@ -34,20 +34,22 @@ public class AlbumCommand extends AbstractLastFM {
     }
 
     @Override
-    protected void handleLastFMCommand() {
-        String username = getUserName(event.getUser().getId());
-        assert username != null;
-        Member member = event.getMember();
-        assert member != null;
+    protected CommandResponse handleLastFMCommand() {
+        String username = getUserName(getUser().getId());
+        Member member = getMember();
 
-        String albumName, artistName;
-        OptionMapping albumOption = event.getOption("album");
+        String albumOption, albumName, artistName;
+        try {
+            albumOption = getMultiwordOptionValue("album", 0);
+        } catch (RuntimeException ignored) {
+            albumOption = null;
+        }
+
         if (albumOption == null) {
             // Get the last played artist with a GET request to user.getRecentTracks
             String response = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "user.getRecentTracks", "user", username, "limit", "1")), false);
             if (response == null) {
-                hook.editOriginal("An error occurred while getting your last played album.").queue();
-                return;
+                return new CommandResponse("An error occurred while getting your last played album.");
             }
 
             JSONObject responseObject = new JSONObject(response);
@@ -60,16 +62,14 @@ public class AlbumCommand extends AbstractLastFM {
                     .getString("#text");
         } else {
             // Search the artist information with a GET request to album.search
-            String response = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "album.search", "album", albumOption.getAsString(), "limit", "1")), false);
+            String response = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "album.search", "album", albumOption, "limit", "1")), false);
             if (response == null) {
-                hook.editOriginal("An error occurred while searching for the album.").queue();
-                return;
+                return new CommandResponse("An error occurred while searching for the album.");
             }
 
             JSONObject responseObject = new JSONObject(response);
             if (responseObject.getJSONObject("results").getInt("opensearch:totalResults") == 0) {
-                hook.editOriginal("No results found for the album.").queue();
-                return;
+                return new CommandResponse("No results found for the album.");
             }
 
             JSONObject albumObject = responseObject.getJSONObject("results")
@@ -83,8 +83,7 @@ public class AlbumCommand extends AbstractLastFM {
         // Get the album's information with a GET request to album.getInfo
         String response = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "album.getInfo", "album", albumName, "artist", artistName, "username", username)), false);
         if (response == null) {
-            hook.editOriginal("An error occurred while getting the album's information.").queue();
-            return;
+            return new CommandResponse("An error occurred while getting the album's information.");
         }
 
         // Parse the album's information
@@ -93,8 +92,7 @@ public class AlbumCommand extends AbstractLastFM {
         try {
             albumObject = responseObject.getJSONObject("album");
         } catch (JSONException e) {
-            hook.editOriginal("No results found for the album. This usually happens for recently released albums. Check back later.").queue();
-            return;
+            return new CommandResponse("No results found for the album. This usually happens for recently released albums. Check back later.");
         }
         String albumUrl = albumObject.getString("url");
         String albumImage = null;
@@ -137,7 +135,7 @@ public class AlbumCommand extends AbstractLastFM {
             embed.addField("Summary", albumSummary, false);
         }
 
-        hook.editOriginalEmbeds(embed.build()).queue();
+        return new CommandResponse(embed.build());
     }
 
     @Override
@@ -154,7 +152,7 @@ public class AlbumCommand extends AbstractLastFM {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return false;
     }
 }

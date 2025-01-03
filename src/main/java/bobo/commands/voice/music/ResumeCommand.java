@@ -1,12 +1,13 @@
 package bobo.commands.voice.music;
 
+import bobo.commands.CommandResponse;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class ResumeCommand extends AbstractMusic {
+public class ResumeCommand extends AMusicCommand {
     /**
      * Creates a new resume command.
      */
@@ -15,17 +16,16 @@ public class ResumeCommand extends AbstractMusic {
     }
 
     @Override
-    protected void handleMusicCommand() {
+    protected CommandResponse handleMusicCommand() {
         if (currentTrack == null) {
-            hook.editOriginal("There is nothing currently paused.").queue();
-            return;
+            return new CommandResponse("There is nothing currently paused.");
         }
 
         if (player.isPaused()) {
             player.setPaused(false);
-            hook.editOriginal("Resumed.").queue();
+            return new CommandResponse("Resumed.");
         } else {
-            hook.editOriginal("The player is already playing. Use `/pause` to pause.").queue();
+            return new CommandResponse("The player is already playing. Use `/pause` to pause.");
         }
     }
 
@@ -47,7 +47,7 @@ public class ResumeCommand extends AbstractMusic {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return false;
     }
 }

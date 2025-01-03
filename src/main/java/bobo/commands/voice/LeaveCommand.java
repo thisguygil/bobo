@@ -1,14 +1,15 @@
 package bobo.commands.voice;
 
+import bobo.commands.CommandResponse;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import javax.annotation.Nonnull;
 import java.util.ArrayList;
 import java.util.List;
 
-public class LeaveCommand extends AbstractVoice {
+public class LeaveCommand extends AVoiceCommand {
     /**
      * Creates a new leave command.
      */
@@ -17,23 +18,23 @@ public class LeaveCommand extends AbstractVoice {
     }
 
     @Override
-    protected void handleVoiceCommand() {
-        if (!event.getGuildChannel().getGuild().getAudioManager().isConnected()) {
-            hook.editOriginal("I must already be connected to a voice channel to use this command.").queue();
-            return;
+    protected CommandResponse handleVoiceCommand() {
+        Guild guild = getGuild();
+        if (!guild.getAudioManager().isConnected()) {
+            return new CommandResponse("I must already be connected to a voice channel to use this command.");
         }
 
-        leave(event);
-        hook.editOriginal("Left.").queue();
+        leave(guild);
+        return new CommandResponse("Left.");
     }
 
     /**
-     * Leaves the voice channel of the user who sent the command.
+     * Leaves the voice channel of the specified guild.
      *
-     * @param event The event that triggered this action.
+     * @param guild The guild's voice channel to leave.
      */
-    public static void leave(@Nonnull SlashCommandInteractionEvent event) {
-        event.getGuildChannel().getGuild().getAudioManager().closeAudioConnection();
+    public static void leave(@Nonnull Guild guild) {
+        guild.getAudioManager().closeAudioConnection();
     }
 
     @Override
@@ -54,7 +55,7 @@ public class LeaveCommand extends AbstractVoice {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return false;
     }
 }

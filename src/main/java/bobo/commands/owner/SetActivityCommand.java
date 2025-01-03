@@ -1,6 +1,7 @@
 package bobo.commands.owner;
 
 import bobo.Bobo;
+import bobo.commands.CommandResponse;
 import bobo.utils.api_clients.SQLConnection;
 import net.dv8tion.jda.api.entities.Activity;
 import org.slf4j.Logger;
@@ -8,7 +9,7 @@ import org.slf4j.LoggerFactory;
 
 import java.sql.*;
 
-public class SetActivityCommand extends AbstractOwner {
+public class SetActivityCommand extends AOwnerCommand {
     private static final Logger logger = LoggerFactory.getLogger(SetActivityCommand.class);
 
     private static final String createTableSQL = "CREATE TABLE IF NOT EXISTS activity (activity_type VARCHAR(255), activity_name VARCHAR(255), stream_url VARCHAR(255))";
@@ -22,29 +23,28 @@ public class SetActivityCommand extends AbstractOwner {
     public SetActivityCommand() {}
 
     @Override
-    protected void handleOwnerCommand() {
-        if (args.size() < 2) {
-            event.getChannel().sendMessage("Invalid usage. Use `/help set-activity` for more information.").queue();
-            return;
+    protected CommandResponse handleOwnerCommand() {
+        String activityType;
+        try {
+            activityType = getOptionValue(0);
+        } catch (RuntimeException e) {
+            return new CommandResponse("Invalid usage. Use `/help set-activity` for more information.");
         }
 
-        String activityType = args.getFirst();
         String activityName;
         String streamURL = null;
-
         if (activityType.equals("streaming")) {
             if (args.size() < 3) {
-                event.getChannel().sendMessage("Invalid usage. Use `/help set-activity` for more information.").queue();
-                return;
+                return new CommandResponse("Invalid usage. Use `/help set-activity` for more information.");
             }
 
-            streamURL = args.getLast();
+            streamURL = args.getLast(); // Can't use getOptionValue() because the activity name can be multiple words and is not at the end
 
             if (!Activity.isValidStreamingUrl(streamURL)) {
-                event.getChannel().sendMessage("Invalid stream URL: " + streamURL).queue();
-                return;
+                return new CommandResponse("Invalid stream URL: " + streamURL);
             }
 
+            // Can't use getMultiwordOptionValue() because the activity name can be multiple words and is not at the end
             activityName = String.join(" ", args).substring(activityType.length() + 1, args.size() - streamURL.length() - 1);
         } else {
             activityName = String.join(" ", args).substring(activityType.length() + 1);
@@ -64,8 +64,7 @@ public class SetActivityCommand extends AbstractOwner {
             }
         } catch (SQLException e) {
             System.err.println("Error setting the activity: " + e.getMessage());
-            event.getChannel().sendMessage("An error occurred while setting the activity.").queue();
-            return;
+            return new CommandResponse("An error occurred while setting the activity.");
         }
 
         setActivity();
@@ -78,7 +77,7 @@ public class SetActivityCommand extends AbstractOwner {
             case "competing" -> "Activity set to **Competing in " + activityName + "**";
             default -> "Status set to **" + activityName + "**";
         };
-        event.getChannel().sendMessage(message).queue();
+        return new CommandResponse(message);
     }
 
     /**
@@ -132,5 +131,10 @@ public class SetActivityCommand extends AbstractOwner {
                 * `listening <activity>`: Sets Bobo's activity to "Listening to <activity>".
                 * `watching <activity>`: Sets Bobo's activity to "Watching <activity>".
                 * `competing <activity>`: Sets Bobo's activity to "Competing in <activity>".""";
+    }
+
+    @Override
+    public Boolean shouldNotShowTyping() {
+        return false;
     }
 }

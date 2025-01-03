@@ -1,8 +1,9 @@
 package bobo.commands.general;
 
+import bobo.commands.CommandResponse;
+import bobo.commands.CommandResponseBuilder;
 import bobo.utils.api_clients.FortniteAPI;
 import net.dv8tion.jda.api.Permission;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
@@ -25,7 +26,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 
-public class FortniteCommand extends AbstractGeneral {
+public class FortniteCommand extends AGeneralCommand {
     private static final Logger logger = LoggerFactory.getLogger(FortniteCommand.class);
 
     /**
@@ -57,129 +58,120 @@ public class FortniteCommand extends AbstractGeneral {
     }
 
     @Override
-    protected void handleGeneralCommand() {
+    protected CommandResponse handleGeneralCommand() {
         var currentHook = hook;
-        String subcommand = event.getSubcommandName();
-        switch (subcommand) {
-            case "info" -> {
-                String info = event.getOption("info").getAsString();
-                switch (info) {
-                    case "shop" -> processShopCommand(currentHook);
-                    case "news" -> processNewsCommand(currentHook);
-                    case "map" -> processMapCommand(currentHook);
-                }
-            }
-            case "stats" -> {
-                String username = event.getOption("username").getAsString();
-                processStatsCommand(currentHook, username);
-            }
-            default -> throw new IllegalStateException("Unexpected value: " + subcommand);
+        String subcommand;
+        try {
+            subcommand = getSubcommandName(0);
+        } catch (RuntimeException e) {
+            return new CommandResponse("Invalid usage. Use `/help fortnite` for more information.");
         }
 
+        CompletableFuture<CommandResponse> responseFuture = switch (subcommand) {
+            case "info" -> {
+                String info;
+                try {
+                    info = getOptionValue("info", 1);
+                } catch (RuntimeException e) {
+                     yield CompletableFuture.completedFuture(new CommandResponse("Invalid usage. Use `/help fortnite` for more information."));
+                }
+
+                yield switch (info) {
+                    case "shop" -> processShopCommand();
+                    case "news" -> processNewsCommand();
+                    case "map" -> processMapCommand();
+                    default -> CompletableFuture.completedFuture(new CommandResponse("Invalid usage. Use `/help fortnite` for more information."));
+                };
+            }
+            case "stats" -> {
+                String username;
+                try {
+                    username = getOptionValue("username", 1);
+                } catch (RuntimeException e) {
+                    yield CompletableFuture.completedFuture(new CommandResponse("Invalid usage. Use `/help fortnite` for more information."));
+                }
+
+                yield processStatsCommand(username);
+            }
+            default -> CompletableFuture.completedFuture(new CommandResponse("Invalid usage. Use `/help fortnite` for more information."));
+        };
+
+        return responseFuture.join();
     }
 
     /**
      * Processes the shop command.
+     *
+     * @return The future command response.
      */
-    private void processShopCommand(InteractionHook currentHook) {
+    private CompletableFuture<CommandResponse> processShopCommand() {
         // Attach the current date as a header.
         ZonedDateTime nowInUTC = ZonedDateTime.now(ZoneId.of("UTC"));
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy");
         final String message = "# Fortnite Shop" + "\n" + "## " + nowInUTC.format(formatter);
 
         // Get the shop images and send them.
-        CompletableFuture.supplyAsync(() -> {
-                    List<BufferedImage> images = FortniteAPI.getShopImages();
-                    if (images == null) {
-                        return null;
-                    }
+        return CompletableFuture.supplyAsync(() -> {
+            List<BufferedImage> images = FortniteAPI.getShopImages();
+            if (images == null) {
+                return new CommandResponse("Failed to get shop images.");
+            }
 
-                    return images.stream()
+            return new CommandResponseBuilder().setContent(message)
+                    .addAttachments(images.stream()
                             .map(image -> convertBufferedImageToFile(image, "shop"))
                             .filter(Objects::nonNull)
-                            .toList();
-                }).thenAccept(files -> handleFilesResponse(files, message, "Failed to get shop images.", currentHook))
-                .exceptionally(throwable -> {
-                    throwable.printStackTrace();
-                    currentHook.editOriginal("Error processing shop command.").queue();
-                    return null;
-                });
+                            .toList()
+                            .stream()
+                            .map(FileUpload::fromData)
+                            .toList()
+                    ).build();
+        });
     }
 
     /**
      * Processes the map command.
+     *
+     * @return The future command response.
      */
-    private void processMapCommand(InteractionHook currentHook) {
+    private CompletableFuture<CommandResponse> processMapCommand() {
         final String message = "# Fortnite Map";
 
         // Get the map image and send it.
-        CompletableFuture.supplyAsync(() -> convertBufferedImageToFile(FortniteAPI.getMapImage(), "map"))
-                .thenAccept(file -> handleFileResponse(file, message, "Failed to get map image.", currentHook))
-                .exceptionally(throwable -> {
-                    throwable.printStackTrace();
-                    currentHook.editOriginal("Error processing map command.").queue();
-                    return null;
-                });
+        return CompletableFuture.supplyAsync(() -> {
+            File image = convertBufferedImageToFile(FortniteAPI.getMapImage(), "map");
+            if (image == null) {
+                return new CommandResponse("Failed to get map image.");
+            }
+
+            return new CommandResponseBuilder().addAttachment(FileUpload.fromData(image))
+                    .build();
+        });
     }
 
     /**
      * Processes the stats command.
+     *
+     * @param username The username of the player.
+     * @return The future command response.
      */
-    private void processStatsCommand(InteractionHook currentHook, String username) {
-        // Get the stats image and send it.
-        // Note the output is always a non-null string, so even if the command fails, the user will get a response.
-        String imageUrl = FortniteAPI.getStatsImage(username);
-        currentHook.editOriginal(imageUrl).queue();
+    private CompletableFuture<CommandResponse> processStatsCommand(String username) {
+        return CompletableFuture.supplyAsync(() -> {
+            String imageUrl = FortniteAPI.getStatsImage(username);
+            return new CommandResponse(imageUrl);
+        });
     }
 
     /**
      * Processes the news command.
+     *
+     * @return The future command response.
      */
-    private void processNewsCommand(InteractionHook currentHook) {
-        // Get the stats image and send it.
-        // Note the output is always a non-null string, so even if the command fails, the user will get a response.
-        String imageUrl = FortniteAPI.getNewsImage();
-        currentHook.editOriginal(imageUrl).queue();
-    }
-
-    /**
-     * Handles the response for a file.
-     * @param file The file to send.
-     * @param errorMessage The error message to send if the file is null.
-     */
-    private void handleFileResponse(File file, String message, String errorMessage, InteractionHook currentHook) {
-        if (file != null) {
-            currentHook.editOriginal(message).setAttachments(FileUpload.fromData(file)).queue(_ -> {
-                if (!file.delete()) {
-                    logger.error("Failed to delete file: {}", file.getAbsolutePath());
-                }
-            });
-        } else {
-            currentHook.editOriginal(errorMessage).queue();
-        }
-    }
-
-    /**
-     * Handles the response for a list of files.
-     * @param files The files to send.
-     * @param errorMessage The error message to send if the file list is null or empty.
-     */
-    private void handleFilesResponse(List<File> files, String message, String errorMessage, InteractionHook currentHook) {
-        if (files != null && !files.isEmpty()) {
-            currentHook.editOriginal(message)
-                    .setAttachments(files.stream()
-                            .map(FileUpload::fromData)
-                            .toArray(FileUpload[]::new))
-                    .queue(_ -> {
-                        for (File file : files) {
-                            if (!file.delete()) {
-                                logger.error("Failed to delete file: {}", file.getAbsolutePath());
-                            }
-                        }
-                    });
-        } else {
-            currentHook.editOriginal(errorMessage).queue();
-        }
+    private CompletableFuture<CommandResponse> processNewsCommand() {
+        return CompletableFuture.supplyAsync(() -> {
+            String imageUrl = FortniteAPI.getNewsImage();
+            return new CommandResponse(imageUrl);
+        });
     }
 
     /**
@@ -206,10 +198,11 @@ public class FortniteCommand extends AbstractGeneral {
                 Get info about Fortnite.
                 Usage: `/fortnite <subcommand>`
                 Subcommands:
-                * `shop` - Get the current Fortnite Item Shop.
-                * `news` - Get the current Fortnite (Battle Royale) news.
-                * `stats` - Get stats for a Fortnite player.
-                * `map` - Get the current Fortnite Map.""";
+                * `info` - Get info about Fortnite.
+                    * `shop` - Get the Fortnite shop.
+                    * `news` - Get the Fortnite news.
+                    * `map` - Get the Fortnite map.
+                * `stats` - Get stats for a Fortnite player.""";
     }
 
     @Override
@@ -218,7 +211,7 @@ public class FortniteCommand extends AbstractGeneral {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean shouldBeInvisible() {
         return false;
     }
 }
