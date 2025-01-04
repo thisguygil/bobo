@@ -1,14 +1,10 @@
 package bobo.commands.voice.music;
 
 import bobo.commands.CommandResponse;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.Command;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class LoopCommand extends AMusicCommand {
     /**
@@ -121,11 +117,6 @@ public class LoopCommand extends AMusicCommand {
                 * `track` - Loop the currently playing track. If the track is already looping, it will turn off looping.
                 * `queue` - Loop the entire queue. If the queue is already looping, it will turn off looping.
                 * `off` - Turn off looping.""";
-    }
-
-    @Override
-    protected List<Permission> getMusicCommandPermissions() {
-        return new ArrayList<>();
     }
 
     @Override

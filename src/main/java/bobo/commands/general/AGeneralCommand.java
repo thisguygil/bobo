@@ -6,6 +6,7 @@ import bobo.commands.CommandResponse;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class AGeneralCommand extends ADualCommand {
@@ -40,5 +41,7 @@ public abstract class AGeneralCommand extends ADualCommand {
      *
      * @return The permissions required for the general command.
      */
-    protected abstract List<Permission> getGeneralCommandPermissions();
+    protected List<Permission> getGeneralCommandPermissions() {
+        return new ArrayList<>();
+    }
 }

@@ -59,7 +59,7 @@ public class FortniteCommand extends AGeneralCommand {
 
     @Override
     protected CommandResponse handleGeneralCommand() {
-        var currentHook = hook;
+        var currentHook = slashEvent.getHook();
         String subcommand;
         try {
             subcommand = getSubcommandName(0);
@@ -144,7 +144,7 @@ public class FortniteCommand extends AGeneralCommand {
                 return new CommandResponse("Failed to get map image.");
             }
 
-            return new CommandResponseBuilder().addAttachment(FileUpload.fromData(image))
+            return new CommandResponseBuilder().addAttachments(FileUpload.fromData(image))
                     .build();
         });
     }
@@ -187,7 +187,7 @@ public class FortniteCommand extends AGeneralCommand {
             ImageIO.write(image, "jpg", outputfile);
             return outputfile;
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Failed to convert image to file.");
             return null;
         }
     }

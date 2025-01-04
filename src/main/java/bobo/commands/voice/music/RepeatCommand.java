@@ -3,13 +3,9 @@ package bobo.commands.voice.music;
 import bobo.commands.CommandResponse;
 import bobo.lavaplayer.TrackRecord;
 import bobo.lavaplayer.TrackType;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class RepeatCommand extends AMusicCommand {
     /**
@@ -81,11 +77,6 @@ public class RepeatCommand extends AMusicCommand {
                 Adds the current track to the next position in the queue to be played again.
                 If the queue is empty, the most recently played track will be repeated.
                 Usage: `/repeat`""";
-    }
-
-    @Override
-    protected List<Permission> getMusicCommandPermissions() {
-        return new ArrayList<>();
     }
 
     @Override

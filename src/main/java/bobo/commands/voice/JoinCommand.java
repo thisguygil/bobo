@@ -3,7 +3,6 @@ package bobo.commands.voice;
 import bobo.Bobo;
 import bobo.commands.CommandResponse;
 import bobo.utils.api_clients.SQLConnection;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.StageChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.VoiceChannel;
@@ -15,8 +14,6 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.List;
 
 public class JoinCommand extends AVoiceCommand {
     private static final Logger logger = LoggerFactory.getLogger(JoinCommand.class);
@@ -128,11 +125,6 @@ public class JoinCommand extends AVoiceCommand {
         return """
                 Joins the voice channel that the user is connected to. If the bot is already connected to a different voice channel, it will join the new one.
                 Usage: `/join`""";
-    }
-
-    @Override
-    protected List<Permission> getVoiceCommandPermissions() {
-        return new ArrayList<>();
     }
 
     @Override

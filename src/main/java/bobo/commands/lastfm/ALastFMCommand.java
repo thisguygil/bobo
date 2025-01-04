@@ -14,6 +14,7 @@ import java.sql.*;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -171,5 +172,7 @@ public abstract class ALastFMCommand extends ADualCommand {
      *
      * @return The permissions required for the Last.fm command.
      */
-    protected abstract List<Permission> getLastFMCommandPermissions();
+    protected List<Permission> getLastFMCommandPermissions() {
+        return new ArrayList<>();
+    }
 }

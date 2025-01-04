@@ -1,155 +1,84 @@
 package bobo;
 
 import bobo.commands.*;
-import bobo.commands.admin.*;
-import bobo.commands.lastfm.*;
-import bobo.commands.owner.*;
-import bobo.commands.ai.*;
-import bobo.commands.general.*;
-import bobo.commands.voice.*;
-import bobo.commands.voice.music.*;
 import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import org.reflections.Reflections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.lang.reflect.Modifier;
+import java.util.*;
 
 public class CommandManager {
     private static final Logger logger = LoggerFactory.getLogger(CommandManager.class);
 
-    private final List<ADualCommand> dualCommands = new ArrayList<>();
-    private final List<ASlashCommand> slashCommands = new ArrayList<>();
-    private final List<AMessageCommand> messageCommands = new ArrayList<>();
+    private final Map<String, ICommand> commands = new HashMap<>();
 
     /**
-     * Adds all commands to the lists.
+     * Adds all commands and their aliases to the command map.
      */
     public CommandManager() {
-        // Bot Owner commands
-        messageCommands.add(new RestartCommand());
-        messageCommands.add(new SetActivityCommand());
-        messageCommands.add(new SQLCommand());
-        messageCommands.add(new DMCommand());
+        Reflections reflections = new Reflections("bobo.commands");
 
-        // Server Admin commands
-        slashCommands.add(new ConfigCommand());
-        slashCommands.add(new SayCommand());
+        // Load dual commands
+        reflections.getSubTypesOf(ADualCommand.class).forEach(command -> {
+            try {
+                if (Modifier.isAbstract(command.getModifiers())) {
+                    return;
+                }
 
-        // General commands
-        dualCommands.add(new HelpCommand());
-        dualCommands.add(new GoogleCommand());
-        dualCommands.add(new RandomCommand());
-        dualCommands.add(new FortniteCommand());
-
-        // Last.fm commands
-        dualCommands.add(new FMLoginCommand());
-        dualCommands.add(new FMLogoutCommand());
-        dualCommands.add(new TrackCommand());
-        dualCommands.add(new AlbumCommand());
-        dualCommands.add(new ArtistCommand());
-
-        // AI commands
-        dualCommands.add(new TLDRCommand());
-        dualCommands.add(new ChatCommand());
-        dualCommands.add(new ImageCommand());
-
-        // Voice commands
-        dualCommands.add(new JoinCommand());
-        dualCommands.add(new LeaveCommand());
-        dualCommands.add(new ClipCommand());
-        dualCommands.add(new DeafenCommand());
-        dualCommands.add(new MuteCommand());
-        // Music commands
-        dualCommands.add(new PlayCommand());
-        dualCommands.add(new TTSCommand());
-        dualCommands.add(new SearchCommand());
-        dualCommands.add(new LyricsCommand());
-        dualCommands.add(new PauseCommand());
-        dualCommands.add(new ResumeCommand());
-        dualCommands.add(new NowPlayingCommand());
-        dualCommands.add(new QueueCommand());
-        dualCommands.add(new LoopCommand());
-        dualCommands.add(new RepeatCommand());
-        dualCommands.add(new SkipCommand());
-        dualCommands.add(new SeekCommand());
-    }
-
-    /**
-     * Gets a dual command by name.
-     *
-     * @param search The name of the dual command.
-     * @return The command.
-     */
-    @Nullable
-    public ADualCommand getDualCommand(String search) {
-        for (ADualCommand command : this.dualCommands) {
-            if (command.getName().equals(search)) {
-                return command;
+                ADualCommand dualCommand = command.getDeclaredConstructor().newInstance();
+                commands.put(dualCommand.getName(), dualCommand);
+                for (String alias : dualCommand.getAliases()) {
+                    commands.put(alias, dualCommand);
+                }
+            } catch (Exception e) {
+                logger.error("Error loading dual command '{}'.", command.getName());
             }
-        }
-        return null;
-    }
+        });
 
-    /**
-     * Gets a slash command by name.
-     *
-     * @param search The name of the slash command.
-     * @return The command.
-     */
-    @Nullable
-    public ASlashCommand getSlashCommand(String search) {
-        for (ASlashCommand command : this.slashCommands) {
-            if (command.getName().equals(search)) {
-                return command;
+        // Load slash commands
+        reflections.getSubTypesOf(ASlashCommand.class).forEach(command -> {
+            try {
+                if (Modifier.isAbstract(command.getModifiers())) {
+                    return;
+                }
+
+                ASlashCommand slashCommand = command.getDeclaredConstructor().newInstance();
+                commands.put(slashCommand.getName(), slashCommand);
+            } catch (Exception e) {
+                logger.error("Error loading slash command '{}'.", command.getName());
             }
-        }
-        return null;
-    }
+        });
 
-    /**
-     * Gets a message command by name.
-     *
-     * @param search The name of the message command.
-     * @return The command.
-     */
-    @Nullable
-    public AMessageCommand getMessageCommand(String search) {
-        for (AMessageCommand command : this.messageCommands) {
-            if (command.getName().equals(search)) {
-                return command;
+        // Load message commands
+        reflections.getSubTypesOf(AMessageCommand.class).forEach(command -> {
+            try {
+                if (Modifier.isAbstract(command.getModifiers())) {
+                    return;
+                }
+
+                AMessageCommand messageCommand = command.getDeclaredConstructor().newInstance();
+                commands.put(messageCommand.getName(), messageCommand);
+                for (String alias : messageCommand.getAliases()) {
+                    commands.put(alias, messageCommand);
+                }
+            } catch (Exception e) {
+                logger.error("Error loading message command '{}'.", command.getName());
             }
-        }
-        return null;
+        });
     }
 
     /**
-     * Gets the list of dual commands.
-     * @return The list of dual commands.
+     * Gets the command map.
+     *
+     * @return The command map.
      */
-    public List<ADualCommand> getDualCommands() {
-        return this.dualCommands;
-    }
-
-    /**
-     * Gets the list of slash commands.
-     * @return The list of slash commands.
-     */
-    public List<ASlashCommand> getSlashCommands() {
-        return this.slashCommands;
-    }
-
-    /**
-     * Gets the list of message commands.
-     * @return The list of message commands.
-     */
-    public List<AMessageCommand> getMessageCommands() {
-        return this.messageCommands;
+    public Map<String, ICommand> getCommands() {
+        return commands;
     }
 
     /**
@@ -159,18 +88,17 @@ public class CommandManager {
      */
     public void handle(@Nonnull SlashCommandInteractionEvent event) {
         String commandName = event.getName();
-        ADualCommand dualCommand = getDualCommand(commandName);
-        ASlashCommand slashCommand = getSlashCommand(commandName);
+        ICommand command = commands.get(commandName);
 
         CommandResponse response;
-        if (dualCommand != null) {
+        if (command instanceof ADualCommand dualCommand) {
             logger.info("Dual command '{}' executed as slash command by '{}'.", commandName, event.getUser().getName());
             Boolean shouldBeEphemeral = dualCommand.shouldBeInvisible();
             if (shouldBeEphemeral != null) {
                 event.deferReply().setEphemeral(shouldBeEphemeral).queue();
             }
             response = dualCommand.handleSlashCommand(event);
-        } else if (slashCommand != null) {
+        } else if (command instanceof ASlashCommand slashCommand) {
             logger.info("Slash command '{}' executed by '{}'.", commandName, event.getUser().getName());
             Boolean shouldBeEphemeral = slashCommand.shouldBeEphemeral();
             if (shouldBeEphemeral != null) {
@@ -201,11 +129,10 @@ public class CommandManager {
         List<String> args = new ArrayList<>(Arrays.asList(split).subList(1, split.length));
 
         String baseCommand = split[0].substring(prefix.length());
-        ADualCommand dualCommand = getDualCommand(baseCommand);
-        AMessageCommand messageCommand = getMessageCommand(baseCommand);
+        ICommand command = commands.get(baseCommand);
 
         CommandResponse response;
-        if (dualCommand != null) {
+        if (command instanceof ADualCommand dualCommand) {
             if (!event.getMember().getPermissions().containsAll(dualCommand.getPermissions())) {
                 response = new CommandResponse("You do not have the required permissions to execute this command.");
             } else {
@@ -215,7 +142,7 @@ public class CommandManager {
                 }
                 response = dualCommand.handleMessageCommand(event, baseCommand, args);
             }
-        } else if (messageCommand != null) {
+        } else if (command instanceof AMessageCommand messageCommand) {
             if (!event.getMember().getPermissions().containsAll(messageCommand.getPermissions())) {
                 response = new CommandResponse("You do not have the required permissions to execute this command.");
             } else {

@@ -12,7 +12,6 @@ import com.github.ygimenez.model.Page;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
@@ -51,15 +50,21 @@ public class QueueCommand extends AMusicCommand {
         String subcommandName;
         try {
             subcommandName = getSubcommandName(0);
-        } catch (Exception e) {
-            return new CommandResponse("Please provide a subcommand.");
+        } catch (RuntimeException e) {
+            return switch (command) {
+                case "q" -> show();
+                case "clear" -> clear();
+                case "shuffle" -> shuffle();
+                case "remove" -> remove(0);
+                default -> new CommandResponse("Please provide a subcommand.");
+            };
         }
 
         return switch (subcommandName) {
             case "show" -> show();
             case "shuffle" -> shuffle();
             case "clear" -> clear();
-            case "remove" -> remove();
+            case "remove" -> remove(1);
             default -> new CommandResponse("Invalid usage. Use `/help queue` for more information.");
         };
     }
@@ -109,7 +114,7 @@ public class QueueCommand extends AMusicCommand {
         if (pages.size() == 1) { // Don't paginate if there's only one page
             return new CommandResponse((MessageEmbed) pages.getFirst().getContent());
         } else {
-            return new CommandResponseBuilder().addEmbed((MessageEmbed) pages.getFirst().getContent())
+            return new CommandResponseBuilder().addEmbeds((MessageEmbed) pages.getFirst().getContent())
                     .setPostExecutionAsMessage(
                             success -> Pages.paginate(success, pages, true)
                     )
@@ -176,10 +181,9 @@ public class QueueCommand extends AMusicCommand {
      *
      * @return the command response
      */
-    private CommandResponse remove() {
-        int position;
+    private CommandResponse remove(int position) {
         try {
-            position = Integer.parseInt(getOptionValue("position", 1));
+            position = Integer.parseInt(getOptionValue("position", position));
         } catch (Exception e) {
             return new CommandResponse("Please enter an integer corresponding to a track's position in the queue.");
         }
@@ -309,12 +313,12 @@ public class QueueCommand extends AMusicCommand {
     }
 
     @Override
-    protected List<Permission> getMusicCommandPermissions() {
-        return new ArrayList<>();
+    public Boolean shouldBeInvisible() {
+        return false;
     }
 
     @Override
-    public Boolean shouldBeInvisible() {
-        return false;
+    public List<String> getAliases() {
+        return List.of("q", "clear", "shuffle", "remove");
     }
 }

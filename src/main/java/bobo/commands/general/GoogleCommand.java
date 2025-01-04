@@ -8,7 +8,6 @@ import com.github.ygimenez.model.InteractPage;
 import com.github.ygimenez.model.Page;
 import com.google.api.services.customsearch.v1.model.Result;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -160,7 +159,7 @@ public class GoogleCommand extends AGeneralCommand {
         if (pages.size() == 1) {
             return new CommandResponse((MessageEmbed) pages.getFirst().getContent());
         } else {
-            return new CommandResponseBuilder().addEmbed((MessageEmbed) pages.getFirst().getContent())
+            return new CommandResponseBuilder().addEmbeds((MessageEmbed) pages.getFirst().getContent())
                     .setPostExecutionAsMessage(success -> Pages.paginate(success, pages, true))
                     .build();
         }
@@ -176,11 +175,6 @@ public class GoogleCommand extends AGeneralCommand {
         return """
                 Searches given query on Google.
                 Usage: `/google <query>""";
-    }
-
-    @Override
-    protected List<Permission> getGeneralCommandPermissions() {
-        return new ArrayList<>();
     }
 
     @Override

@@ -1,11 +1,7 @@
 package bobo.commands.voice.music;
 
 import bobo.commands.CommandResponse;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class ResumeCommand extends AMusicCommand {
     /**
@@ -39,11 +35,6 @@ public class ResumeCommand extends AMusicCommand {
         return """
                 Resumes the currently paused track. If the player is already playing, it will not do anything. Use `/pause` to pause.
                 Usage: `/resume`""";
-    }
-
-    @Override
-    protected List<Permission> getMusicCommandPermissions() {
-        return new ArrayList<>();
     }
 
     @Override

@@ -59,6 +59,7 @@ dependencies {
 
     // Other Java Utilities
     implementation("jakarta.annotation:jakarta.annotation-api:3.0.0")
+    implementation("org.reflections:reflections:0.10.2")
     implementation("org.apache.commons:commons-text:1.13.0")
     implementation("org.apache.httpcomponents.client5:httpclient5:5.4.1")
     implementation("commons-validator:commons-validator:1.9.0")

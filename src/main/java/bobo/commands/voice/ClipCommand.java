@@ -93,7 +93,7 @@ public class ClipCommand extends AVoiceCommand {
                 ((GuildMessageChannel) channel).sendFiles(fileUpload).queue();
             }
 
-            return new CommandResponseBuilder().addAttachment(fileUpload)
+            return new CommandResponseBuilder().addAttachments(fileUpload)
                     .setPostExecutionAsMessage(success -> {
                         if (!file.delete()) {
                             logger.error("Failed to delete file: {}", file.getName());

@@ -216,7 +216,7 @@ public class RandomCommand extends AGeneralCommand {
             FileUpload voiceMessageUpload = FileUpload.fromData(fileData, attachment.getFileName())
                     .asVoiceMessage(mediaType, waveform, duration);
 
-            return new CommandResponseBuilder().addAttachment(voiceMessageUpload)
+            return new CommandResponseBuilder().addAttachments(voiceMessageUpload)
                     .build();
         } catch (Exception e) {
             logger.error("Failed to send clip as attachment.", e);

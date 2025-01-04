@@ -5,7 +5,6 @@ import bobo.utils.StringUtils;
 import bobo.lavaplayer.TrackType;
 import bobo.utils.api_clients.YouTubeUtil;
 import com.google.api.services.youtube.model.SearchResult;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -14,7 +13,6 @@ import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.apache.commons.validator.routines.UrlValidator;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
 import java.util.List;
 
 public class PlayCommand extends AMusicCommand {
@@ -38,17 +36,16 @@ public class PlayCommand extends AMusicCommand {
             return new CommandResponse("You must be connected to a voice channel to use this command.");
         }
 
-        String subcommandName;
-        try {
-            subcommandName = getSubcommandName(0);
-        } catch (Exception e) {
-            return new CommandResponse("Please provide a subcommand.");
-        }
-
-        return switch (subcommandName) {
-                case "track" -> playTrack();
-                case "file" -> playFile();
-                default -> new CommandResponse("Invalid usage. Use `/help play` for more information.");
+        return switch (source) {
+            case SLASH_COMMAND -> {
+                String subcommandName = getSubcommandName(0);
+                yield switch (subcommandName) {
+                    case "track" -> playTrack();
+                    case "file" -> playFile();
+                    default -> new CommandResponse("Invalid usage. Use `/help play` for more information.");
+                };
+            }
+            case MESSAGE_COMMAND -> playTrack();
         };
     }
 
@@ -58,7 +55,7 @@ public class PlayCommand extends AMusicCommand {
     private CommandResponse playTrack() {
         String track;
         try {
-            track = getMultiwordOptionValue("track", 1);
+            track = getMultiwordOptionValue("track", 0);
         } catch (Exception e) {
             return new CommandResponse("Please provide a track to play.");
         }
@@ -82,10 +79,6 @@ public class PlayCommand extends AMusicCommand {
      * Plays an audio/video file.
      */
     private CommandResponse playFile() {
-        if (source == CommandSource.MESSAGE_COMMAND) {
-            return new CommandResponse("This subcommand can only be used as a slash command.");
-        }
-
         Message.Attachment attachment = slashEvent.getOption("file").getAsAttachment();
         if (!isAudioFile(attachment.getFileName())) {
             return new CommandResponse("Please attach a valid audio file.");
@@ -127,12 +120,12 @@ public class PlayCommand extends AMusicCommand {
     }
 
     @Override
-    protected List<Permission> getMusicCommandPermissions() {
-        return new ArrayList<>();
+    public Boolean shouldBeInvisible() {
+        return false;
     }
 
     @Override
-    public Boolean shouldBeInvisible() {
-        return false;
+    public List<String> getAliases() {
+        return List.of("p");
     }
 }

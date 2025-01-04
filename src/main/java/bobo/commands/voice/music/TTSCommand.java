@@ -4,7 +4,6 @@ import bobo.commands.CommandResponse;
 import bobo.utils.StringUtils;
 import bobo.lavaplayer.TrackType;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
@@ -122,11 +121,6 @@ public class TTSCommand extends AMusicCommand {
         return """
                 Generates a message for the voice channel.
                 Usage: `/tts <message>`""";
-    }
-
-    @Override
-    protected List<Permission> getMusicCommandPermissions() {
-        return new ArrayList<>();
     }
 
     @Override

@@ -21,11 +21,12 @@ public abstract class AMessageCommand implements ICommand {
     public AMessageCommand() {}
 
     /**
-     * Sets event, command, and args, then calls {@link #handleCommand()}.
+     * Sets event, command, and args, then returns the command response from {@link #handleCommand}.
      *
      * @param event The event that triggered this action.
      * @param command The command that was triggered.
      * @param args The arguments of the command.
+     * @return The command response.
      */
     public CommandResponse handle(@Nonnull MessageReceivedEvent event, String command, List<String> args) {
         this.event = event;
@@ -49,6 +50,15 @@ public abstract class AMessageCommand implements ICommand {
      */
     @Nullable
     public abstract Boolean shouldNotShowTyping();
+
+    /**
+     * Gets aliases of the command, if any exist.
+     *
+     * @return The aliases of the command.
+     */
+    public List<String> getAliases() {
+        return new ArrayList<>();
+    }
 
     /**
      * Gets the permissions of the command.

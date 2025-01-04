@@ -3,7 +3,6 @@ package bobo.commands;
 import bobo.Bobo;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
@@ -15,7 +14,6 @@ import java.util.List;
 
 public abstract class ASlashCommand implements ICommand {
     protected SlashCommandInteractionEvent event;
-    protected InteractionHook hook;
 
     /**
      * Creates a new slash command.
@@ -31,13 +29,13 @@ public abstract class ASlashCommand implements ICommand {
     }
 
     /**
-     * Sets event and hook, then calls {@link #handleCommand()}.
+     * Sets event, then returns the command response from {@link #handleCommand}.
      *
      * @param event The event that triggered this action.
+     * @return The command response.
      */
     public CommandResponse handle(@Nonnull SlashCommandInteractionEvent event) {
         this.event = event;
-        this.hook = event.getHook();
 
         return handleCommand();
     }

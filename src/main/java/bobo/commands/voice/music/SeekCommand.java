@@ -3,13 +3,9 @@ package bobo.commands.voice.music;
 import bobo.commands.CommandResponse;
 import bobo.utils.TimeFormat;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrack;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static bobo.utils.StringUtils.markdownBold;
 
@@ -118,11 +114,6 @@ public class SeekCommand extends AMusicCommand {
                 * `forward <seconds>` - Seeks forward by <seconds> seconds.
                 * `backward <seconds>` - Seeks backward by <seconds> seconds.
                 * `position <position>` - Seeks to <position>. Format: HH:MM:SS""";
-    }
-
-    @Override
-    protected List<Permission> getMusicCommandPermissions() {
-        return new ArrayList<>();
     }
 
     @Override

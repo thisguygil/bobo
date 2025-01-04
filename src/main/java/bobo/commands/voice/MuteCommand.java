@@ -1,12 +1,8 @@
 package bobo.commands.voice;
 
 import bobo.commands.CommandResponse;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class MuteCommand extends AVoiceCommand {
     /**
@@ -38,11 +34,6 @@ public class MuteCommand extends AVoiceCommand {
         return """
                 Toggles the mute state of the bot.
                 Usage: `/mute`""";
-    }
-
-    @Override
-    protected List<Permission> getVoiceCommandPermissions() {
-        return new ArrayList<>();
     }
 
     @Override

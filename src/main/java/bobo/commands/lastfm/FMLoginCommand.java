@@ -3,7 +3,6 @@ package bobo.commands.lastfm;
 import bobo.commands.CommandResponse;
 import bobo.utils.api_clients.LastfmAPI;
 import bobo.utils.api_clients.SQLConnection;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONObject;
@@ -18,9 +17,7 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import java.io.ByteArrayInputStream;
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class FMLoginCommand extends ALastFMCommand {
@@ -189,11 +186,6 @@ public class FMLoginCommand extends ALastFMCommand {
                 Log in to Last.fm.
                 Usage: `/fmlogin`
                 Note: You must complete the login process on the Last.fm website after running this command.""";
-    }
-
-    @Override
-    protected List<Permission> getLastFMCommandPermissions() {
-        return new ArrayList<>();
     }
 
     @Override

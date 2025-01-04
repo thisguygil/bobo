@@ -10,7 +10,6 @@ import com.github.ygimenez.model.InteractPage;
 import com.github.ygimenez.model.Page;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
@@ -74,7 +73,7 @@ public class LyricsCommand extends AMusicCommand {
         if (pages.size() == 1) { // Don't paginate if there's only one page
             return new CommandResponse((MessageEmbed) pages.getFirst().getContent());
         } else {
-            return new CommandResponseBuilder().addEmbed((MessageEmbed) pages.getFirst().getContent())
+            return new CommandResponseBuilder().addEmbeds((MessageEmbed) pages.getFirst().getContent())
                     .setPostExecutionAsMessage(
                             success -> Pages.paginate(success, pages, true)
                     )
@@ -118,11 +117,6 @@ public class LyricsCommand extends AMusicCommand {
         return """
                 Get the lyrics of the currently playing track.
                 Usage: `/lyrics`""";
-    }
-
-    @Override
-    protected List<Permission> getMusicCommandPermissions() {
-        return new ArrayList<>();
     }
 
     @Override

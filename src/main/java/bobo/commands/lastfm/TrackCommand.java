@@ -37,6 +37,10 @@ public class TrackCommand extends ALastFMCommand {
     @Override
     protected CommandResponse handleLastFMCommand() {
         String username = getUserName(getUser().getId());
+        if (username == null) { // Should never happen, but just in case
+            return new CommandResponse("You are not logged in to Last.fm. Use `/fmlogin` to log in.");
+        }
+
         Member member = getMember();
 
         String trackOption, trackName, artistName;

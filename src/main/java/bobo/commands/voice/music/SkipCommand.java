@@ -2,11 +2,7 @@ package bobo.commands.voice.music;
 
 import bobo.commands.CommandResponse;
 import bobo.lavaplayer.TrackType;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class SkipCommand extends AMusicCommand {
     /**
@@ -43,11 +39,6 @@ public class SkipCommand extends AMusicCommand {
         return """
                 Skips the current track.
                 Usage: `/skip`""";
-    }
-
-    @Override
-    protected List<Permission> getMusicCommandPermissions() {
-        return new ArrayList<>();
     }
 
     @Override

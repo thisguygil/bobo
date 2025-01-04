@@ -2,7 +2,6 @@ package bobo.commands.lastfm;
 
 import bobo.commands.CommandResponse;
 import bobo.utils.api_clients.SQLConnection;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,8 +9,6 @@ import org.slf4j.LoggerFactory;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
 
 public class FMLogoutCommand extends ALastFMCommand {
     private static final Logger logger = LoggerFactory.getLogger(FMLogoutCommand.class);
@@ -22,7 +19,7 @@ public class FMLogoutCommand extends ALastFMCommand {
      * Creates a new fmlogout command.
      */
     public FMLogoutCommand() {
-        super(Commands.slash("fmlogin", "Login to Last.fm"));
+        super(Commands.slash("fmlogout", "Logout of Last.fm"));
     }
 
     @Override
@@ -53,11 +50,6 @@ public class FMLogoutCommand extends ALastFMCommand {
                 Log out of Last.fm.
                 Usage: `/fmlogout`
                 Note: You'll need to use this and then log in again if you deauthorize the bot or change your username.""";
-    }
-
-    @Override
-    protected List<Permission> getLastFMCommandPermissions() {
-        return new ArrayList<>();
     }
 
     @Override

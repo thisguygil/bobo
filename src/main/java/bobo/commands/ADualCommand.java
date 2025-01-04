@@ -9,7 +9,6 @@ import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
@@ -22,7 +21,6 @@ import java.util.List;
 public abstract class ADualCommand implements ICommand {
     // Slash command fields
     protected SlashCommandInteractionEvent slashEvent;
-    protected InteractionHook hook;
 
     // Message command fields
     protected static final String PREFIX = Config.get("PREFIX");
@@ -51,24 +49,25 @@ public abstract class ADualCommand implements ICommand {
     }
 
     /**
-     * Sets event and hook, then gets and sends the command reply from {@link #handleCommand}.
+     * Sets event and command source, then returns the command response from {@link #handleCommand}.
      *
      * @param event The event that triggered this action.
+     * @return The command response.
      */
     public CommandResponse handleSlashCommand(@Nonnull SlashCommandInteractionEvent event) {
         this.slashEvent = event;
-        this.hook = event.getHook();
         this.source = CommandSource.SLASH_COMMAND;
 
         return handleCommand();
     }
 
     /**
-     * Sets event, command, and args, then gets and sends the command reply from {@link #handleCommand}.
+     * Sets event, command, args, and command source, then returns the command response from {@link #handleCommand}.
      *
      * @param event The event that triggered this action.
      * @param command The command that was triggered.
      * @param args The arguments of the command.
+     * @return The command response.
      */
     public CommandResponse handleMessageCommand(@Nonnull MessageReceivedEvent event, String command, List<String> args) {
         this.messageEvent = event;
@@ -95,6 +94,15 @@ public abstract class ADualCommand implements ICommand {
      */
     @Nullable
     public abstract Boolean shouldBeInvisible();
+
+    /**
+     * Gets aliases of the command, if any exist (for message commands).
+     *
+     * @return The aliases of the command.
+     */
+    public List<String> getAliases() {
+        return new ArrayList<>();
+    }
 
     /**
      * Gets the permissions of the command.

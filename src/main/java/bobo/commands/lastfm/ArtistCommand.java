@@ -36,6 +36,10 @@ public class ArtistCommand extends ALastFMCommand {
     @Override
     protected CommandResponse handleLastFMCommand() {
         String username = getUserName(getUser().getId());
+        if (username == null) { // Should never happen, but just in case
+            return new CommandResponse("You are not logged in to Last.fm. Use `/fmlogin` to log in.");
+        }
+
         Member member = getMember();
 
         String artistOption, artistName;
@@ -49,7 +53,7 @@ public class ArtistCommand extends ALastFMCommand {
             // Get the last played artist with a GET request to user.getRecentTracks
             String response = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "user.getRecentTracks", "user", username, "limit", "1")), false);
             if (response == null) {
-                hook.editOriginal("An error occurred while getting your last played artist.");
+                return new CommandResponse("An error occurred while getting your last played artist.");
             }
 
             JSONObject responseObject = new JSONObject(response);

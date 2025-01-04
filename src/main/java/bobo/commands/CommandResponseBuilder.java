@@ -13,8 +13,8 @@ import java.util.function.Consumer;
 public class CommandResponseBuilder {
     private String content;
     private Boolean invisible;
-    private Collection<FileUpload> attachments = new ArrayList<>();
-    private Collection<MessageEmbed> embeds = new ArrayList<>();
+    private final Collection<FileUpload> attachments = new ArrayList<>();
+    private final Collection<MessageEmbed> embeds = new ArrayList<>();
     private Consumer<? super Message> postExecutionAsMessage;
     private Consumer<? super InteractionHook> postExecutionAsHook;
     private Consumer<? super Throwable> failureHandler;
@@ -29,11 +29,6 @@ public class CommandResponseBuilder {
         return this;
     }
 
-    public CommandResponseBuilder addAttachment(FileUpload attachment) {
-        this.attachments.add(attachment);
-        return this;
-    }
-
     public CommandResponseBuilder addAttachments(Collection<FileUpload> attachments) {
         this.attachments.addAll(attachments);
         return this;
@@ -41,11 +36,6 @@ public class CommandResponseBuilder {
 
     public CommandResponseBuilder addAttachments(FileUpload... attachments) {
         this.attachments.addAll(Arrays.asList(attachments));
-        return this;
-    }
-
-    public CommandResponseBuilder addEmbed(MessageEmbed embed) {
-        this.embeds.add(embed);
         return this;
     }
 

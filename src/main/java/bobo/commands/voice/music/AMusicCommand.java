@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 import net.dv8tion.jda.api.managers.AudioManager;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.BlockingDeque;
 
@@ -77,7 +78,9 @@ public abstract class AMusicCommand extends AVoiceCommand {
 
     @Override
     protected List<Permission> getVoiceCommandPermissions() {
-        return getMusicCommandPermissions();
+        List<Permission> permissions = getMusicCommandPermissions();
+        permissions.add(Permission.VOICE_SPEAK);
+        return permissions;
     }
 
     /**
@@ -85,5 +88,7 @@ public abstract class AMusicCommand extends AVoiceCommand {
      *
      * @return The permissions required for the music command.
      */
-    protected abstract List<Permission> getMusicCommandPermissions();
+    protected List<Permission> getMusicCommandPermissions() {
+        return new ArrayList<>();
+    }
 }

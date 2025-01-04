@@ -5,6 +5,7 @@ import bobo.commands.CommandResponse;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class AVoiceCommand extends ADualCommand {
@@ -39,5 +40,7 @@ public abstract class AVoiceCommand extends ADualCommand {
      *
      * @return The permissions required for the voice command.
      */
-    protected abstract List<Permission> getVoiceCommandPermissions();
+    protected List<Permission> getVoiceCommandPermissions() {
+        return new ArrayList<>();
+    }
 }

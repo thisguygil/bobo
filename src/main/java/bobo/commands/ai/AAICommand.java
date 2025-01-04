@@ -8,6 +8,7 @@ import com.openai.client.okhttp.OpenAIOkHttpClient;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public abstract class AAICommand extends ADualCommand {
@@ -51,5 +52,7 @@ public abstract class AAICommand extends ADualCommand {
      *
      * @return The permissions required for the AI command.
      */
-    protected abstract List<Permission> getAICommandPermissions();
+    protected List<Permission> getAICommandPermissions() {
+        return new ArrayList<>();
+    }
 }

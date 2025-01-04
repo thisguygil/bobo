@@ -1,13 +1,10 @@
 package bobo.commands.voice;
 
 import bobo.commands.CommandResponse;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import javax.annotation.Nonnull;
-import java.util.ArrayList;
-import java.util.List;
 
 public class LeaveCommand extends AVoiceCommand {
     /**
@@ -47,11 +44,6 @@ public class LeaveCommand extends AVoiceCommand {
         return """
                 Leaves the voice channel.
                 Usage: `/leave`""";
-    }
-
-    @Override
-    protected List<Permission> getVoiceCommandPermissions() {
-        return new ArrayList<>();
     }
 
     @Override
