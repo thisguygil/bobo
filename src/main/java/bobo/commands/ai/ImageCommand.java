@@ -2,7 +2,8 @@ package bobo.commands.ai;
 
 import bobo.Config;
 import bobo.commands.CommandResponse;
-import io.github.sashirestela.openai.domain.image.ImageRequest;
+import com.openai.errors.OpenAIException;
+import com.openai.models.ImageGenerateParams;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
@@ -34,7 +35,7 @@ public class ImageCommand extends AAICommand {
             return new CommandResponse("Invalid usage. Use `/help image` for more information.");
         }
 
-        ImageRequest createImageRequest = ImageRequest.builder()
+        ImageGenerateParams createImageRequest = ImageGenerateParams.builder()
                 .model(IMAGE_MODEL)
                 .prompt(prompt)
                 .build();
@@ -42,12 +43,17 @@ public class ImageCommand extends AAICommand {
         String imageUrl;
         try {
             imageUrl = openAI.images()
-                    .create(createImageRequest)
-                    .join()
+                    .generate(createImageRequest)
+                    .data()
                     .getFirst()
-                    .getUrl();
-        } catch (Exception e) {
-            throw new RuntimeException(e);
+                    .url()
+                    .orElse(null);
+        } catch (OpenAIException e) {
+            return new CommandResponse("Failed to generate image: " + e.getMessage());
+        }
+
+        if (imageUrl == null) {
+            return new CommandResponse("Failed to generate image.");
         }
 
         Member member = getMember();

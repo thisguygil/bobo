@@ -2,8 +2,8 @@ package bobo.commands.ai;
 
 import bobo.Config;
 import bobo.commands.CommandResponse;
-import io.github.sashirestela.openai.domain.chat.ChatMessage;
-import io.github.sashirestela.openai.domain.chat.ChatRequest;
+import com.openai.errors.OpenAIException;
+import com.openai.models.*;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
@@ -151,18 +151,35 @@ public class TLDRCommand extends AAICommand {
      * @return the response from the API
      */
     private String callOpenAI(String prompt) {
-        ChatRequest chatCompletionRequest = ChatRequest.builder()
+        ChatCompletionMessageParam systemMessage = ChatCompletionMessageParam.ofChatCompletionSystemMessageParam(ChatCompletionSystemMessageParam.builder()
+                .role(ChatCompletionSystemMessageParam.Role.SYSTEM)
+                .content(ChatCompletionSystemMessageParam.Content.ofTextContent("You are an assistant that summarizes Discord conversations. You will be given a conversation and are to provide a concise summary, highlighting key points and main topics discussed."))
+                .build()
+        );
+
+        ChatCompletionMessageParam userMessage = ChatCompletionMessageParam.ofChatCompletionUserMessageParam(ChatCompletionUserMessageParam.builder()
+                .role(ChatCompletionUserMessageParam.Role.USER)
+                .content(ChatCompletionUserMessageParam.Content.ofTextContent(prompt))
+                .build()
+        );
+
+        ChatCompletionCreateParams chatCompletionRequest = ChatCompletionCreateParams.builder()
                 .model(CHAT_MODEL)
-                .messages(List.of(
-                        ChatMessage.SystemMessage.of("You are an assistant that summarizes Discord conversations. You will be given a conversation and are to provide a concise summary, highlighting key points and main topics discussed."),
-                        ChatMessage.UserMessage.of(prompt)
-                ))
+                .messages(List.of(systemMessage, userMessage))
                 .build();
 
-        return openAI.chatCompletions()
-                .create(chatCompletionRequest)
-                .join()
-                .firstContent();
+        try {
+            return openAI.chat()
+                    .completions()
+                    .create(chatCompletionRequest)
+                    .choices()
+                    .getFirst()
+                    .message()
+                    .content()
+                    .orElse("Unable to summarize conversation.");
+        } catch (OpenAIException e) {
+            return "Unable to summarize conversation.";
+        }
     }
 
     @Override

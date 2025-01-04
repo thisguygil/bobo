@@ -2,16 +2,16 @@ package bobo.commands.ai;
 
 import bobo.Config;
 import bobo.commands.ADualCommand;
-import bobo.commands.ASlashCommand;
 import bobo.commands.CommandResponse;
-import io.github.sashirestela.openai.SimpleOpenAI;
+import com.openai.client.OpenAIClient;
+import com.openai.client.okhttp.OpenAIOkHttpClient;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
 import java.util.List;
 
 public abstract class AAICommand extends ADualCommand {
-    protected static final SimpleOpenAI openAI = SimpleOpenAI.builder()
+    protected static final OpenAIClient openAI = OpenAIOkHttpClient.builder()
             .apiKey(Config.get("OPENAI_API_KEY"))
             .build();
 
