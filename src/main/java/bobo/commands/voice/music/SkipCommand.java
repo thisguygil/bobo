@@ -2,6 +2,7 @@ package bobo.commands.voice.music;
 
 import bobo.commands.CommandResponse;
 import bobo.lavaplayer.TrackType;
+import bobo.utils.AudioReceiveListener;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 public class SkipCommand extends AMusicCommand {
@@ -25,6 +26,7 @@ public class SkipCommand extends AMusicCommand {
                 TTSCommand.nextTTSMessage(getGuild(), currentTrack.track());
             }
             scheduler.nextTrack();
+            AudioReceiveListener.stopListening(getGuild());
             return new CommandResponse("Skipped." + (wasLoopingTrack ? " Looping has been turned off." : ""));
         }
     }

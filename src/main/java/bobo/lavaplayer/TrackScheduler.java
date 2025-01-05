@@ -17,8 +17,6 @@ import javax.annotation.Nonnull;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.LinkedBlockingDeque;
 
-import static bobo.utils.StringUtils.markdownBold;
-
 /**
  * This class schedules tracks for the audio player. It contains the queue of tracks.
  */
@@ -113,7 +111,10 @@ public class TrackScheduler extends AudioEventAdapter {
     public void onTrackException(AudioPlayer player, AudioTrack track, @Nonnull FriendlyException exception) {
         logger.warn("Track exception: {}", exception.getMessage());
         TrackRecord record = this.currentTrack == null ? this.previousTrack : this.currentTrack;
-        record.channel().sendMessage("Error: " + markdownBold(exception.getMessage())).queue();
+        if (record.trackType() == TrackType.LISTEN) {
+            return;
+        }
+
         if (this.looping != LoopCommand.looping.NONE) {
             this.looping = LoopCommand.looping.NONE;
         }

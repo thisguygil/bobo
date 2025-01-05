@@ -4,6 +4,7 @@ import bobo.Config;
 import bobo.commands.voice.music.TTSCommand;
 import bobo.commands.CommandResponse;
 import bobo.commands.CommandResponseBuilder;
+import bobo.utils.AudioReceiveListener;
 import bobo.utils.TimeFormat;
 import bobo.utils.api_clients.SpotifyLink;
 import bobo.utils.api_clients.YouTubeUtil;
@@ -119,6 +120,9 @@ public class PlayerManager {
         Guild guild = member.getGuild();
         final GuildMusicManager musicManager = this.getMusicManager(guild);
         TrackScheduler scheduler = musicManager.scheduler;
+        if (AudioReceiveListener.isListening(guild)) {
+            return new CommandResponse("Cannot play music while listening in.");
+        }
 
         CompletableFuture<CommandResponse> futureResponse = new CompletableFuture<>();
 
@@ -202,6 +206,25 @@ public class PlayerManager {
         } catch (Exception e) {
             return new CommandResponse("An error occurred while loading the track.");
         }
+    }
+
+    public void listen(Guild guild, String trackURL) {
+        final GuildMusicManager musicManager = this.getMusicManager(guild);
+        this.audioPlayerManager.loadItemOrdered(musicManager, trackURL, new AudioLoadResultHandler() {
+            @Override
+            public void trackLoaded(AudioTrack track) {
+                musicManager.scheduler.queue(track, null, null, TrackType.LISTEN);
+            }
+
+            @Override
+            public void playlistLoaded(AudioPlaylist playlist) {}
+
+            @Override
+            public void noMatches() {}
+
+            @Override
+            public void loadFailed(FriendlyException e) {}
+        });
     }
 
     /**

@@ -33,14 +33,10 @@ public class JoinCommand extends AVoiceCommand {
             return new CommandResponse("Already connected to " + memberChannel.getAsMention());
         }
 
-        try {
-            if (join(getMember())) {
-                return new CommandResponse("Joined " + memberChannel.getAsMention());
-            } else {
-                return new CommandResponse("Failed to join " + memberChannel.getAsMention());
-            }
-        } catch (IllegalArgumentException e) {
-            return new CommandResponse(e.getMessage());
+        if (join(getMember())) {
+            return new CommandResponse("Joined " + memberChannel.getAsMention());
+        } else {
+            return new CommandResponse("You must be connected to a voice channel to use this command.");
         }
     }
 
@@ -53,7 +49,7 @@ public class JoinCommand extends AVoiceCommand {
     public static boolean join(@Nonnull Member member) {
         AudioChannelUnion voiceChannel = member.getVoiceState().getChannel();
         if (voiceChannel == null) {
-            throw new IllegalArgumentException("You must be connected to a voice channel to use this command.");
+            return false;
         }
 
         return join(voiceChannel);

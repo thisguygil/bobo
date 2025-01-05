@@ -107,23 +107,13 @@ public class Listener extends ListenerAdapter {
                     return;
                 }
 
-                guild.getAudioManager()
-                        .setReceivingHandler(
-                                new AudioReceiveListener(1)
-                        );
+                guild.getAudioManager().setReceivingHandler(new AudioReceiveListener(guild, 1));
             }
 
             if (channelLeft != null) { // Left an audio channel
-                QueueCommand.clearQueue(
-                        guild,
-                        PlayerManager.getInstance()
-                                .getMusicManager(guild).scheduler
-                );
-
+                QueueCommand.clearQueue(guild, PlayerManager.getInstance().getMusicManager(guild).scheduler);
                 TTSCommand.removeGuild(guild);
-
-                guild.getAudioManager()
-                        .setReceivingHandler(null);
+                guild.getAudioManager().setReceivingHandler(null);
             }
         }
     }

@@ -55,7 +55,7 @@ public abstract class AMusicCommand extends AVoiceCommand {
      * @param member The member whose voice channel to check.
      * @return {@code true} if the user is connected to a voice channel, {@code false} otherwise.
      */
-    protected static boolean ensureConnected(Member member) {
+    public static boolean ensureConnected(Member member) {
         AudioManager audioManager = member.getGuild().getAudioManager();
         if (!audioManager.isConnected()) {
             return JoinCommand.join(member);

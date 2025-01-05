@@ -6,5 +6,6 @@ package bobo.lavaplayer;
 public enum TrackType {
     TRACK,
     FILE,
-    TTS
+    TTS,
+    LISTEN
 }

@@ -2,6 +2,7 @@ package bobo.commands.voice.music;
 
 import bobo.lavaplayer.GuildMusicManager;
 import bobo.commands.CommandResponse;
+import bobo.lavaplayer.TrackType;
 import bobo.utils.api_clients.SpotifyLink;
 import bobo.utils.TimeFormat;
 import bobo.lavaplayer.TrackRecord;
@@ -42,6 +43,11 @@ public class NowPlayingCommand extends AMusicCommand {
      * @return The embed.
      */
     public static MessageEmbed createEmbed(TrackRecord currentTrack, GuildMusicManager musicManager) {
+        TrackType trackType = currentTrack.trackType();
+        if (trackType == TrackType.LISTEN) {
+            return null;
+        }
+
         AudioTrack currentAudioTrack = currentTrack.track();
         AudioTrackInfo info = currentAudioTrack.getInfo();
         String title = info.title;
@@ -53,7 +59,7 @@ public class NowPlayingCommand extends AMusicCommand {
                 .setColor(Color.red);
 
         // Add track type-specific information
-        switch (currentTrack.trackType()) {
+        switch (trackType) {
             case TRACK -> {
                 embed.setTitle(title, uri)
                         .addField("Author", info.author, true)

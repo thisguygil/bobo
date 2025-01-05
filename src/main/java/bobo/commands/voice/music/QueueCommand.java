@@ -4,6 +4,7 @@ import bobo.commands.CommandResponse;
 import bobo.commands.CommandResponseBuilder;
 import bobo.lavaplayer.TrackScheduler;
 import bobo.lavaplayer.TrackRecord;
+import bobo.utils.AudioReceiveListener;
 import bobo.utils.TimeFormat;
 import bobo.lavaplayer.TrackType;
 import com.github.ygimenez.method.Pages;
@@ -174,6 +175,7 @@ public class QueueCommand extends AMusicCommand {
         scheduler.currentTrack = null;
         scheduler.player.stopTrack();
         scheduler.player.setPaused(false);
+        AudioReceiveListener.stopListening(guild);
     }
 
     /**

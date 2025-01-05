@@ -35,6 +35,10 @@ public class GuildMusicManager {
         this.player.addListener(event -> {
             if (event instanceof TrackStartEvent startEvent) {
                 TrackRecord record = this.scheduler.currentTrack;
+                if (record.trackType() == TrackType.LISTEN) {
+                    return;
+                }
+
                 if (record.track().equals(startEvent.track)) {
                     record.channel().sendMessageEmbeds(NowPlayingCommand.createEmbed(record, this)).queue();
                 }
