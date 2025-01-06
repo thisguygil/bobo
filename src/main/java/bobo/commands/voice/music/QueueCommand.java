@@ -264,16 +264,14 @@ public class QueueCommand extends AMusicCommand {
     private String formatTrackInfo(int index, TrackRecord record) {
         AudioTrack track = record.track();
         AudioTrackInfo info = track.getInfo();
-        String trackDetails = "";
+        String trackDetails = String.format("%d. ", index);
         switch (record.trackType()) {
-            case TRACK, FILE -> trackDetails = String.format("%d. %s (%s) by %s",
-                    index,
+            case TRACK, FILE -> trackDetails += String.format("%s (%s) by %s",
                     markdownLinkNoEmbed(info.title, info.uri),
                     timeLeft(track, index),
                     markdownBold(info.author)
             );
-            case TTS -> trackDetails = String.format("%d. TTS Message: \"%s\" ",
-                    index,
+            case TTS -> trackDetails += String.format("TTS Message: \"%s\" ",
                     info.title
             );
         }

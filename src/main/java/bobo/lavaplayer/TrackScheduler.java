@@ -88,7 +88,7 @@ public class TrackScheduler extends AudioEventAdapter {
             switch (this.looping) {
                 case NONE -> {
                     switch (currentTrack.trackType()) {
-                        case TRACK, FILE -> nextTrack();
+                        case TRACK, FILE, LISTEN -> nextTrack();
                         case TTS -> {
                             nextTrack();
                             TTSCommand.nextTTSMessage(this.guild, track);

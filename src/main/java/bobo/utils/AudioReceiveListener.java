@@ -17,10 +17,7 @@ import javax.sound.sampled.AudioSystem;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class AudioReceiveListener implements AudioReceiveHandler {
     private static final Logger logger = LoggerFactory.getLogger(AudioReceiveListener.class);
@@ -45,23 +42,20 @@ public class AudioReceiveListener implements AudioReceiveHandler {
 
     @Override
     public void handleCombinedAudio(@Nonnull CombinedAudio combinedAudio) {
-        try {
-            if (clipBytes.size() > MAX_TIME) {
-                clipBytes.removeFirst();
-            }
-            if (listeners.get(guild) != null && listenerBytes.size() > MAX_TIME) {
-                handleListening(listeners.get(guild));
-                listenerBytes.clear();
-            } else if (listenerBytes.size() > MAX_TIME) {
-                listenerBytes.removeFirst();
-            }
-
-            byte[] audio = combinedAudio.getAudioData(volume);
-            clipBytes.add(audio);
-            listenerBytes.add(audio);
-        } catch (OutOfMemoryError e) {
-            logger.error("Failed to handle combined audio");
+        if (clipBytes.size() > MAX_TIME) {
+            clipBytes.removeFirst();
         }
+
+        Guild guild = listeners.get(this.guild);
+        if (guild != null && listenerBytes.size() > MAX_TIME) {
+            handleListening(guild);
+        } else if (listenerBytes.size() > MAX_TIME) {
+            listenerBytes.removeFirst();
+        }
+
+        byte[] audio = combinedAudio.getAudioData(volume);
+        clipBytes.add(audio);
+        listenerBytes.add(audio);
     }
 
     /**
@@ -87,32 +81,33 @@ public class AudioReceiveListener implements AudioReceiveHandler {
         return null;
     }
 
+    /**
+     * Handles the listening audio data.
+     *
+     * @param guild the guild to handle the listening for
+     */
     public void handleListening(Guild guild) {
-        try {
-            byte[] decodedData = getDecodedData(listenerBytes, 30);
+        byte[] decodedData = getDecodedData(listenerBytes, 30);
+        listenerBytes.clear();
 
-            int currentIndex = fileIndices.getOrDefault(guild, 0) + 1;
-            fileIndices.put(guild, currentIndex);
-            String name = String.format("listener-%s-%d", guild.getId(), currentIndex);
+        int currentIndex = fileIndices.getOrDefault(guild, 0) + 1;
+        fileIndices.put(guild, currentIndex);
+        String name = String.format("listener-%s-%d", guild.getId(), currentIndex);
 
-            File file = createClipFile(decodedData, name);
-            AudioSystem.write(new AudioInputStream(new ByteArrayInputStream(decodedData), AudioReceiveHandler.OUTPUT_FORMAT, decodedData.length), AudioFileFormat.Type.WAVE, file);
-            PlayerManager.getInstance().listen(guild, name + ".wav");
+        File file = createClipFile(decodedData, name);
+        PlayerManager.getInstance().listen(guild, name + ".wav");
 
-            new java.util.Timer().schedule( // Delete the file after 35 seconds (30 seconds of audio + 5 seconds of buffer)
-                    new java.util.TimerTask() {
-                        @Override
-                        public void run() {
-                            if (!file.delete()) {
-                                logger.error("Failed to delete listener file: {}", file.getName());
-                            }
+        new Timer().schedule( // Delete the file after 35 seconds (30 seconds of audio + 5 seconds of buffer)
+                new TimerTask() {
+                    @Override
+                    public void run() {
+                        if (!file.delete()) {
+                            logger.error("Failed to delete listener file: {}", file.getName());
                         }
-                    },
-                    35 * 1000
-            );
-        } catch (IOException e) {
-            logger.error("Failed to handle listening");
-        }
+                    }
+                },
+                35 * 1000
+        );
     }
 
     public byte[] getDecodedData(List<byte[]> bytes, int seconds) {
