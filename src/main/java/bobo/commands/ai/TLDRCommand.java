@@ -151,15 +151,13 @@ public class TLDRCommand extends AAICommand {
      * @return the response from the API
      */
     private String callOpenAI(String prompt) {
-        ChatCompletionMessageParam systemMessage = ChatCompletionMessageParam.ofChatCompletionSystemMessageParam(ChatCompletionSystemMessageParam.builder()
-                .role(ChatCompletionSystemMessageParam.Role.SYSTEM)
-                .content(ChatCompletionSystemMessageParam.Content.ofTextContent("You are an assistant that summarizes Discord conversations. You will be given a conversation and are to provide a concise summary, highlighting key points and main topics discussed."))
+        ChatCompletionMessageParam systemMessage = ChatCompletionMessageParam.ofSystem(ChatCompletionSystemMessageParam.builder()
+                .content(ChatCompletionSystemMessageParam.Content.ofText("You are an assistant that summarizes Discord conversations. You will be given a conversation and are to provide a concise summary, highlighting key points and main topics discussed."))
                 .build()
         );
 
-        ChatCompletionMessageParam userMessage = ChatCompletionMessageParam.ofChatCompletionUserMessageParam(ChatCompletionUserMessageParam.builder()
-                .role(ChatCompletionUserMessageParam.Role.USER)
-                .content(ChatCompletionUserMessageParam.Content.ofTextContent(prompt))
+        ChatCompletionMessageParam userMessage = ChatCompletionMessageParam.ofUser(ChatCompletionUserMessageParam.builder()
+                .content(ChatCompletionUserMessageParam.Content.ofText(prompt))
                 .build()
         );
 

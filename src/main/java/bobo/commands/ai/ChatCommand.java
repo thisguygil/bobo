@@ -109,8 +109,7 @@ public class ChatCommand extends AAICommand {
         List<ChatCompletionContentPart> contentParts = new ArrayList<>();
 
         if (!message.getContentDisplay().isEmpty()) {
-            contentParts.add(ChatCompletionContentPart.ofChatCompletionContentPartText(ChatCompletionContentPartText.builder()
-                    .type(ChatCompletionContentPartText.Type.TEXT)
+            contentParts.add(ChatCompletionContentPart.ofText(ChatCompletionContentPartText.builder()
                     .text(message.getContentDisplay())
                     .build()
             ));
@@ -118,8 +117,7 @@ public class ChatCommand extends AAICommand {
 
         message.getAttachments().stream()
                 .filter(Message.Attachment::isImage)
-                .forEach(attachment -> contentParts.add(ChatCompletionContentPart.ofChatCompletionContentPartImage(ChatCompletionContentPartImage.builder()
-                        .type(ChatCompletionContentPartImage.Type.IMAGE_URL)
+                .forEach(attachment -> contentParts.add(ChatCompletionContentPart.ofImageUrl(ChatCompletionContentPartImage.builder()
                         .imageUrl(ChatCompletionContentPartImage.ImageUrl.builder()
                                 .url(attachment.getUrl())
                                 .build()
@@ -131,17 +129,15 @@ public class ChatCommand extends AAICommand {
     }
 
     private static ChatCompletionMessageParam createUserMessage(List<ChatCompletionContentPart> content) {
-        return ChatCompletionMessageParam.ofChatCompletionUserMessageParam(ChatCompletionUserMessageParam.builder()
-                .role(ChatCompletionUserMessageParam.Role.USER)
+        return ChatCompletionMessageParam.ofUser(ChatCompletionUserMessageParam.builder()
                 .content(ChatCompletionUserMessageParam.Content.ofArrayOfContentParts(content))
                 .build()
         );
     }
 
     private static ChatCompletionMessageParam createAssistantMessage(String responseContent) {
-        return ChatCompletionMessageParam.ofChatCompletionAssistantMessageParam(ChatCompletionAssistantMessageParam.builder()
-                .role(ChatCompletionAssistantMessageParam.Role.ASSISTANT)
-                .content(ChatCompletionAssistantMessageParam.Content.ofTextContent(responseContent))
+        return ChatCompletionMessageParam.ofAssistant(ChatCompletionAssistantMessageParam.builder()
+                .content(ChatCompletionAssistantMessageParam.Content.ofText(responseContent))
                 .build()
         );
     }
@@ -182,9 +178,8 @@ public class ChatCommand extends AAICommand {
      */
     public static void initializeMessages(@Nonnull List<ChatCompletionMessageParam> messages) {
         messages.clear();
-        final ChatCompletionMessageParam systemMessageParam = ChatCompletionMessageParam.ofChatCompletionSystemMessageParam(ChatCompletionSystemMessageParam.builder()
-                .role(ChatCompletionSystemMessageParam.Role.SYSTEM)
-                .content(ChatCompletionSystemMessageParam.Content.ofTextContent(
+        final ChatCompletionMessageParam systemMessageParam = ChatCompletionMessageParam.ofSystem(ChatCompletionSystemMessageParam.builder()
+                .content(ChatCompletionSystemMessageParam.Content.ofText(
                 "You are Bobo, a Discord bot created by Gil. You use slash commands and provide clipping, " +
                         "music, chat, image creation, Last.fm info, Fortnite info, and other features. Don't refer " +
                         "to yourself as an AI language model. When users talk to you, engage with them. For help, " +

@@ -3,7 +3,6 @@ package bobo.commands.general;
 import bobo.Bobo;
 import bobo.commands.CommandResponse;
 import bobo.commands.CommandResponseBuilder;
-import bobo.utils.AudioReceiveListener;
 import bobo.utils.api_clients.SQLConnection;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
@@ -14,7 +13,6 @@ import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.utils.FileUpload;
-import okhttp3.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -209,15 +207,9 @@ public class RandomCommand extends AGeneralCommand {
             }
 
             byte[] fileData = byteArrayOutputStream.toByteArray();
-            MediaType mediaType = MediaType.parse("audio/wav");
-            byte[] waveform = AudioReceiveListener.generateWaveform(fileData);
-            int duration = AudioReceiveListener.calculateClipDuration(fileData);
+            FileUpload fileUpload = FileUpload.fromData(fileData, attachment.getFileName());
 
-            FileUpload voiceMessageUpload = FileUpload.fromData(fileData, attachment.getFileName())
-                    .asVoiceMessage(mediaType, waveform, duration);
-
-            return new CommandResponseBuilder().addAttachments(voiceMessageUpload)
-                    .build();
+            return new CommandResponseBuilder().addAttachments(fileUpload).build();
         } catch (Exception e) {
             logger.error("Failed to send clip as attachment.", e);
             return new CommandResponse("Failed to send the clip.");

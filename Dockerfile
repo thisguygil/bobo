@@ -1,6 +1,6 @@
 # Stage 1: Build the bot
 # Create a container with a Gradle image to build the bot
-FROM gradle:8.11.1-jdk23 AS build
+FROM gradle:8.12.1-jdk23 AS build
 
 # Set the working directory inside the container
 WORKDIR /app
