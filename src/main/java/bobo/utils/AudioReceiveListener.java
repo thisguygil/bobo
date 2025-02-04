@@ -1,11 +1,9 @@
 package bobo.utils;
 
-import bobo.commands.voice.ClipCommand;
 import bobo.lavaplayer.PlayerManager;
 import net.dv8tion.jda.api.audio.AudioReceiveHandler;
 import net.dv8tion.jda.api.audio.CombinedAudio;
 import net.dv8tion.jda.api.entities.Guild;
-import org.jetbrains.annotations.Contract;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,21 +57,17 @@ public class AudioReceiveListener implements AudioReceiveHandler {
     }
 
     /**
-     * Creates a {@link ClipCommand.ClipResult} containing the file, waveform, and duration of the clip.
+     * Creates a file containing the file, waveform, and duration of the clip.
      *
      * @param seconds the number of seconds to record
      * @param name    the name of the file
-     * @return the {@link ClipCommand.ClipResult}, or null if the clip could not be created
+     * @return the file, or null if the clip could not be created
      */
     @Nullable
-    public ClipCommand.ClipResult createClip(int seconds, String name) {
+    public File createClip(int seconds, String name) {
         try {
             byte[] decodedData = getDecodedData(clipBytes, seconds);
-            byte[] waveform = generateWaveform(decodedData);
-            int duration = calculateClipDuration(decodedData);
-
-            File file = createClipFile(decodedData, name);
-            return new ClipCommand.ClipResult(file, waveform, duration);
+            return createClipFile(decodedData, name);
         } catch (OutOfMemoryError e) {
             logger.error("Failed to create clip");
         }
@@ -86,7 +80,7 @@ public class AudioReceiveListener implements AudioReceiveHandler {
      *
      * @param guild the guild to handle the listening for
      */
-    public void handleListening(Guild guild) {
+    private void handleListening(Guild guild) {
         byte[] decodedData = getDecodedData(listenerBytes, 30);
         listenerBytes.clear();
 
@@ -110,7 +104,7 @@ public class AudioReceiveListener implements AudioReceiveHandler {
         );
     }
 
-    public byte[] getDecodedData(List<byte[]> bytes, int seconds) {
+    private byte[] getDecodedData(List<byte[]> bytes, int seconds) {
         int packetCount = (seconds * 1000) / 20;
         int size = 0;
         List<byte[]> packets = new ArrayList<>();
@@ -133,7 +127,7 @@ public class AudioReceiveListener implements AudioReceiveHandler {
         return decodedData;
     }
 
-    public static File createClipFile(byte[] decodedData, String name) {
+    private static File createClipFile(byte[] decodedData, String name) {
         try {
             File file = new File(name + ".wav");
             AudioSystem.write(new AudioInputStream(new ByteArrayInputStream(decodedData), AudioReceiveHandler.OUTPUT_FORMAT, decodedData.length), AudioFileFormat.Type.WAVE, file);
@@ -143,39 +137,6 @@ public class AudioReceiveListener implements AudioReceiveHandler {
         }
 
         return null;
-    }
-
-    /**
-     * Generates a waveform from the decoded audio data.
-     *
-     * @param decodedData the decoded audio data
-     * @return the waveform byte array
-     */
-    public static byte[] generateWaveform(byte[] decodedData) {
-        byte[] waveform = new byte[256];
-
-        int step = Math.max(decodedData.length / 256, 1);
-        for (int j = 0; j < waveform.length; j++) {
-            int index = j * step;
-            waveform[j] = decodedData[index];
-        }
-
-        return waveform;
-    }
-
-    /**
-     * Calculates the duration of the clip from the audio data.
-     *
-     * @param audioData the audio data
-     * @return the duration of the clip
-     */
-    @Contract(pure = true)
-    public static int calculateClipDuration(@Nonnull byte[] audioData) {
-        int bytesPerSample = 2;
-        int sampleRate = 48000;
-        int numChannels = 2;
-
-        return audioData.length / (sampleRate * bytesPerSample * numChannels);
     }
 
     /**

@@ -13,7 +13,6 @@ import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.utils.FileUpload;
-import okhttp3.MediaType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,8 +28,6 @@ import java.util.List;
 
 public class ClipCommand extends AVoiceCommand {
     private static final Logger logger = LoggerFactory.getLogger(ClipCommand.class);
-
-    public record ClipResult(File file, byte[] waveform, Integer duration) {}
 
     private static final String selectSQL = "SELECT channel_id FROM clips_channels WHERE guild_id = ?";
 
@@ -61,53 +58,43 @@ public class ClipCommand extends AVoiceCommand {
         }
 
         String name = getMultiwordOptionValue("name", 0, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")));
-        ClipResult clipResult = ((AudioReceiveListener) receiveHandler).createClip(30, name);
-        if (clipResult == null) {
+        File file = ((AudioReceiveListener) receiveHandler).createClip(30, name);
+        if (file == null) {
             return new CommandResponse("Clip creation failed.");
         }
 
-        File file = clipResult.file();
-        if (file != null) {
-            GuildChannel channel;
-            try (Connection connection = SQLConnection.getConnection();
-                 PreparedStatement statement = connection.prepareStatement(selectSQL)) {
-                statement.setString(1, guild.getId());
-                ResultSet resultSet = statement.executeQuery();
-                if (resultSet.next()) {
-                    channel = Bobo.getJDA().getGuildChannelById(resultSet.getString("channel_id"));
-                } else {
-                    channel = null;
-                }
-            } catch (SQLException e) {
-                logger.warn("Failed to get clips channel for guild {}", guild.getId());
+        GuildChannel channel;
+        try (Connection connection = SQLConnection.getConnection();
+             PreparedStatement statement = connection.prepareStatement(selectSQL)) {
+            statement.setString(1, guild.getId());
+            ResultSet resultSet = statement.executeQuery();
+            if (resultSet.next()) {
+                channel = Bobo.getJDA().getGuildChannelById(resultSet.getString("channel_id"));
+            } else {
                 channel = null;
             }
-
-            byte[] waveform = clipResult.waveform();
-            MediaType mediaType = MediaType.parse("audio/wav");
-            int duration = clipResult.duration();
-
-            FileUpload fileUpload = FileUpload.fromData(file)
-                    .asVoiceMessage(mediaType, waveform, duration);
-            if (channel != null && channel != getChannel()) {
-                ((GuildMessageChannel) channel).sendFiles(fileUpload).queue();
-            }
-
-            return new CommandResponseBuilder().addAttachments(fileUpload)
-                    .setPostExecutionAsMessage(success -> {
-                        if (!file.delete()) {
-                            logger.error("Failed to delete file: {}", file.getName());
-                        }
-                    })
-                    .setFailureHandler(failure -> {
-                        if (!file.delete()) {
-                            logger.error("Failed to delete file: {}", file.getName());
-                        }
-                    })
-                    .build();
-        } else {
-            return new CommandResponse("Clip creation failed.");
+        } catch (SQLException e) {
+            logger.warn("Failed to get clips channel for guild {}", guild.getId());
+            channel = null;
         }
+
+        FileUpload fileUpload = FileUpload.fromData(file);
+        if (channel != null && channel != getChannel()) {
+            ((GuildMessageChannel) channel).sendFiles(fileUpload).queue();
+        }
+
+        return new CommandResponseBuilder().addAttachments(fileUpload)
+                .setPostExecutionAsMessage(success -> {
+                    if (!file.delete()) {
+                        logger.error("Failed to delete file: {}", file.getName());
+                    }
+                })
+                .setFailureHandler(failure -> {
+                    if (!file.delete()) {
+                        logger.error("Failed to delete file: {}", file.getName());
+                    }
+                })
+                .build();
     }
 
     @Override
