@@ -6,7 +6,7 @@ RESTART_EXIT_CODE=1
 
 while true; do
     echo "Starting Bobo..."
-    java -jar bot.jar
+    java -cp "bot.jar:libs/*" bobo.Bobo
 
     EXIT_STATUS=$?
     if [ $EXIT_STATUS -eq $RESTART_EXIT_CODE ]; then

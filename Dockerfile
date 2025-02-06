@@ -1,38 +1,36 @@
 # Stage 1: Build the bot
-# Create a container with a Gradle image to build the bot
 FROM gradle:8.12.1-jdk23 AS build
-
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy Gradle files and project source code into the container
+# Copy Gradle files and cache dependencies
 COPY build.gradle.kts settings.gradle.kts /app/
-COPY src /app/src
+RUN gradle dependencies --no-daemon
 
-# Run the Gradle build
-RUN gradle shadowJar
+# Copy source code and build
+COPY src /app/src
+RUN gradle build --no-daemon
+
+# Stage 1.5: Prepare artifacts
+FROM build AS prepare
+RUN mv /app/build/libs/bobo-1.0.jar /app/bot.jar
 
 # Stage 2: Run the bot
-# Create a new container with a Java image to run the bot
 FROM openjdk:23-jdk-slim
-
-# Set the working directory inside the new container
 WORKDIR /app
 
 # Install fontconfig package
-RUN apt-get update && apt-get install -y fontconfig && rm -rf /var/lib/apt/lists/*
+RUN apt-get update && \
+    apt-get install -y fontconfig && \
+    rm -rf /var/lib/apt/lists/*
 
-# Copy the fat JAR from the build stage into the new container
-COPY --from=build /app/build/libs/bobo-1.0-all.jar /app/bot.jar
+# Copy the main JAR and dependency libraries
+COPY --from=prepare /app/bot.jar /app/bot.jar
+COPY --from=prepare /app/build/runtime-libs/ /app/libs/
 
-# Copy the start script into the new container
+# Copy the start script and make it executable
 COPY start.sh /app/
-
-# Make the start script executable
 RUN chmod +x /app/start.sh
 
-# Set the environment variable to use system environment variables
+# Set environment variable and define the entrypoint
 ENV USE_SYSTEM_ENV=true
-
-# Run the bot
 ENTRYPOINT ["/app/start.sh"]
