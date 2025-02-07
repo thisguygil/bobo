@@ -52,7 +52,7 @@ dependencies {
 
     // Other API Wrappers
     implementation("se.michaelthelin.spotify:spotify-web-api-java:9.1.1")
-    implementation("com.openai:openai-java:0.21.1")
+    implementation("com.openai:openai-java:0.22.0")
 
     // Other Java Utilities
     implementation("org.reflections:reflections:0.10.2")

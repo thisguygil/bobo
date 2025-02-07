@@ -3,9 +3,9 @@
 The greatest Discord bot on the planet (don't fact-check that).
 
 ## Features
-* Playing music in voice channels from supported sources (see below)
-* Clipping audio from voice channels
-* Text-to-speech with [Flowery TTS](https://flowery.pw/) in voice channels
+* Playing music in audio channels from supported sources (see below)
+* Clipping audio from audio channels
+* Text-to-speech with [Flowery TTS](https://flowery.pw/) in audio channels
 * OpenAI integration with the [OpenAI API](https://github.com/sashirestela/simple-openai)
   * Chat with AI ([ChatGPT-4o](https://chatgpt.com/) with [Vision](https://platform.openai.com/docs/guides/vision))
   * AI-generate images with [DALL-E 3](https://openai.com/index/dall-e-3/)
@@ -18,26 +18,31 @@ The greatest Discord bot on the planet (don't fact-check that).
 Bobo supports all formats supported by [LavaPlayer](https://github.com/lavalink-devs/lavaplayer?tab=readme-ov-file#supported-formats), as well as Spotify and Deezer supported by [LavaSrc](https://github.com/topi314/LavaSrc), with extra functionality for many sources from API integrations.
 
 ## Inviting to your server
-Bobo isn't currently publicly available to be invited to your server, but you can host your own instance easily (see below).
+Bobo isn't currently publicly available to be invited to your server, but you can easily host your own instance (see below).
 
 ## Hosting
-You can run it on any platform with [Docker](https://www.docker.com/) installed by copying the [docker-compose.yml](docker-compose.yml) file, filling in the environment variables in the `.env` file (see below), and running the command: `docker-compose up -d`.
+You can run it on any platform with [Docker](https://www.docker.com/) installed by copying the [docker-compose.yml](docker-compose.yml) file, filling in the environment variables in the `.env` file, and using the commands below.
 
 > [!IMPORTANT]  
-> [.env.example](.env.example) is an example file including all the required environment variables. You can rename it to `.env` and fill in the values. It includes some default values, such as `!` as the message command prefix or `0` as the UTC offset (for time-related features), which you can change to your liking, but you must fill in values such as the owner's Discord user ID, the database credentials, or API keys, for their respective features to work. It is recommended to fill in all values to ensure all features work as intended. Of course, the `TOKEN` value is required for the bot to even run at all.
+> [.env.example](.env.example) is an example file including all the required environment variables. You can rename it to `.env` and fill in the values. It includes some default values, such as `!` as the message command prefix or `0` as the UTC offset (for time-related features), which you can change to your liking, but you must fill in values such as the owner's [Discord user ID](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID), the database credentials, or API keys, for their respective features to work. It is recommended to fill in all values to ensure all features work as intended. Of course, the `TOKEN` value is required for the bot to even run at all.
 
-The Docker configuration also includes a [MySQL](https://www.mysql.com/) database for storing user/server data, so you can run the bot without setting up a database separately (though you will need to add credentials in the `.env` file).
+> [!TIP]  
+> To start the bot, run: `docker-compose up -d`. To update, run: `docker-compose pull` to pull the latest image and `docker-compose up -d` to restart. If the bot is in audio channels, it's recommended to first run `docker-compose down` to stop it, and wait for it to go offline before restarting the container.
+
+The Docker configuration also includes a [MySQL](https://www.mysql.com/) database for storing user/server data, so you don't need to set up a database separately (though you will need to add credentials in the `.env` file).
+
 The Docker image for the bot used in the configuration can be found [here](https://hub.docker.com/repository/docker/thisguygil/bobo) on Docker Hub.
 
 ## Commands
+Most commands can be used as both slash commands and message commands, with some exceptions (noted where applicable).
 > [!NOTE]  
 > The prefix of `!` is shown here for message commands, but can be changed in the `.env` file.  
-> Additionally, command aliases are available for some commands (when used as message commands) and are shown in parentheses.
+> Additionally, command aliases are available for some commands (when used as message commands).
 
 ### Privileged Commands
 
 #### Bot Owner Commands
-Can be used by the bot owner only (as message commands only) - configured with the owner's [Discord user ID](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID) in the `.env` file
+Can be used by the bot owner only (as message commands)
 * `!restart` - Restarts Bobo
 * `!set-activity` - Sets Bobo's activity/status
   * Subcommands:
@@ -53,7 +58,7 @@ Can be used by the bot owner only (as message commands only) - configured with t
 > The `!sql` command is dangerous and should be used with caution. It can be used to modify the database directly, which can cause data loss or corruption if used incorrectly. Most use cases should be to read data, rather than write it.
 
 #### Server Admin Commands
-Can be used by server admins only (as slash commands only)
+Can be used by server admins only (as slash commands)
 * `/say <message>` - Makes Bobo say `<message>` in the current channel
 * `/config <setting> <channel>` - Configures the server
   * Settings:
@@ -63,7 +68,7 @@ Can be used by server admins only (as slash commands only)
   * No channel input clears the setting
 
 ### Non-Privileged Commands
-Can be used by anyone with the proper permissions (as slash commands or message commands)
+Can be used by anyone with proper permissions
 
 #### General Commands
 * `/help <command>` - Gets help for a specific command. No input defaults to a list of all commands
@@ -96,19 +101,19 @@ Requires the user to be logged into Last.fm
 
 #### Voice Commands
 Can be used only while in an audio channel
-* `/join` - Joins the voice channel you are in
-* `/leave` - Leaves the voice channel
-* `/mute` - Mutes/unmutes Bobo in the voice channel
-* `/deafen` - Deafens/undeafens Bobo in the voice channel (Bobo will not be able to clip you)
-* `/clip` - Clips the last 30 seconds of audio from the voice channel you are in. The clip will also be sent to the configured clips channel, if one is set
+* `/join` - Joins the audio channel you are in
+* `/leave` - Leaves the audio channel
+* `/mute` - Mutes/unmutes the bot in the audio channel
+* `/deafen` - Deafens/undeafens the bot in the audio channel (it will not be able to clip you)
+* `/clip` - Clips the last 30 seconds of audio from the audio channel you are in. The clip will also be sent to the configured clips channel, if one is set
 
 #### Music Commands
 Subset of voice commands (and so can only be used while in an audio channel)
-* `/play` - Plays a track in the voice channel you are in (alias: `!p`)
+* `/play` - Plays a track in the audio channel you are in (alias: `!p`)
   * Subcommands:
     * `track <url/query>` - Plays given YouTube `<url>` or the first track result from `<query>`
-    * `file <file>` - Plays the given `<file>` (this subcommand can't be used as a message command)
-* `/tts <message>` - Plays `<message>` as text-to-speech for the voice channel.
+    * `file <file>` - Plays attached file
+* `/tts <message>` - Plays `<message>` as text-to-speech for the audio channel.
 * `/search` - Searches a platform, and plays the requested result
   * Choices:
     * `youtube/spotify/soundcloud` - Search YouTube/Spotify/SoundCloud

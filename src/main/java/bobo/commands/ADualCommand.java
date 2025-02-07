@@ -5,10 +5,12 @@ import bobo.Config;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.Channel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
+import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
@@ -43,7 +45,7 @@ public abstract class ADualCommand implements ICommand {
     public ADualCommand(@Nonnull CommandData commandData) {
         Bobo.getJDA()
                 .upsertCommand(
-                        commandData.setGuildOnly(true)
+                        commandData.setContexts(InteractionContextType.GUILD)
                                 .setDefaultPermissions(DefaultMemberPermissions.enabledFor(getPermissions()))
                 ).queue();
     }
@@ -123,7 +125,7 @@ public abstract class ADualCommand implements ICommand {
     protected abstract List<Permission> getCommandPermissions();
 
     /**
-     * Helper method to get the guild of the current command, given the source.
+     * Helper method to get the guild of the current command.
      *
      * @return The guild of the command source.
      */
@@ -135,7 +137,7 @@ public abstract class ADualCommand implements ICommand {
     }
 
     /**
-     * Helper method to get the channel of the current command, given the source.
+     * Helper method to get the channel of the current command.
      *
      * @return The channel of the command source.
      */
@@ -147,7 +149,7 @@ public abstract class ADualCommand implements ICommand {
     }
 
     /**
-     * Helper method to get the user that executed the current command, given the source.
+     * Helper method to get the user that executed the current command.
      *
      * @return The user of the command source.
      */
@@ -159,7 +161,7 @@ public abstract class ADualCommand implements ICommand {
     }
 
     /**
-     * Helper method to get the member that executed the current command, given the source.
+     * Helper method to get the member that executed the current command.
      *
      * @return The member of the command source.
      */
@@ -171,7 +173,7 @@ public abstract class ADualCommand implements ICommand {
     }
 
     /**
-     * Helper method to get the value of an option, given the source.
+     * Helper method to get the value of an option.
      *
      * @param optionName The name of the option.
      * @param argPosition The position of the option in the arguments list (for message commands).
@@ -198,7 +200,7 @@ public abstract class ADualCommand implements ICommand {
     }
 
     /**
-     * Helper method to get the value of an option, given the source.
+     * Helper method to get the value of an option.
      *
      * @param optionName The name of the option.
      * @param argPosition The position of the option in the arguments list (for message commands).
@@ -209,7 +211,7 @@ public abstract class ADualCommand implements ICommand {
     }
 
     /**
-     * Helper method to get the value of a multiword option, given the source.
+     * Helper method to get the value of a multiword option.
      *
      * @param optionName The name of the option.
      * @param argStartPosition The position of the option in the arguments list (for message commands).
@@ -233,7 +235,7 @@ public abstract class ADualCommand implements ICommand {
     }
 
     /**
-     * Helper method to get the multiword option value, given the source.
+     * Helper method to get the multiword option value.
      *
      * @param optionName The name of the option.
      * @param argStartPosition The position of the option in the arguments list (for message commands).
@@ -244,7 +246,20 @@ public abstract class ADualCommand implements ICommand {
     }
 
     /**
-     * Helper method to get the subcommand name, given the source.
+     * Helper method to get the attachment.
+     *
+     * @param optionName The name of the option.
+     * @return The attachment.
+     */
+    protected Message.Attachment getAttachment(String optionName) {
+        return switch (source) {
+            case SLASH_COMMAND -> slashEvent.getOption(optionName).getAsAttachment();
+            case MESSAGE_COMMAND -> messageEvent.getMessage().getAttachments().getFirst();
+        };
+    }
+
+    /**
+     * Helper method to get the subcommand name.
      *
      * @param argPosition The position of the subcommand in the arguments list (for message commands).
      * @return The subcommand name.

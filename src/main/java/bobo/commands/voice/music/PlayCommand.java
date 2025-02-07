@@ -40,25 +40,42 @@ public class PlayCommand extends AMusicCommand {
             case SLASH_COMMAND -> {
                 String subcommandName = getSubcommandName(0);
                 yield switch (subcommandName) {
-                    case "track" -> playTrack();
+                    case "track" -> playTrack(0);
                     case "file" -> playFile();
                     default -> new CommandResponse("Invalid usage. Use `/help play` for more information.");
                 };
             }
-            case MESSAGE_COMMAND -> playTrack();
+            case MESSAGE_COMMAND -> {
+                if (args.isEmpty()) {
+                    yield new CommandResponse("Invalid usage. Use `/help play` for more information.");
+                }
+
+                String firstArg = args.getFirst();
+                if (firstArg.equals("file")) {
+                    yield playFile();
+                } else if (firstArg.equals("track")) {
+                    yield playTrack(1);
+                } else {
+                    yield playTrack(0);
+                }
+            }
         };
     }
 
     /**
      * Plays a track.
+     *
+     * @param argIndex the index of the track argument
+     * @return the command response
      */
-    private CommandResponse playTrack() {
+    private CommandResponse playTrack(int argIndex) {
         String track;
         try {
-            track = getMultiwordOptionValue("track", 0);
+            track = getMultiwordOptionValue("track", argIndex);
         } catch (Exception e) {
             return new CommandResponse("Please provide a track to play.");
         }
+
         if ((new UrlValidator()).isValid(track)) {
             return playerManager.loadAndPlay((MessageChannel) getChannel(), getMember(), track, TrackType.TRACK);
         } else {
@@ -77,9 +94,17 @@ public class PlayCommand extends AMusicCommand {
 
     /**
      * Plays an audio/video file.
+     *
+     * @return the command response
      */
     private CommandResponse playFile() {
-        Message.Attachment attachment = slashEvent.getOption("file").getAsAttachment();
+        Message.Attachment attachment;
+        try {
+            attachment = getAttachment("file");
+        } catch (Exception e) {
+            return new CommandResponse("Please provide a track to play.");
+        }
+
         if (!isAudioFile(attachment.getFileName())) {
             return new CommandResponse("Please attach a valid audio file.");
         }
