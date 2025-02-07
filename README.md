@@ -138,6 +138,3 @@ Subset of voice commands (and so can only be used while in an audio channel)
 
 ## Development Plans
 For a detailed list of planned features, improvements, and bug fixes, please refer to the [TODO.md](TODO.md) file.
-
-## Terms of Service and Privacy Policy
-Please refer to the [terms-of-service.md](terms-of-service.md) and [privacy-policy.md](privacy-policy.md) files for Bobo's Terms of Service and Privacy Policy, respectively.
