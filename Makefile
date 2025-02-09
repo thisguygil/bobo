@@ -1,3 +1,5 @@
+.PHONY: build tag push all
+
 IMAGE_NAME=thisguygil/bobo
 TAG=latest
 
