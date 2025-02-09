@@ -53,9 +53,9 @@ Can be used by the bot owner only (as message commands)
     * `watching <activity>` - Sets Bobo's activity to `watching <activity>`
     * `competing <activity>` - Sets Bobo's activity to `competing in <activity>`
 * `!dm <user-id> <message>` - Sends a direct message to a user specified by their Discord user ID
-* `!sql <statement>` - Executes an SQL statement in the linked database (see below)
+* `!sql <statement>` - Executes an SQL statement in the linked database
 > [!CAUTION]  
-> The `!sql` command is dangerous and should be used with caution. It can be used to modify the database directly, which can cause data loss or corruption if used incorrectly. Most use cases should be to read data, rather than write it.
+> The `!sql` command is dangerous and should be used with caution. It can be used to modify the database directly, which can cause data loss or corruption if used incorrectly. It can be very useful for debugging or fixing issues, and most uses would be to run read-only queries, which are safe. Still, you should only use this command if you know what you're doing.
 
 #### Server Admin Commands
 Can be used by server admins only (as slash commands)
@@ -72,11 +72,14 @@ Can be used by anyone with proper permissions
 
 #### General Commands
 * `/help <command>` - Gets help for a specific command. No input defaults to a list of all commands
-* `/google <query>` - Searches Google for `<query>` and returns the first 10 results
-* `/random` - Gets a random quote/clip from the respective configured channel
+* * `/random` - Gets a random quote/clip from the respective configured channel
+* Subcommands:
+  * `quote` - Gets a random quote
+  * `clip` - Gets a random clip
+* `/google <subcommand> <query>` - Searches Google for `<query>`
   * Subcommands:
-    * `quote` - Gets a random quote
-    * `clip` - Gets a random clip
+    * `search` - Searches given query on Google.
+    * `images` - Searches given query on Google Images.
 * `/fortnite` - Get info about Fortnite
   * Subcommands:
     * `stats <username>` - Gets the stats of `<username>` in Fortnite
@@ -86,7 +89,7 @@ Can be used by anyone with proper permissions
         * `news` - Gets the current Fortnite (Battle Royale) news
         * `map` - Gets the current Fortnite map
 * `/fm` - Get your Last.fm info
-  * Subcommands: **Note all non-auth subcommands require you to be logged in to Last.fm.**
+  * Subcommands:
     * `auth` - Log in or out of Last.fm.
       * Choices:
         * `login` - Log in
@@ -95,7 +98,9 @@ Can be used by anyone with proper permissions
       * Choices:
         * `track` - Get information about a track.
         * `album` - Get information about an album.
-        * `artist` - Get information about an artist.""";
+        * `artist` - Get information about an artist.
+> [!NOTE]  
+> Non-auth subcommands of `/fm` require users to be logged in to Last.fm (using `/fm auth login`).
 
 #### AI Commands
 * `/tldr <minutes>` - Summarizes the recent conversation in the channel. `<minutes>` is the number of minutes to look back in the channel. If not provided, searches until a 5-minute gap is found

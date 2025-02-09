@@ -174,7 +174,10 @@ public class GoogleCommand extends AGeneralCommand {
     public String getHelp() {
         return """
                 Searches given query on Google.
-                Usage: `/google <query>""";
+                Usage: `/google <subcommand> <query>`
+                Subcommands:
+                * `search` - Searches given query on Google.
+                * `images` - Searches given query on Google Images.""";
     }
 
     @Override

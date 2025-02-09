@@ -198,11 +198,11 @@ public class FortniteCommand extends AGeneralCommand {
                 Get info about Fortnite.
                 Usage: `/fortnite <subcommand>`
                 Subcommands:
+                * `stats <username>` - Gets the stats of `<username>` in Fortnite
                 * `info` - Get info about Fortnite.
                     * `shop` - Get the Fortnite shop.
                     * `news` - Get the Fortnite news.
-                    * `map` - Get the Fortnite map.
-                * `stats` - Get stats for a Fortnite player.""";
+                    * `map` - Get the Fortnite map.""";
     }
 
     @Override
