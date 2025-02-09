@@ -85,14 +85,17 @@ Can be used by anyone with proper permissions
         * `shop` - Gets the current Fortnite shop
         * `news` - Gets the current Fortnite (Battle Royale) news
         * `map` - Gets the current Fortnite map
-
-#### Last.fm Commands
-Requires the user to be logged into Last.fm
-* `/fmlogin` - Logs into Last.fm
-* `/fmlogout` - Logs out of Last.fm - to be used normally, or if the login becomes invalid/outdated (e.g. the user changes their username)
-* `/track <track>` - Gets information about a given track on Last.fm. No input defaults to last played track
-* `/album <album>` - Gets information about a given album on Last.fm. No input defaults to last played album
-* `/artist <artist>` - Gets information about a given artist on Last.fm. No input defaults to last played artist
+* `/fm` - Get your Last.fm info
+  * Subcommands: **Note all non-auth subcommands require you to be logged in to Last.fm.**
+    * `auth` - Log in or out of Last.fm.
+      * Choices:
+        * `login` - Log in
+        * `logout` - Log out
+    * `info` - Get information about a track, album, or artist (no input defaults to last played).
+      * Choices:
+        * `track` - Get information about a track.
+        * `album` - Get information about an album.
+        * `artist` - Get information about an artist.""";
 
 #### AI Commands
 * `/tldr <minutes>` - Summarizes the recent conversation in the channel. `<minutes>` is the number of minutes to look back in the channel. If not provided, searches until a 5-minute gap is found

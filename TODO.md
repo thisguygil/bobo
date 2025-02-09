@@ -6,8 +6,6 @@
   * Currently a normal app, but only usable in servers (as opposed to servers and the DM with the bot) as all commands are set to guild-only
   * Allows users to use the bot in any server or DM, even those the bot is not a member of
 ## Rewrites
-* Switch Last.fm commands to subcommands/command choices of one Last.fm-specific command, such as `/fm`, since the current command names don't convey well that they are linked to Last.fm (e.g. `/track` could easily be confused with a music command, so `/fm track` would be more clear)
-  * This would also allow for more Last.fm commands to be added without cluttering the command list
 * Add a FileAppender to the logback configuration
   * Currently only logs to the console which is fine, but it would be useful to have logs saved to files for later reference
 * Migration to [Lavalink](https://lavalink.dev/index.html) for music playback

@@ -3,6 +3,7 @@ package bobo.commands;
 import bobo.Bobo;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
@@ -23,7 +24,7 @@ public abstract class ASlashCommand implements ICommand {
     public ASlashCommand(@Nonnull CommandData commandData) {
         Bobo.getJDA()
                 .upsertCommand(
-                        commandData.setGuildOnly(true)
+                        commandData.setContexts(InteractionContextType.GUILD)
                                 .setDefaultPermissions(DefaultMemberPermissions.enabledFor(getPermissions()))
                 ).queue();
     }

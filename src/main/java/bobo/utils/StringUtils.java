@@ -6,6 +6,9 @@ import org.jetbrains.annotations.NotNull;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 
 public final class StringUtils {
     private StringUtils() {} // Prevent instantiation
@@ -262,5 +265,30 @@ public final class StringUtils {
     @Contract(pure = true)
     public static @NotNull String emoji(@NotNull String emoji) {
         return ":" + emoji + ":";
+    }
+
+    /**
+     * Creates a Discord timestamp from a given date of the form YYYY-MM-DD
+     *
+     * @param dateStr The date to create a timestamp from.
+     * @return The Discord timestamp.
+     */
+    @NotNull
+    public static String createDiscordTimestamp(@NotNull String dateStr) {
+        // Add missing parts of the date string
+        if (dateStr.length() == 4) { // Only year provided
+            dateStr += "-01-01";
+        } else if (dateStr.length() == 7) { // Year and month provided
+            dateStr += "-01";
+        }
+
+        // Parse the date string
+        LocalDate date = LocalDate.parse(dateStr, DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+
+        // Convert LocalDate to Unix timestamp (seconds since 1970-01-01 00:00:00 UTC)
+        long unixTimestamp = date.atStartOfDay(ZoneId.of("UTC")).toEpochSecond();
+
+        // Format for Discord and return
+        return String.format("<t:%d:D>", unixTimestamp);
     }
 }
