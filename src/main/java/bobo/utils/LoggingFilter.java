@@ -7,8 +7,8 @@ import ch.qos.logback.core.spi.FilterReply;
 public class LoggingFilter extends Filter<ILoggingEvent> {
     @Override
     public FilterReply decide(ILoggingEvent iLoggingEvent) {
-        // Filter out the random exception message
-        if (iLoggingEvent.getMessage().contains("There was some random exception while waiting for udp packets")) {
+        String message = iLoggingEvent.getMessage();
+        if (message.contains("There was some random exception while waiting for udp packets") || message.contains("Something went wrong when decoding the track.")) {
             return FilterReply.DENY;
         }
 
