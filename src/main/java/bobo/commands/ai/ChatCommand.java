@@ -3,7 +3,7 @@ package bobo.commands.ai;
 import bobo.Config;
 import bobo.commands.CommandResponse;
 import com.openai.errors.OpenAIException;
-import com.openai.models.*;
+import com.openai.models.chat.completions.*;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;

@@ -1,5 +1,5 @@
 # Stage 1: Build the bot
-FROM gradle:8.12.1-jdk23 AS build
+FROM gradle:8.13-jdk23 AS build
 WORKDIR /app
 
 # Copy Gradle files and cache dependencies

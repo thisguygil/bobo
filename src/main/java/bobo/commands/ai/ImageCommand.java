@@ -3,7 +3,8 @@ package bobo.commands.ai;
 import bobo.Config;
 import bobo.commands.CommandResponse;
 import com.openai.errors.OpenAIException;
-import com.openai.models.ImageGenerateParams;
+import com.openai.models.images.Image;
+import com.openai.models.images.ImageGenerateParams;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
@@ -40,12 +41,19 @@ public class ImageCommand extends AAICommand {
                 .prompt(prompt)
                 .build();
 
+        List<Image> images;
         String imageUrl;
         try {
-            imageUrl = openAI.images()
+            images = openAI.images()
                     .generate(createImageRequest)
                     .data()
-                    .getFirst()
+                    .orElse(null);
+
+            if (images == null) {
+                return new CommandResponse("Failed to generate image.");
+            }
+
+            imageUrl = images.getFirst()
                     .url()
                     .orElse(null);
         } catch (OpenAIException e) {

@@ -23,13 +23,13 @@ repositories {
 
 dependencies {
     // Discord API and Utilities
-    implementation("net.dv8tion:JDA:5.3.0")
-    implementation("com.github.ygimenez:Pagination-Utils:4.1.1")
+    implementation("net.dv8tion:JDA:5.4.0")
+    implementation("com.github.ygimenez:Pagination-Utils:4.1.2")
 
     // LavaPlayer
     implementation("dev.arbjerg:lavaplayer:2.2.3")
-    implementation("dev.lavalink.youtube:v2:1.11.5")
-    implementation("com.github.topi314.lavasrc:lavasrc:4.4.2")
+    implementation("dev.lavalink.youtube:v2:1.12.0")
+    implementation("com.github.topi314.lavasrc:lavasrc:4.6.0")
     implementation("com.github.topi314.lavalyrics:lavalyrics:1.0.0")
 
     // Google APIs
@@ -51,8 +51,8 @@ dependencies {
     implementation("io.github.cdimascio:dotenv-java:3.2.0")
 
     // Other API Wrappers
-    implementation("se.michaelthelin.spotify:spotify-web-api-java:9.1.1")
-    implementation("com.openai:openai-java:0.33.0")
+    implementation("se.michaelthelin.spotify:spotify-web-api-java:9.2.0")
+    implementation("com.openai:openai-java:1.5.0")
 
     // Other Java Utilities
     implementation("org.reflections:reflections:0.10.2")
