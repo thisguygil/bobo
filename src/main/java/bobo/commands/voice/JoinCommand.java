@@ -102,13 +102,14 @@ public class JoinCommand extends AVoiceCommand {
                         continue;
                     }
 
-                    join(channel);
+                    if (!join(channel)) {
+                        logger.warn("Failed to re-join voice channel: {}", channel.getName());
+                    } else {
+                        logger.info("Re-joined voice channel: {}", channel.getName());
+                    }
                 }
             }
-            logger.info("Joined previous voice channels.");
-        } catch (SQLException e) {
-            logger.warn("Failed to join previous voice channels.");
-        }
+        } catch (SQLException _) {}
     }
 
     @Override
