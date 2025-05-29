@@ -9,7 +9,6 @@ import bobo.utils.TimeFormat;
 import bobo.utils.api_clients.SpotifyLink;
 import bobo.utils.api_clients.YouTubeUtil;
 import com.github.topi314.lavalyrics.LyricsManager;
-import com.github.topi314.lavasrc.deezer.DeezerAudioSourceManager;
 import com.github.topi314.lavasrc.flowerytts.FloweryTTSSourceManager;
 import com.github.topi314.lavasrc.mirror.DefaultMirroringAudioTrackResolver;
 import com.github.topi314.lavasrc.spotify.SpotifySourceManager;
@@ -74,13 +73,11 @@ public class PlayerManager {
                 new DefaultMirroringAudioTrackResolver(null)
         );
 
-        DeezerAudioSourceManager deezerAudioSourceManager = new DeezerAudioSourceManager(Config.get("DEEZER_MASTER_DECRYPTION_KEY"));
         FloweryTTSSourceManager floweryTTSSourceManager = new FloweryTTSSourceManager(Config.get("FLOWERY_TTS_VOICE"));
 
         this.audioPlayerManager.registerSourceManagers(
                 youtubeAudioSourceManager,
                 spotifySourceManager,
-                deezerAudioSourceManager,
                 floweryTTSSourceManager
         );
 
