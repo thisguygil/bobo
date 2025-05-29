@@ -1,5 +1,5 @@
 # Stage 1: Build the bot
-FROM gradle:8.13-jdk23 AS build
+FROM gradle:8.14.1-jdk24 AS build
 WORKDIR /app
 
 # Copy Gradle files and cache dependencies
@@ -15,7 +15,7 @@ FROM build AS prepare
 RUN mv /app/build/libs/bobo-1.0.jar /app/bot.jar
 
 # Stage 2: Run the bot
-FROM openjdk:23-jdk-slim
+FROM openjdk:24-jdk-slim
 WORKDIR /app
 
 # Install fontconfig package
