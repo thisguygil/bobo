@@ -51,9 +51,9 @@ public class QueueCommand extends AMusicCommand {
         String subcommandName;
         try {
             subcommandName = getSubcommandName(0);
-        } catch (RuntimeException e) {
+        } catch (RuntimeException e) { // No subcommand provided
             return switch (command) {
-                case "q" -> show();
+                case "q", "queue" -> show();
                 case "clear" -> clear();
                 case "shuffle" -> shuffle();
                 case "remove" -> remove(0);
