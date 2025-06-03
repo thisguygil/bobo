@@ -7,8 +7,8 @@ The greatest Discord bot on the planet (don't fact-check that).
 * Clipping audio from audio channels
 * Text-to-speech with [Flowery TTS](https://flowery.pw/) in audio channels
 * [OpenAI API](https://openai.com/api/) integration with the [Java API](https://github.com/openai/openai-java)
-  * Chat with AI ([GPT-4o mini](https://openai.com/index/gpt-4o-mini-advancing-cost-efficient-intelligence/) with [Vision](https://platform.openai.com/docs/guides/vision))
-  * AI-generate images with [DALL-E 3](https://openai.com/index/dall-e-3/)
+  * Chat with AI ([GPT-4.1 mini](https://openai.com/index/gpt-4-1/))
+  * AI-generate images ([DALL-E 3](https://openai.com/index/dall-e-3/))
 * Last.fm integration with the [Last.fm API](https://www.last.fm/api)
   * Get currently playing Spotify track information
   * Search for track, album, and artist information

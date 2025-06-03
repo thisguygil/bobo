@@ -15,6 +15,8 @@ public abstract class AAICommand extends ADualCommand {
     protected static final OpenAIClient openAI = OpenAIOkHttpClient.builder()
             .apiKey(Config.get("OPENAI_API_KEY"))
             .build();
+    protected static final String CHAT_MODEL = Config.get("CHAT_MODEL");
+    protected static final String IMAGE_MODEL = Config.get("IMAGE_MODEL");
 
     /**
      * Creates a new AI command.

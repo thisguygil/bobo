@@ -1,9 +1,8 @@
 package bobo.commands.ai;
 
-import bobo.Config;
 import bobo.commands.CommandResponse;
 import com.openai.errors.OpenAIException;
-import com.openai.models.chat.completions.*;
+import com.openai.models.responses.*;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.User;
@@ -16,9 +15,9 @@ import java.time.OffsetDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 public class TLDRCommand extends AAICommand {
-    private static final String CHAT_MODEL = Config.get("CHAT_MODEL");
     private static final DateTimeFormatter FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm");
 
     /**
@@ -151,31 +150,35 @@ public class TLDRCommand extends AAICommand {
      * @return the response from the API
      */
     private String callOpenAI(String prompt) {
-        ChatCompletionMessageParam systemMessage = ChatCompletionMessageParam.ofSystem(ChatCompletionSystemMessageParam.builder()
-                .content(ChatCompletionSystemMessageParam.Content.ofText("You are an assistant that summarizes Discord conversations. You will be given a conversation and are to provide a concise summary, highlighting key points and main topics discussed."))
-                .build()
-        );
+        List<ResponseInputItem> inputItems = new ArrayList<>();
 
-        ChatCompletionMessageParam userMessage = ChatCompletionMessageParam.ofUser(ChatCompletionUserMessageParam.builder()
-                .content(ChatCompletionUserMessageParam.Content.ofText(prompt))
-                .build()
-        );
+        // System message
+        inputItems.add(ResponseInputItem.ofEasyInputMessage(EasyInputMessage.builder()
+                .role(EasyInputMessage.Role.SYSTEM)
+                .content("You are an assistant that summarizes Discord conversations. You will be given a conversation and are to provide a concise summary, highlighting key points and main topics discussed.")
+                .build()));
 
-        ChatCompletionCreateParams chatCompletionRequest = ChatCompletionCreateParams.builder()
+        // User message
+        inputItems.add(ResponseInputItem.ofEasyInputMessage(EasyInputMessage.builder()
+                .role(EasyInputMessage.Role.USER)
+                .content(prompt)
+                .build()));
+
+        // Create the response request
+        ResponseCreateParams createParams = ResponseCreateParams.builder()
                 .model(CHAT_MODEL)
-                .messages(List.of(systemMessage, userMessage))
+                .inputOfResponse(inputItems)
                 .build();
 
         try {
-            return openAI.chat()
-                    .completions()
-                    .create(chatCompletionRequest)
-                    .choices()
-                    .getFirst()
-                    .message()
-                    .content()
-                    .orElse("Unable to summarize conversation.");
-        } catch (OpenAIException e) {
+            return openAI.responses()
+                    .create(createParams)
+                    .output().getFirst()
+                    .message().orElseThrow()
+                    .content().getFirst()
+                    .outputText().orElseThrow()
+                    .text();
+        } catch (OpenAIException | NoSuchElementException e) {
             return "Unable to summarize conversation.";
         }
     }

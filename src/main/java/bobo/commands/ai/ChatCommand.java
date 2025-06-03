@@ -1,14 +1,14 @@
 package bobo.commands.ai;
 
-import bobo.Config;
 import bobo.commands.CommandResponse;
 import com.openai.errors.OpenAIException;
-import com.openai.models.chat.completions.*;
+import com.openai.models.responses.*;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
+import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
@@ -16,12 +16,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import java.util.*;
 
 public class ChatCommand extends AAICommand {
     private static final Logger logger = LoggerFactory.getLogger(ChatCommand.class);
-    private static final String CHAT_MODEL = Config.get("CHAT_MODEL");
-    private static final Map<ThreadChannel, List<ChatCompletionMessageParam>> CHANNEL_MESSAGE_MAP = new HashMap<>();
+    private static final Map<ThreadChannel, String> CONVERSATIONS = new HashMap<>();
+    private static final Map<String, String> PING_CONVERSATIONS = new HashMap<>();
 
     /**
      * Creates a new chat command.
@@ -41,18 +42,16 @@ public class ChatCommand extends AAICommand {
         threadChannel.addThreadMember(member).queue();
 
         startConversation(threadChannel);
-        return new CommandResponse("Started a conversation with " + memberName + " in " + threadChannel.getAsMention());
+        return new CommandResponse(String.format("Started a conversation with %s in %s", memberName, threadChannel.getAsMention()));
     }
 
     /**
-     * Starts a conversation with the given thread channel.
+     * Starts a conversation with the given thread channel by adding it to the conversations map.
      *
      * @param threadChannel the thread channel to start a conversation with
      */
     public static void startConversation(ThreadChannel threadChannel) {
-        List<ChatCompletionMessageParam> messages = new ArrayList<>();
-        initializeMessages(messages);
-        CHANNEL_MESSAGE_MAP.put(threadChannel, messages);
+        CONVERSATIONS.put(threadChannel, null);
     }
 
     /**
@@ -63,92 +62,142 @@ public class ChatCommand extends AAICommand {
      */
     public static void handleThreadMessage(@Nonnull MessageReceivedEvent event) {
         ThreadChannel threadChannel = event.getChannel().asThreadChannel();
-        if (!CHANNEL_MESSAGE_MAP.containsKey(threadChannel) || event.getAuthor().isSystem() || event.getAuthor().isBot()) {
+        if (!CONVERSATIONS.containsKey(threadChannel) || event.getAuthor().isSystem() || event.getAuthor().isBot()) {
             return;
         }
 
         threadChannel.sendTyping().queue();
-        List<ChatCompletionMessageParam> messages = CHANNEL_MESSAGE_MAP.get(threadChannel);
-
-        List<ChatCompletionContentPart> userMessageContent = buildUserMessageContent(event.getMessage());
-        if (userMessageContent.isEmpty()) {
-            return;
-        }
-
-        ChatCompletionMessageParam userMessage = createUserMessage(userMessageContent);
-        messages.add(userMessage);
 
         try {
-            ChatCompletionCreateParams chatCompletionRequest = ChatCompletionCreateParams.builder()
-                    .model(CHAT_MODEL)
-                    .messages(messages)
-                    .build();
+            List<ResponseInputItem> inputItems = new ArrayList<>();
+            ResponseCreateParams.Builder createParams = ResponseCreateParams.builder()
+                    .model(CHAT_MODEL);
 
-            String responseContent = openAI.chat()
-                    .completions()
-                    .create(chatCompletionRequest)
-                    .choices()
-                    .getFirst()
-                    .message()
-                    .content()
-                    .orElse("No response.");
+            String previousResponseId = CONVERSATIONS.get(threadChannel);
+            if (previousResponseId != null) {
+                createParams.previousResponseId(previousResponseId);
+            } else {
+                inputItems.add(createSystemMessage());
+            }
 
-            ChatCompletionMessageParam assistantMessageParam = createAssistantMessage(responseContent);
-            messages.add(assistantMessageParam);
+            inputItems.add(createUserMessage(event.getMessage()));
+            createParams.inputOfResponse(inputItems);
 
-            splitAndSendMessage(threadChannel, responseContent);
+            Response response = openAI.responses()
+                    .create(createParams.build());
 
-            CHANNEL_MESSAGE_MAP.replace(threadChannel, messages);
-        } catch (OpenAIException e) {
+            String responseContent = response.output().getFirst()
+                    .message().orElseThrow()
+                    .content().getFirst()
+                    .outputText().orElseThrow()
+                    .text();
+
+            splitAndSendMessage((MessageChannelUnion) threadChannel, responseContent, null, null);
+            CONVERSATIONS.replace(threadChannel, response.id());
+        } catch (OpenAIException | NoSuchElementException e) {
             threadChannel.sendMessage("Error generating response: " + e.getMessage()).queue();
-            logger.error("Error generating response: " + e.getMessage(), e);
+            logger.error("Error generating response: {}", e.getMessage(), e);
         }
     }
 
-    private static List<ChatCompletionContentPart> buildUserMessageContent(Message message) {
-        List<ChatCompletionContentPart> contentParts = new ArrayList<>();
+    /**
+     * Handles when a user pings the bot in a message.
+     * Separate from the thread handling, this is for when the bot is mentioned in a regular message.
+     *
+     * @param event the message to reply to
+     */
+    public static void pingResponse(MessageReceivedEvent event) {
+        MessageChannelUnion channel = event.getChannel();
+        Message message = event.getMessage();
+        channel.sendTyping().queue();
 
-        if (!message.getContentDisplay().isEmpty()) {
-            contentParts.add(ChatCompletionContentPart.ofText(ChatCompletionContentPartText.builder()
-                    .text(message.getContentDisplay())
-                    .build()
-            ));
+        try {
+            List<ResponseInputItem> inputItems = new ArrayList<>();
+            ResponseCreateParams.Builder createParams = ResponseCreateParams.builder()
+                    .model(CHAT_MODEL);
+
+            Message referenced = message.getReferencedMessage();
+            String previousResponseId = null;
+            if (referenced != null) {
+                previousResponseId = PING_CONVERSATIONS.get(referenced.getId());
+            }
+
+            if (previousResponseId != null) {
+                createParams.previousResponseId(previousResponseId);
+            } else {
+                inputItems.add(createSystemMessage());
+            }
+
+            inputItems.add(createUserMessage(event.getMessage()));
+            createParams.inputOfResponse(inputItems);
+
+            Response response = openAI.responses()
+                    .create(createParams.build());
+
+            String responseContent = response.output().getFirst()
+                    .message().orElseThrow()
+                    .content().getFirst()
+                    .outputText().orElseThrow()
+                    .text();
+
+            splitAndSendMessage(channel, responseContent, message, response.id());
+            if (referenced != null) {
+                PING_CONVERSATIONS.remove(referenced.getId());
+            }
+        } catch (OpenAIException | NoSuchElementException e) {
+            channel.sendMessage("Error generating response: " + e.getMessage()).queue();
+            logger.error("Error generating response: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Creates a user message for the OpenAI API given a Discord message.
+     *
+     * @param message the Discord message to convert
+     * @return a ResponseInputItem representing the user message
+     */
+    private static ResponseInputItem createUserMessage(Message message) {
+        ResponseInputItem.Message.Builder messageBuilder = ResponseInputItem.Message.builder()
+                .role(ResponseInputItem.Message.Role.USER);
+
+        String messageContent = message.getContentDisplay();
+        if (!messageContent.isEmpty()) {
+            messageBuilder.addInputTextContent(messageContent).build();
         }
 
         message.getAttachments().stream()
                 .filter(Message.Attachment::isImage)
-                .forEach(attachment -> contentParts.add(ChatCompletionContentPart.ofImageUrl(ChatCompletionContentPartImage.builder()
-                        .imageUrl(ChatCompletionContentPartImage.ImageUrl.builder()
-                                .url(attachment.getUrl())
-                                .build()
-                        )
+                .forEach(attachment -> messageBuilder.addContent(ResponseInputImage.builder()
+                        .imageUrl(attachment.getUrl())
                         .build()
-                )));
+                ));
 
-        return contentParts;
-    }
-
-    private static ChatCompletionMessageParam createUserMessage(List<ChatCompletionContentPart> content) {
-        return ChatCompletionMessageParam.ofUser(ChatCompletionUserMessageParam.builder()
-                .content(ChatCompletionUserMessageParam.Content.ofArrayOfContentParts(content))
-                .build()
-        );
-    }
-
-    private static ChatCompletionMessageParam createAssistantMessage(String responseContent) {
-        return ChatCompletionMessageParam.ofAssistant(ChatCompletionAssistantMessageParam.builder()
-                .content(ChatCompletionAssistantMessageParam.Content.ofText(responseContent))
-                .build()
-        );
+        return ResponseInputItem.ofMessage(messageBuilder.build());
     }
 
     /**
-     * Splits a message into chunks and sends them to a thread channel.
-     *
-     * @param threadChannel the thread channel to send the message to
-     * @param message the message to split
+     * Creates a preset system message for the OpenAI API.
+     * @return a ResponseInputItem representing the system message
      */
-    private static void splitAndSendMessage(ThreadChannel threadChannel, String message) {
+    private static ResponseInputItem createSystemMessage() {
+        return ResponseInputItem.ofMessage(ResponseInputItem.Message.builder()
+                .role(ResponseInputItem.Message.Role.SYSTEM)
+                .addInputTextContent("You are Bobo, a Discord bot created by Gil. You use slash commands and provide " +
+                        "clipping, music, chat, image creation, Last.fm info, Fortnite info, and other features. " +
+                        "Don't refer to yourself as an AI language model. When users talk to you, engage with them. " +
+                        "For help, direct users to the 'help' command.")
+                .build());
+    }
+
+    /**
+     * Splits a message into chunks and sends them to a message channel.
+     *
+     * @param channel the channel to send the message to
+     * @param message the message to split
+     * @param asReply a message to reply to, or null if no reply is needed
+     * @param conversationId the ID of the conversation, used for tracking replies
+     */
+    private static void splitAndSendMessage(MessageChannelUnion channel, String message, @Nullable Message asReply, String conversationId) {
         int maxMessageLength = 2000;
 
         List<String> chunks = new ArrayList<>();
@@ -159,7 +208,11 @@ public class ChatCommand extends AAICommand {
             start = end;
         }
 
-        chunks.forEach(chunk -> threadChannel.sendMessage(chunk).queue());
+        if (asReply != null && !chunks.isEmpty()) {
+            asReply.reply(chunks.getFirst()).queue(success -> PING_CONVERSATIONS.put(success.getId(), conversationId));
+            chunks.removeFirst();
+        }
+        chunks.forEach(chunk -> channel.sendMessage(chunk).queue());
     }
 
     /**
@@ -168,25 +221,7 @@ public class ChatCommand extends AAICommand {
      * @param event the thread delete event to handle
      */
     public static void handleThreadDelete(@Nonnull ChannelDeleteEvent event) {
-        CHANNEL_MESSAGE_MAP.remove(event.getChannel().asThreadChannel());
-    }
-
-    /**
-     * Clears the messages list and adds a system message to it.
-     *
-     * @param messages the messages list to initialize
-     */
-    public static void initializeMessages(@Nonnull List<ChatCompletionMessageParam> messages) {
-        messages.clear();
-        final ChatCompletionMessageParam systemMessageParam = ChatCompletionMessageParam.ofSystem(ChatCompletionSystemMessageParam.builder()
-                .content(ChatCompletionSystemMessageParam.Content.ofText(
-                "You are Bobo, a Discord bot created by Gil. You use slash commands and provide clipping, " +
-                        "music, chat, image creation, Last.fm info, Fortnite info, and other features. Don't refer " +
-                        "to yourself as an AI language model. When users talk to you, engage with them. For help, " +
-                        "direct users to the 'help' command.")
-                ).build()
-        );
-        messages.add(systemMessageParam);
+        CONVERSATIONS.remove(event.getChannel().asThreadChannel());
     }
 
     @Override

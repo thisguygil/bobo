@@ -1,6 +1,5 @@
 package bobo.commands.ai;
 
-import bobo.Config;
 import bobo.commands.CommandResponse;
 import com.openai.errors.OpenAIException;
 import com.openai.models.images.Image;
@@ -17,8 +16,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ImageCommand extends AAICommand {
-    private static final String IMAGE_MODEL = Config.get("IMAGE_MODEL");
-
     /**
      * Creates a new image command.
      */

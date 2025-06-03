@@ -61,20 +61,32 @@ public class Listener extends ListenerAdapter {
             return;
         }
 
+        // Forward DMs to a specific channel
         if (event.isFromType(ChannelType.PRIVATE)) {
             MessageChannel channel = Bobo.getJDA().getChannelById(MessageChannel.class, Config.get("DM_LOG_CHANNEL_ID"));
             if (channel != null) {
                 channel.sendMessage("DM from " + author.getAsMention()).queue(success -> message.forwardTo(channel).queue());
                 logger.info("DM Message from {} logged in #{}", author.getName(), channel.getName());
             }
-        } else if (event.isFromType(ChannelType.GUILD_PRIVATE_THREAD)) {
-            ChatCommand.handleThreadMessage(event);
         }
 
+        // Handle message commands
         if (message.getContentRaw().startsWith(PREFIX)) {
             if (message.isFromGuild()) {
                 manager.handle(event);
+                return;
             }
+        }
+
+        // Handle thread messages for AI conversations
+        if (event.isFromType(ChannelType.GUILD_PRIVATE_THREAD)) {
+            ChatCommand.handleThreadMessage(event);
+            return;
+        }
+
+        // Handle bot mentions for AI responses
+        if (message.getMentions().isMentioned(Bobo.getJDA().getSelfUser(), Message.MentionType.USER)) {
+            ChatCommand.pingResponse(event);
         }
     }
 
