@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.*;
+import java.util.function.BiConsumer;
 
 public class ChatCommand extends AAICommand {
     private static final Logger logger = LoggerFactory.getLogger(ChatCommand.class);
@@ -46,7 +47,7 @@ public class ChatCommand extends AAICommand {
     }
 
     /**
-     * Starts a conversation with the given thread channel by adding it to the conversations map.
+     * Starts a conversation with the given thread channel by adding it to the conversation map.
      *
      * @param threadChannel the thread channel to start a conversation with
      */
@@ -66,38 +67,9 @@ public class ChatCommand extends AAICommand {
             return;
         }
 
-        threadChannel.sendTyping().queue();
-
-        try {
-            List<ResponseInputItem> inputItems = new ArrayList<>();
-            ResponseCreateParams.Builder createParams = ResponseCreateParams.builder()
-                    .model(CHAT_MODEL);
-
-            String previousResponseId = CONVERSATIONS.get(threadChannel);
-            if (previousResponseId != null) {
-                createParams.previousResponseId(previousResponseId);
-            } else {
-                inputItems.add(createSystemMessage());
-            }
-
-            inputItems.add(createUserMessage(event.getMessage()));
-            createParams.inputOfResponse(inputItems);
-
-            Response response = openAI.responses()
-                    .create(createParams.build());
-
-            String responseContent = response.output().getFirst()
-                    .message().orElseThrow()
-                    .content().getFirst()
-                    .outputText().orElseThrow()
-                    .text();
-
-            splitAndSendMessage((MessageChannelUnion) threadChannel, responseContent, null, null);
-            CONVERSATIONS.replace(threadChannel, response.id());
-        } catch (OpenAIException | NoSuchElementException e) {
-            threadChannel.sendMessage("Error generating response: " + e.getMessage()).queue();
-            logger.error("Error generating response: {}", e.getMessage(), e);
-        }
+        String previousResponseId = CONVERSATIONS.get(threadChannel);
+        handleMessageInternal((MessageChannelUnion) threadChannel, event.getMessage(), previousResponseId, null,
+                (responseId, sentMessage) -> CONVERSATIONS.put(threadChannel, responseId));
     }
 
     /**
@@ -109,18 +81,39 @@ public class ChatCommand extends AAICommand {
     public static void pingResponse(MessageReceivedEvent event) {
         MessageChannelUnion channel = event.getChannel();
         Message message = event.getMessage();
+
+        Message referenced = message.getReferencedMessage();
+        String previousResponseId = referenced != null ? PING_CONVERSATIONS.get(referenced.getId()) : null;
+
+        handleMessageInternal(channel, message, previousResponseId, referenced,
+                (responseId, sentMessage) -> {
+                    if (referenced != null) {
+                        PING_CONVERSATIONS.remove(referenced.getId());
+                    }
+                    PING_CONVERSATIONS.put(sentMessage.getId(), responseId);
+                });
+    }
+
+    /**
+     * Handles a message in a thread or channel, sending a response using OpenAI's API.
+     *
+     * @param channel the channel to send the response to
+     * @param message the message to process
+     * @param previousResponseId the ID of the previous response, if any
+     * @param replyTo an optional message to reply to
+     * @param onResponseSent an optional callback to execute when the response is sent
+     */
+    private static void handleMessageInternal(@Nonnull MessageChannelUnion channel, Message message, @Nullable String previousResponseId, @Nullable Message replyTo, @Nullable BiConsumer<String, Message> onResponseSent) {
         channel.sendTyping().queue();
 
         try {
             List<ResponseInputItem> inputItems = new ArrayList<>();
             ResponseCreateParams.Builder createParams = ResponseCreateParams.builder()
-                    .model(CHAT_MODEL);
-
-            Message referenced = message.getReferencedMessage();
-            String previousResponseId = null;
-            if (referenced != null) {
-                previousResponseId = PING_CONVERSATIONS.get(referenced.getId());
-            }
+                    .model(CHAT_MODEL)
+                    .addTool(WebSearchTool.builder()
+                            .type(WebSearchTool.Type.WEB_SEARCH_PREVIEW)
+                            .searchContextSize(WebSearchTool.SearchContextSize.LOW)
+                            .build());
 
             if (previousResponseId != null) {
                 createParams.previousResponseId(previousResponseId);
@@ -128,22 +121,34 @@ public class ChatCommand extends AAICommand {
                 inputItems.add(createSystemMessage());
             }
 
-            inputItems.add(createUserMessage(event.getMessage()));
+            inputItems.add(createUserMessage(message));
             createParams.inputOfResponse(inputItems);
 
-            Response response = openAI.responses()
-                    .create(createParams.build());
+            Response response = openAI.responses().create(createParams.build());
 
-            String responseContent = response.output().getFirst()
-                    .message().orElseThrow()
+            List<ResponseOutputItem> responseOutput = response.output();
+            ResponseOutputItem outputItem;
+            if (responseOutput.getFirst().isWebSearchCall()) {
+                outputItem = responseOutput.get(1);
+            } else {
+                outputItem = responseOutput.getFirst();
+            }
+
+            String responseContent = outputItem.message().orElseThrow()
                     .content().getFirst()
                     .outputText().orElseThrow()
                     .text();
 
-            splitAndSendMessage(channel, responseContent, message, response.id());
-            if (referenced != null) {
-                PING_CONVERSATIONS.remove(referenced.getId());
+            List<String> chunks = splitMessage(responseContent);
+            if (replyTo != null && !chunks.isEmpty()) {
+                String firstChunk = chunks.removeFirst();
+                replyTo.reply(firstChunk).setSuppressEmbeds(true).queue(sentMsg -> {
+                    if (onResponseSent != null) {
+                        onResponseSent.accept(response.id(), sentMsg);
+                    }
+                });
             }
+            chunks.forEach(chunk -> channel.sendMessage(chunk).setSuppressEmbeds(true).queue());
         } catch (OpenAIException | NoSuchElementException e) {
             channel.sendMessage("Error generating response: " + e.getMessage()).queue();
             logger.error("Error generating response: {}", e.getMessage(), e);
@@ -182,37 +187,15 @@ public class ChatCommand extends AAICommand {
     private static ResponseInputItem createSystemMessage() {
         return ResponseInputItem.ofMessage(ResponseInputItem.Message.builder()
                 .role(ResponseInputItem.Message.Role.SYSTEM)
-                .addInputTextContent("You are Bobo, a Discord bot created by Gil. You use slash commands and provide " +
-                        "clipping, music, chat, image creation, Last.fm info, Fortnite info, and other features. " +
-                        "Don't refer to yourself as an AI language model. When users talk to you, engage with them. " +
-                        "For help, direct users to the 'help' command.")
-                .build());
-    }
-
-    /**
-     * Splits a message into chunks and sends them to a message channel.
-     *
-     * @param channel the channel to send the message to
-     * @param message the message to split
-     * @param asReply a message to reply to, or null if no reply is needed
-     * @param conversationId the ID of the conversation, used for tracking replies
-     */
-    private static void splitAndSendMessage(MessageChannelUnion channel, String message, @Nullable Message asReply, String conversationId) {
-        int maxMessageLength = 2000;
-
-        List<String> chunks = new ArrayList<>();
-        int start = 0;
-        while (start < message.length()) {
-            int end = Math.min(message.length(), start + 2000);
-            chunks.add(message.substring(start, end));
-            start = end;
-        }
-
-        if (asReply != null && !chunks.isEmpty()) {
-            asReply.reply(chunks.getFirst()).queue(success -> PING_CONVERSATIONS.put(success.getId(), conversationId));
-            chunks.removeFirst();
-        }
-        chunks.forEach(chunk -> channel.sendMessage(chunk).queue());
+                .addInputTextContent(
+                        "You are Bobo, a Discord bot created by Gil. You can use slash commands and message (prefix) commands " +
+                        "and provide clipping, music, chat, image creation, Last.fm info, Fortnite info, and other features. " +
+                        "Don't refer to yourself as an AI language model. For help, direct users to the 'help' command. " +
+                        "Don't be afraid to be passive aggressive, and turn your sass to 11, especially when users are " +
+                        "being repetitive or annoying (but obviously don't say you're sassy, just do it). " +
+                        "Have an actual personality instead of being generic or too peppy. " +
+                        "However, be sure to still answer questions and provide information when asked."
+                ).build());
     }
 
     /**

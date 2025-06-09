@@ -23,7 +23,7 @@ repositories {
 
 dependencies {
     // Discord API and Utilities
-    implementation("net.dv8tion:JDA:5.5.1")
+    implementation("net.dv8tion:JDA:5.6.1")
     implementation("com.github.ygimenez:Pagination-Utils:4.1.2")
 
     // LavaPlayer
@@ -52,7 +52,7 @@ dependencies {
 
     // Other API Wrappers
     implementation("se.michaelthelin.spotify:spotify-web-api-java:9.2.0")
-    implementation("com.openai:openai-java:2.3.2")
+    implementation("com.openai:openai-java:2.6.0")
 
     // Other Java Utilities
     implementation("org.reflections:reflections:0.10.2")
