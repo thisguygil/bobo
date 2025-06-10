@@ -85,7 +85,7 @@ public class ChatCommand extends AAICommand {
         Message referenced = message.getReferencedMessage();
         String previousResponseId = referenced != null ? PING_CONVERSATIONS.get(referenced.getId()) : null;
 
-        handleMessageInternal(channel, message, previousResponseId, referenced,
+        handleMessageInternal(channel, message, previousResponseId, message,
                 (responseId, sentMessage) -> {
                     if (referenced != null) {
                         PING_CONVERSATIONS.remove(referenced.getId());
