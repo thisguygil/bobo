@@ -28,7 +28,7 @@ dependencies {
 
     // LavaPlayer
     implementation("dev.arbjerg:lavaplayer:2.2.3")
-    implementation("dev.lavalink.youtube:v2:1.13.2")
+    implementation("dev.lavalink.youtube:v2:1.13.3")
     implementation("com.github.topi314.lavasrc:lavasrc:4.7.0")
     implementation("com.github.topi314.lavalyrics:lavalyrics:1.0.0")
 
@@ -52,7 +52,7 @@ dependencies {
 
     // Other API Wrappers
     implementation("se.michaelthelin.spotify:spotify-web-api-java:9.2.0")
-    implementation("com.openai:openai-java:2.6.0")
+    implementation("com.openai:openai-java:2.7.0")
 
     // Other Java Utilities
     implementation("org.reflections:reflections:0.10.2")

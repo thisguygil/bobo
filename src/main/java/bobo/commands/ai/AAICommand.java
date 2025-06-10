@@ -6,6 +6,7 @@ import bobo.commands.CommandResponse;
 import com.openai.client.OpenAIClient;
 import com.openai.client.okhttp.OpenAIOkHttpClient;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.channel.unions.MessageChannelUnion;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
 import java.util.*;
@@ -51,6 +52,15 @@ public abstract class AAICommand extends ADualCommand {
         Set<String> activeFormat = new LinkedHashSet<>();
 
         while (start < message.length()) {
+            int remaining = message.length() - start;
+
+            if (remaining <= maxMessageLength) { // No need to split — add remaining message and break
+                String finalChunk = message.substring(start);
+                updateFormattingState(activeFormat, finalChunk);
+                chunks.add(finalChunk);
+                break;
+            }
+
             int end = Math.min(start + maxMessageLength, message.length());
             int splitAt = findSafeSplitPoint(message, start, end);
 
@@ -81,6 +91,31 @@ public abstract class AAICommand extends ADualCommand {
     }
 
     /**
+     * Sends the message chunks sequentially to avoid hitting Discord's rate limits.
+     * Each chunk is sent only after the previous one has been successfully sent.
+     *
+     * @param channel the channel to send the messages to
+     * @param chunks the list of message chunks to send
+     */
+    protected static void sendChunksSequentially(MessageChannelUnion channel, List<String> chunks, int index) {
+        if (index >= chunks.size()) return;
+
+        channel.sendMessage(chunks.get(index))
+                .setSuppressEmbeds(true)
+                .queue(sent -> sendChunksSequentially(channel, chunks, index + 1));
+    }
+
+    private static final Pattern MARKDOWN_LINK_PATTERN = Pattern.compile("\\[[^]]+]\\([^)]+\\)");
+    private static final List<String> MARKDOWN_FORMATS = List.of(
+            "**", // Bold
+            "*",  // Italic
+            "__", // Underline
+            "~~", // Strikethrough
+            "`"   // Inline code
+    );
+    private static final String CODE_BLOCK = "```"; // Handle code blocks separately
+
+    /**
      * Finds a safe index to split a message into chunks.
      * Preferred split points are at empty lines or spaces, avoiding Markdown links.
      *
@@ -91,8 +126,7 @@ public abstract class AAICommand extends ADualCommand {
      */
     private static int findSafeSplitPoint(String message, int start, int end) {
         // Regex to match Markdown links: [text](url)
-        String markdownPattern = "\\[[^]]+]\\([^)]+\\)";
-        var matcher = Pattern.compile(markdownPattern).matcher(message);
+        var matcher = MARKDOWN_LINK_PATTERN.matcher(message);
 
         // Collect ranges of Markdown links
         List<int[]> markdownRanges = new ArrayList<>();
@@ -101,21 +135,27 @@ public abstract class AAICommand extends ADualCommand {
         }
 
         int candidate = end;
+        int lastSpace = -1;
+        int lastEmptyLine = -1;
 
-        // Prefer split at empty line (double newline or newline followed by optional space + newline)
-        int emptyLine = message.lastIndexOf("\n\n", end - 1);
-        if (emptyLine == -1) { // Try Windows newline pattern
-            emptyLine = message.lastIndexOf("\r\n\r\n", end - 1);
+        for (int i = start + 1; i < end - 1; i++) {
+            char c = message.charAt(i);
+            if (c == ' ') lastSpace = i;
+
+            // Fast check for "\n\n" or "\r\n\r\n"
+            if (c == '\n' && message.charAt(i - 1) == '\n') {
+                lastEmptyLine = i + 1;
+            } else if (c == '\n' && message.charAt(i - 1) == '\r') {
+                if (i >= 3 && message.charAt(i - 2) == '\n' && message.charAt(i - 3) == '\r') {
+                    lastEmptyLine = i + 1;
+                }
+            }
         }
 
-        if (emptyLine > start) {
-            candidate = emptyLine + 2; // Keep newline as start of the next chunk
-        } else {
-            // Fall back to space
-            int lastSpace = message.lastIndexOf(' ', end - 1);
-            if (lastSpace > start) {
-                candidate = lastSpace;
-            }
+        if (lastEmptyLine > start) {
+            candidate = lastEmptyLine;
+        } else if (lastSpace > start) {
+            candidate = lastSpace;
         }
 
         // Check if the candidate is inside a Markdown link
@@ -126,7 +166,11 @@ public abstract class AAICommand extends ADualCommand {
             }
         }
 
-        return Math.max(candidate, start + 1);
+        if (candidate <= start + 10 && message.length() > start + 10) {
+            // Avoid micro-chunks by forcing larger step
+            candidate = start + Math.min(200, message.length() - start);
+        }
+        return candidate;
     }
 
     /**
@@ -136,25 +180,55 @@ public abstract class AAICommand extends ADualCommand {
      * @param activeFormat the set of currently active formatting tags
      * @param text the text to analyze for formatting
      */
-    private static void updateFormattingState(Set<String> activeFormat, String text) {
-        final List<String> FORMATS = List.of(
-                "**", // Bold
-                "*",  // Italic
-                "__", // Underline
-                "~~", // Strikethrough
-                "`"   // Inline code
-        );
+    protected static void updateFormattingState(Set<String> activeFormat, String text) {
+        // Track full code blocks that use ``` on their own line or with language tag
+        for (String line : text.split("\n")) {
+            String trimmed = line.trim();
+            if (trimmed.startsWith(CODE_BLOCK)) {
+                Optional<String> activeCodeBlock = activeFormat.stream()
+                        .filter(f -> f.startsWith(CODE_BLOCK))
+                        .findFirst();
 
-        for (String fmt : FORMATS) {
-            int count = countUnescapedOccurrences(text, fmt);
-            if (count % 2 != 0) {
-                if (activeFormat.contains(fmt)) {
-                    activeFormat.remove(fmt); // Close tag
+                if (activeCodeBlock.isPresent()) {
+                    activeFormat.remove(activeCodeBlock.get()); // Close current code block
                 } else {
-                    activeFormat.add(fmt);    // Open tag
+                    if (trimmed.matches("```\\w+")) { // e.g., ```java
+                        activeFormat.add(trimmed);
+                    } else {
+                        activeFormat.add(CODE_BLOCK);
+                    }
                 }
             }
         }
+
+        // Handle inline formats
+        for (String fmt : MARKDOWN_FORMATS) {
+            int count = countUnescapedOccurrences(text, fmt);
+            if (count % 2 != 0) {
+                if (activeFormat.contains(fmt)) {
+                    activeFormat.remove(fmt);
+                } else {
+                    activeFormat.add(fmt);
+                }
+            }
+        }
+    }
+
+    /**
+     * Counts the number of full code blocks in the text.
+     * A full code block is defined as a pair of opening and closing code block markers (```) on separate lines.
+     *
+     * @param text the text to analyze
+     * @return the count of full code blocks
+     */
+    protected static int countCodeBlocks(String text) {
+        int count = 0;
+        for (String line : text.split("\n")) {
+            if (line.trim().equals(CODE_BLOCK)) {
+                count++;
+            }
+        }
+        return count;
     }
 
     /**

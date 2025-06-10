@@ -56,11 +56,7 @@ public class TLDRCommand extends AAICommand {
         List<String> chunks = splitMessage(summary);
         MessageChannelUnion channel = (MessageChannelUnion) getChannel();
 
-        return new CommandResponse(chunks.getFirst(), null, null, null, message -> {
-            for (int i = 1; i < chunks.size(); i++) {
-                channel.sendMessage(chunks.get(i)).setSuppressEmbeds(true).queue();
-            }
-        }, null, null);
+        return new CommandResponse(chunks.getFirst(), null, null, null, message -> sendChunksSequentially(channel, chunks, 1), null, null);
     }
 
     /**

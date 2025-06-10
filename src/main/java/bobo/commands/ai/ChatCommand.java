@@ -148,7 +148,7 @@ public class ChatCommand extends AAICommand {
                     }
                 });
             }
-            chunks.forEach(chunk -> channel.sendMessage(chunk).setSuppressEmbeds(true).queue());
+            sendChunksSequentially(channel, chunks, 0);
         } catch (OpenAIException | NoSuchElementException e) {
             channel.sendMessage("Error generating response: " + e.getMessage()).queue();
             logger.error("Error generating response: {}", e.getMessage(), e);
