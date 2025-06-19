@@ -15,8 +15,8 @@ The greatest Discord bot on the planet (don't fact-check that).
 * Search Google (and Google Images) with the [Google API](https://developers.google.com/custom-search/v1/overview)
 * Get Fortnite stats, daily shop updates, and map information with the [Fortnite API](https://fortnite-api.com/)
 
-## Supported formats
-Bobo supports all formats supported by [LavaPlayer](https://github.com/lavalink-devs/lavaplayer?tab=readme-ov-file#supported-formats), as well as Spotify and Deezer supported by [LavaSrc](https://github.com/topi314/LavaSrc), with extra functionality for many sources from API integrations.
+## Supported file formats for audio playback
+Bobo supports all file formats supported by [LavaPlayer](https://github.com/lavalink-devs/lavaplayer?tab=readme-ov-file#supported-formats), as well as Spotify and Deezer supported by [LavaSrc](https://github.com/topi314/LavaSrc), with extra functionality for many sources from API integrations.
 
 ## Inviting to your server
 Bobo isn't currently publicly available to be invited to your server, but you can easily host your own instance (see below).
@@ -25,7 +25,7 @@ Bobo isn't currently publicly available to be invited to your server, but you ca
 You can run it on any platform with [Docker](https://www.docker.com/) installed by copying the [docker-compose.yml](docker-compose.yml) file, filling in the environment variables in the `.env` file, and using the commands below.
 
 > [!IMPORTANT]  
-> [.env.example](.env.example) is an example file including all the required environment variables. You can rename it to `.env` and fill in the values. It includes some default (non-sensitive) values, such as `!` as the message command prefix or `0` as the UTC offset (for time-related features), which you can change to your liking, but you must fill in values such as the owner's [Discord user ID](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID), the database credentials, or API keys, for their respective features to work. It is recommended to fill in all values to ensure all features work as intended. Of course, the `TOKEN` value is required for the bot to even run at all.
+> [.env.example](.env.example) is an example file including all the required environment variables. You can rename it to `.env` and fill in the values. It includes some default (non-sensitive) values, such as `!` as the message command prefix or `0` as the UTC offset (for time-related features), which you can change to your liking, but you must fill in the sensitive values such as the owner's [Discord user ID](https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID), the database credentials, or API keys, for their respective features to work. It is recommended to fill in all values to ensure all features work as intended. Of course, the `TOKEN` value is required for the bot to even run at all.
 
 > [!TIP]  
 > To start the bot, run: `docker-compose up -d`. To update, run: `docker-compose pull` to pull the latest image and `docker-compose up -d` to restart. If the bot is in audio channels, it's recommended to first run `docker-compose down` to stop it, and wait for it to go offline before restarting the container.
