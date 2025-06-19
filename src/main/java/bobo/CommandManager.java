@@ -22,52 +22,25 @@ public class CommandManager {
      */
     public CommandManager() {
         Reflections reflections = new Reflections("bobo.commands");
-
-        // Load dual commands
-        reflections.getSubTypesOf(ADualCommand.class).forEach(command -> {
+        reflections.getSubTypesOf(ICommand.class).forEach(command -> {
             try {
                 if (Modifier.isAbstract(command.getModifiers())) {
                     return;
                 }
 
-                ADualCommand dualCommand = command.getDeclaredConstructor().newInstance();
-                commands.put(dualCommand.getName(), dualCommand);
-                for (String alias : dualCommand.getAliases()) {
-                    commands.put(alias, dualCommand);
+                ICommand iCommand = command.getDeclaredConstructor().newInstance();
+                commands.put(iCommand.getName(), iCommand);
+                if (iCommand instanceof ADualCommand dualCommand) {
+                    for (String alias : dualCommand.getAliases()) {
+                        commands.put(alias, dualCommand);
+                    }
+                } else if (iCommand instanceof AMessageCommand messageCommand) {
+                    for (String alias : messageCommand.getAliases()) {
+                        commands.put(alias, messageCommand);
+                    }
                 }
             } catch (Exception e) {
-                logger.error("Error loading dual command '{}'.", command.getName());
-            }
-        });
-
-        // Load slash commands
-        reflections.getSubTypesOf(ASlashCommand.class).forEach(command -> {
-            try {
-                if (Modifier.isAbstract(command.getModifiers())) {
-                    return;
-                }
-
-                ASlashCommand slashCommand = command.getDeclaredConstructor().newInstance();
-                commands.put(slashCommand.getName(), slashCommand);
-            } catch (Exception e) {
-                logger.error("Error loading slash command '{}'.", command.getName());
-            }
-        });
-
-        // Load message commands
-        reflections.getSubTypesOf(AMessageCommand.class).forEach(command -> {
-            try {
-                if (Modifier.isAbstract(command.getModifiers())) {
-                    return;
-                }
-
-                AMessageCommand messageCommand = command.getDeclaredConstructor().newInstance();
-                commands.put(messageCommand.getName(), messageCommand);
-                for (String alias : messageCommand.getAliases()) {
-                    commands.put(alias, messageCommand);
-                }
-            } catch (Exception e) {
-                logger.error("Error loading message command '{}'.", command.getName());
+                logger.error("Error loading command '{}'.", command.getName());
             }
         });
     }
