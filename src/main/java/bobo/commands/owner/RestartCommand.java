@@ -2,7 +2,6 @@ package bobo.commands.owner;
 
 import bobo.Bobo;
 import bobo.commands.CommandResponse;
-import bobo.commands.CommandResponseBuilder;
 
 public class RestartCommand extends AOwnerCommand {
     /**
@@ -18,7 +17,8 @@ public class RestartCommand extends AOwnerCommand {
     @Override
     protected CommandResponse handleOwnerCommand() {
         // Uses callback to ensure that the message is sent before the bot shuts down.
-        return new CommandResponseBuilder().setContent("Restarting...")
+        return CommandResponse.builder()
+                .setContent("Restarting...")
                 .setPostExecutionAsMessage(success -> Bobo.restart())
                 .setFailureHandler(failure -> Bobo.restart())
                 .build();

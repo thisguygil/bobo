@@ -1,7 +1,6 @@
 package bobo.commands.voice.music;
 
 import bobo.commands.CommandResponse;
-import bobo.commands.CommandResponseBuilder;
 import bobo.lavaplayer.PlayerManager;
 import bobo.lavaplayer.TrackType;
 import bobo.utils.*;
@@ -383,7 +382,8 @@ public class SearchCommand extends AMusicCommand {
 
         EmojiMapping<ThrowingConsumer<ButtonWrapper>> buttons = doResults(links);
 
-        return new CommandResponseBuilder().setContent(StringEscapeUtils.unescapeHtml4(message))
+        return CommandResponse.builder()
+                .setContent(StringEscapeUtils.unescapeHtml4(message))
                 .setPostExecutionAsMessage(success -> {
                     Pages.buttonize(success, buttons, true, false);
                     scheduledService.schedule(() -> Pages.clearButtons(success), 1, TimeUnit.MINUTES); // Clear buttons after 1 minute

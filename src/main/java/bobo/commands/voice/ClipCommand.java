@@ -1,7 +1,6 @@
 package bobo.commands.voice;
 
 import bobo.Bobo;
-import bobo.commands.CommandResponseBuilder;
 import bobo.utils.AudioReceiveListener;
 import bobo.commands.CommandResponse;
 import bobo.utils.api_clients.SQLConnection;
@@ -83,7 +82,8 @@ public class ClipCommand extends AVoiceCommand {
             ((GuildMessageChannel) channel).sendFiles(fileUpload).queue();
         }
 
-        return new CommandResponseBuilder().addAttachments(fileUpload)
+        return CommandResponse.builder()
+                .addAttachments(fileUpload)
                 .setPostExecutionAsMessage(success -> {
                     if (!file.delete()) {
                         logger.error("Failed to delete file: {}", file.getName());

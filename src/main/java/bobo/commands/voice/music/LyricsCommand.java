@@ -1,7 +1,6 @@
 package bobo.commands.voice.music;
 
 import bobo.commands.CommandResponse;
-import bobo.commands.CommandResponseBuilder;
 import bobo.utils.api_clients.SpotifyLink;
 import com.github.topi314.lavalyrics.LyricsManager;
 import com.github.topi314.lavalyrics.lyrics.AudioLyrics;
@@ -73,7 +72,8 @@ public class LyricsCommand extends AMusicCommand {
         if (pages.size() == 1) { // Don't paginate if there's only one page
             return new CommandResponse((MessageEmbed) pages.getFirst().getContent());
         } else {
-            return new CommandResponseBuilder().addEmbeds((MessageEmbed) pages.getFirst().getContent())
+            return CommandResponse.builder()
+                    .addEmbeds((MessageEmbed) pages.getFirst().getContent())
                     .setPostExecutionAsMessage(
                             success -> Pages.paginate(success, pages, true)
                     )

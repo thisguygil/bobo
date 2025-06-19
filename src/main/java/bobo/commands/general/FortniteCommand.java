@@ -1,7 +1,6 @@
 package bobo.commands.general;
 
 import bobo.commands.CommandResponse;
-import bobo.commands.CommandResponseBuilder;
 import bobo.utils.api_clients.FortniteAPI;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.Command;
@@ -117,7 +116,7 @@ public class FortniteCommand extends AGeneralCommand {
                 return new CommandResponse("Failed to get shop images.");
             }
 
-            return new CommandResponseBuilder().setContent(message)
+            return CommandResponse.builder().setContent(message)
                     .addAttachments(images.stream()
                             .map(image -> convertBufferedImageToFile(image, "shop"))
                             .filter(Objects::nonNull)
@@ -144,7 +143,7 @@ public class FortniteCommand extends AGeneralCommand {
                 return new CommandResponse("Failed to get map image.");
             }
 
-            return new CommandResponseBuilder().addAttachments(FileUpload.fromData(image))
+            return CommandResponse.builder().addAttachments(FileUpload.fromData(image))
                     .build();
         });
     }

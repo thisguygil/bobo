@@ -1,7 +1,6 @@
 package bobo.commands.general;
 
 import bobo.commands.CommandResponse;
-import bobo.commands.CommandResponseBuilder;
 import bobo.utils.api_clients.GoogleCustomSearchService;
 import com.github.ygimenez.method.Pages;
 import com.github.ygimenez.model.InteractPage;
@@ -159,7 +158,7 @@ public class GoogleCommand extends AGeneralCommand {
         if (pages.size() == 1) {
             return new CommandResponse((MessageEmbed) pages.getFirst().getContent());
         } else {
-            return new CommandResponseBuilder().addEmbeds((MessageEmbed) pages.getFirst().getContent())
+            return CommandResponse.builder().addEmbeds((MessageEmbed) pages.getFirst().getContent())
                     .setPostExecutionAsMessage(success -> Pages.paginate(success, pages, true))
                     .build();
         }

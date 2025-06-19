@@ -1,7 +1,6 @@
 package bobo.commands.voice.music;
 
 import bobo.commands.CommandResponse;
-import bobo.commands.CommandResponseBuilder;
 import bobo.lavaplayer.TrackScheduler;
 import bobo.lavaplayer.TrackRecord;
 import bobo.utils.AudioReceiveListener;
@@ -115,7 +114,8 @@ public class QueueCommand extends AMusicCommand {
         if (pages.size() == 1) { // Don't paginate if there's only one page
             return new CommandResponse((MessageEmbed) pages.getFirst().getContent());
         } else {
-            return new CommandResponseBuilder().addEmbeds((MessageEmbed) pages.getFirst().getContent())
+            return CommandResponse.builder()
+                    .addEmbeds((MessageEmbed) pages.getFirst().getContent())
                     .setPostExecutionAsMessage(
                             success -> Pages.paginate(success, pages, true)
                     )

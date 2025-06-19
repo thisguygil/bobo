@@ -2,7 +2,6 @@ package bobo.commands.general;
 
 import bobo.Bobo;
 import bobo.commands.CommandResponse;
-import bobo.commands.CommandResponseBuilder;
 import bobo.utils.api_clients.SQLConnection;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.Permission;
@@ -209,7 +208,8 @@ public class RandomCommand extends AGeneralCommand {
             byte[] fileData = byteArrayOutputStream.toByteArray();
             FileUpload fileUpload = FileUpload.fromData(fileData, attachment.getFileName());
 
-            return new CommandResponseBuilder().addAttachments(fileUpload).build();
+            return CommandResponse.builder()
+                    .addAttachments(fileUpload).build();
         } catch (Exception e) {
             logger.error("Failed to send clip as attachment.", e);
             return new CommandResponse("Failed to send the clip.");

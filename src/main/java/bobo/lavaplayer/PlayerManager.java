@@ -3,7 +3,6 @@ package bobo.lavaplayer;
 import bobo.Config;
 import bobo.commands.voice.music.TTSCommand;
 import bobo.commands.CommandResponse;
-import bobo.commands.CommandResponseBuilder;
 import bobo.utils.AudioReceiveListener;
 import bobo.utils.TimeFormat;
 import bobo.utils.api_clients.SpotifyLink;
@@ -51,7 +50,7 @@ public class PlayerManager {
 
         YoutubeAudioSourceManager youtubeAudioSourceManager = new YoutubeAudioSourceManager(
                 new MusicWithThumbnail(),
-                new WebWithThumbnail(),
+                // new WebWithThumbnail(), bugged
                 new MWebWithThumbnail(),
                 new WebEmbeddedWithThumbnail(),
                 new AndroidMusicWithThumbnail(),
@@ -130,7 +129,7 @@ public class PlayerManager {
         CompletableFuture.runAsync(() -> this.audioPlayerManager.loadItemOrdered(musicManager, trackURL, new AudioLoadResultHandler() {
             @Override
             public void trackLoaded(AudioTrack track) {
-                CommandResponse finalResponse = new CommandResponseBuilder()
+                CommandResponse finalResponse = CommandResponse.builder()
                         .setContent(PlayerManager.trackLoaded(guild, scheduler, track, trackURL, trackType))
                         .setPostExecutionAsMessage(_ -> scheduler.queue(track, member, channel, trackType))
                         .build();
@@ -153,7 +152,7 @@ public class PlayerManager {
                 }
 
                 String message = PlayerManager.playlistLoadedMessage(scheduler, playlist, trackURL, tracks);
-                CommandResponse finalResponse = new CommandResponseBuilder()
+                CommandResponse finalResponse = CommandResponse.builder()
                         .setContent(message)
                         .setPostExecutionAsMessage(_ -> {
                             for (final AudioTrack track : tracks) {
@@ -167,7 +166,7 @@ public class PlayerManager {
 
             @Override
             public void noMatches() {
-                CommandResponse finalResponse = new CommandResponseBuilder()
+                CommandResponse finalResponse = CommandResponse.builder()
                         .setContent(PlayerManager.noMatches(trackURL, trackType))
                         .build();
 
@@ -180,7 +179,7 @@ public class PlayerManager {
                 if (errorMessage.equals("Sign in to confirm you’re not a bot")) {
                     String youtubeTitle = YouTubeUtil.getTitle(trackURL);
                     if (youtubeTitle == null) {
-                        CommandResponse finalResponse = new CommandResponseBuilder()
+                        CommandResponse finalResponse = CommandResponse.builder()
                                 .setContent("Could not load: " + markdownBold(errorMessage))
                                 .build();
 
@@ -189,7 +188,7 @@ public class PlayerManager {
                         loadAndPlay(channel, member, "scsearch:" + youtubeTitle, trackType);
                     }
                 } else {
-                    CommandResponse finalResponse = new CommandResponseBuilder()
+                    CommandResponse finalResponse = CommandResponse.builder()
                             .setContent("Could not load: " + markdownBold(errorMessage))
                             .build();
 
