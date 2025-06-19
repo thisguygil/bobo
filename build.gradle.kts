@@ -27,9 +27,9 @@ dependencies {
     implementation("com.github.ygimenez:Pagination-Utils:4.1.2")
 
     // LavaPlayer
-    implementation("dev.arbjerg:lavaplayer:2.2.3")
+    implementation("dev.arbjerg:lavaplayer:2.2.4")
     implementation("dev.lavalink.youtube:v2:1.13.3")
-    implementation("com.github.topi314.lavasrc:lavasrc:4.7.0")
+    implementation("com.github.topi314.lavasrc:lavasrc:4.7.1")
     implementation("com.github.topi314.lavalyrics:lavalyrics:1.0.0")
 
     // Google APIs
@@ -52,7 +52,7 @@ dependencies {
 
     // Other API Wrappers
     implementation("se.michaelthelin.spotify:spotify-web-api-java:9.2.0")
-    implementation("com.openai:openai-java:2.7.0")
+    implementation("com.openai:openai-java:2.8.1")
 
     // Other Java Utilities
     implementation("org.reflections:reflections:0.10.2")
