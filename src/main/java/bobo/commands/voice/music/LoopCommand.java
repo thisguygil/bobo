@@ -35,7 +35,7 @@ public class LoopCommand extends AMusicCommand {
     @Override
     protected CommandResponse handleMusicCommand() {
         if (currentTrack == null) {
-            return new CommandResponse("There is nothing currently playing.");
+            return CommandResponse.text("There is nothing currently playing.");
         }
 
         try {
@@ -43,10 +43,10 @@ public class LoopCommand extends AMusicCommand {
                 case "track" -> track();
                 case "queue" -> queue();
                 case "off" -> off();
-                default -> new CommandResponse("Invalid usage. Please use `/help loop` for more information.");
+                default -> CommandResponse.text("Invalid usage. Please use `/help loop` for more information.");
             };
         } catch (RuntimeException e) {
-            return new CommandResponse("Invalid usage. Please use `/help loop` for more information.");
+            return CommandResponse.text("Invalid usage. Please use `/help loop` for more information.");
         }
     }
 
@@ -55,21 +55,21 @@ public class LoopCommand extends AMusicCommand {
      */
     private CommandResponse track() {
         if (currentTrack.track().getInfo().isStream) {
-            return new CommandResponse("Cannot loop a live stream.");
+            return CommandResponse.text("Cannot loop a live stream.");
         }
 
         switch (scheduler.looping) {
             case NONE, QUEUE -> {
                 scheduler.looping = looping.TRACK;
-                return new CommandResponse("The track has been set to loop.");
+                return CommandResponse.text("The track has been set to loop.");
             }
             case TRACK -> {
                 scheduler.looping = looping.NONE;
-                return new CommandResponse("Looping has been turned off.");
+                return CommandResponse.text("Looping has been turned off.");
             }
         }
 
-        return new CommandResponse();
+        return CommandResponse.EMPTY; // Should not reach here, but must return something
     }
 
     /**
@@ -79,15 +79,15 @@ public class LoopCommand extends AMusicCommand {
         switch (scheduler.looping) {
             case NONE, TRACK -> {
                 scheduler.looping = looping.QUEUE;
-                return new CommandResponse("The queue has been set to loop.");
+                return CommandResponse.text("The queue has been set to loop.");
             }
             case QUEUE -> {
                 scheduler.looping = looping.NONE;
-                return new CommandResponse("Looping has been turned off.");
+                return CommandResponse.text("Looping has been turned off.");
             }
         }
 
-        return new CommandResponse();
+        return CommandResponse.EMPTY; // Should not reach here, but must return something
     }
 
     /**
@@ -95,10 +95,10 @@ public class LoopCommand extends AMusicCommand {
      */
     private CommandResponse off() {
         return switch (scheduler.looping) {
-            case NONE -> new CommandResponse("Looping is already off.");
+            case NONE -> CommandResponse.text("Looping is already off.");
             case TRACK, QUEUE -> {
                 scheduler.looping = looping.NONE;
-                yield new CommandResponse("Looping has been turned off.");
+                yield CommandResponse.text("Looping has been turned off.");
             }
         };
     }

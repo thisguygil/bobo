@@ -82,29 +82,29 @@ public class SearchCommand extends AMusicCommand {
             searchType = getOptionValue("type", 1);
             query = getMultiwordOptionValue("query", 2);
         } catch (Exception e) {
-            return new CommandResponse("Invalid usage. Use `/help search` for more information.");
+            return CommandResponse.text("Invalid usage. Use `/help search` for more information.");
         }
 
         return switch (platform) {
             case "youtube" -> switch (searchType) {
                 case "track" -> searchYoutubeTrack(query);
                 case "playlist" -> searchYoutubePlaylist(query);
-                case "album" -> new CommandResponse("Searching albums is not supported on YouTube.");
-                default -> new CommandResponse("Invalid usage. Use `/help search` for more information.");
+                case "album" -> CommandResponse.text("Searching albums is not supported on YouTube.");
+                default -> CommandResponse.text("Invalid usage. Use `/help search` for more information.");
             };
             case "spotify" -> switch (searchType) {
                 case "track" -> searchSpotifyTrack(query);
                 case "playlist" -> searchSpotifyPlaylist(query);
                 case "album" -> searchSpotifyAlbum(query);
-                default -> new CommandResponse("Invalid usage. Use `/help search` for more information.");
+                default -> CommandResponse.text("Invalid usage. Use `/help search` for more information.");
             };
             case "soundcloud" -> switch (searchType) {
                 case "track" -> searchSoundcloud(query, "track");
                 case "playlist" -> searchSoundcloud(query, "playlist");
                 case "album" -> searchSoundcloud(query, "album");
-                default -> new CommandResponse("Invalid usage. Use `/help search` for more information.");
+                default -> CommandResponse.text("Invalid usage. Use `/help search` for more information.");
             };
-            default -> new CommandResponse("Invalid usage. Use `/help search` for more information.");
+            default -> CommandResponse.text("Invalid usage. Use `/help search` for more information.");
         };
     }
 
@@ -118,7 +118,7 @@ public class SearchCommand extends AMusicCommand {
         try {
             List<SearchResult> videoSearch = YouTubeUtil.searchForVideos(query);
             if (videoSearch == null) {
-                return new CommandResponse("No videos found.");
+                return CommandResponse.text("No videos found.");
             }
 
             String[] videoLinks = new String[videoSearch.size()];
@@ -131,7 +131,7 @@ public class SearchCommand extends AMusicCommand {
             return handleYoutubeSearch(videoSearch, videoLinks, query, "video");
         } catch (Exception e) {
             logger.error("An error occurred while searching for YouTube videos.");
-            return new CommandResponse("An error occurred while searching for videos.");
+            return CommandResponse.text("An error occurred while searching for videos.");
         }
     }
 
@@ -146,7 +146,7 @@ public class SearchCommand extends AMusicCommand {
         try {
             List<SearchResult> playlistSearch = YouTubeUtil.searchForPlaylists(query);
             if (playlistSearch == null) {
-                return new CommandResponse("No playlists found.");
+                return CommandResponse.text("No playlists found.");
             }
 
             String[] playlistLinks = new String[playlistSearch.size()];
@@ -159,7 +159,7 @@ public class SearchCommand extends AMusicCommand {
             return handleYoutubeSearch(playlistSearch, playlistLinks, query, "playlist");
         } catch (Exception e) {
             logger.error("An error occurred while searching for YouTube playlists.");
-            return new CommandResponse("An error occurred while searching for playlists.");
+            return CommandResponse.text("An error occurred while searching for playlists.");
         }
     }
 
@@ -199,7 +199,7 @@ public class SearchCommand extends AMusicCommand {
             // Get the tracks from the Spotify API
             Track[] tracks = spotifyApi.searchTracks(query).limit(5).build().execute().getItems();
             if (tracks.length == 0) {
-                return new CommandResponse("No tracks found.");
+                return CommandResponse.text("No tracks found.");
             }
 
             // Store each track's artist(s) in a 2D array
@@ -237,7 +237,7 @@ public class SearchCommand extends AMusicCommand {
             return handleResult(message.toString(), "track", trackLinks);
         } catch (Exception e) {
             logger.error("An error occurred while searching for Spotify tracks.");
-            return new CommandResponse("An error occurred while searching for tracks.");
+            return CommandResponse.text("An error occurred while searching for tracks.");
         }
     }
 
@@ -253,7 +253,7 @@ public class SearchCommand extends AMusicCommand {
 
             PlaylistSimplified[] playlists = spotifyApi.searchPlaylists(query).limit(5).build().execute().getItems();
             if (playlists.length == 0) {
-                return new CommandResponse("No playlists found.");
+                return CommandResponse.text("No playlists found.");
             }
 
             String[] playlistLinks = new String[playlists.length];
@@ -273,7 +273,7 @@ public class SearchCommand extends AMusicCommand {
             return handleResult(message.toString(), "playlist", playlistLinks);
         } catch (Exception e) {
             logger.error("An error occurred while searching for Spotify playlists.");
-            return new CommandResponse("An error occurred while searching for playlists.");
+            return CommandResponse.text("An error occurred while searching for playlists.");
         }
     }
 
@@ -289,7 +289,7 @@ public class SearchCommand extends AMusicCommand {
 
             AlbumSimplified[] albums = spotifyApi.searchAlbums(query).limit(5).build().execute().getItems();
             if (albums.length == 0) {
-                return new CommandResponse("No tracks found.");
+                return CommandResponse.text("No tracks found.");
             }
 
             ArtistSimplified[][] artists = new ArtistSimplified[albums.length][];
@@ -324,7 +324,7 @@ public class SearchCommand extends AMusicCommand {
             return handleResult(message.toString(), "album", albumLinks);
         } catch (Exception e) {
             logger.error("An error occurred while searching for Spotify albums.");
-            return new CommandResponse("An error occurred while searching for albums.");
+            return CommandResponse.text("An error occurred while searching for albums.");
         }
     }
 
@@ -338,12 +338,12 @@ public class SearchCommand extends AMusicCommand {
     private CommandResponse searchSoundcloud(String query, String type) {
         String apiResponse = SoundCloudAPI.search(query, type + "s", 5);
         if (apiResponse == null) {
-            return new CommandResponse("An error occurred while searching for " + type + "s.");
+            return CommandResponse.text("An error occurred while searching for " + type + "s.");
         }
 
         JSONObject response = new JSONObject(apiResponse);
         if (response.getInt("total_results") == 0) {
-            return new CommandResponse("No " + type + "s found.");
+            return CommandResponse.text("No " + type + "s found.");
         }
 
         JSONArray collection = response.getJSONArray("collection");
@@ -384,7 +384,7 @@ public class SearchCommand extends AMusicCommand {
 
         return CommandResponse.builder()
                 .setContent(StringEscapeUtils.unescapeHtml4(message))
-                .setPostExecutionAsMessage(success -> {
+                .setPostExecutionFromMessage(success -> {
                     Pages.buttonize(success, buttons, true, false);
                     scheduledService.schedule(() -> Pages.clearButtons(success), 1, TimeUnit.MINUTES); // Clear buttons after 1 minute
                 })
@@ -428,7 +428,7 @@ public class SearchCommand extends AMusicCommand {
 
             MessageChannel channel = wrapper.getChannel();
             CommandResponse response = PlayerManager.getInstance().loadAndPlay(wrapper.getChannel(), wrapper.getMember(), links[index], TrackType.TRACK);
-            channel.sendMessage(response.asMessageCreateData()).queue(response.getPostExecutionAsMessage());
+            channel.sendMessage(response.asMessageCreateData()).queue(response.postExecutionFromMessage());
             Pages.clearButtons(wrapper.getMessage());
         };
 

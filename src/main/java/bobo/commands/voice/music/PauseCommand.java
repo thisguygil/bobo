@@ -14,14 +14,14 @@ public class PauseCommand extends AMusicCommand {
     @Override
     protected CommandResponse handleMusicCommand() {
         if (currentTrack == null) {
-            return new CommandResponse("There is nothing currently playing.");
+            return CommandResponse.text("There is nothing currently playing.");
         }
 
         if (!player.isPaused()) {
             player.setPaused(true);
-            return new CommandResponse("Paused.");
+            return CommandResponse.text("Paused.");
         } else {
-            return new CommandResponse("The player is already paused. Use `/resume` to resume.");
+            return CommandResponse.text("The player is already paused. Use `/resume` to resume.");
         }
     }
 

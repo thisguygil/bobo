@@ -29,10 +29,10 @@ public class NowPlayingCommand extends AMusicCommand {
     @Override
     protected CommandResponse handleMusicCommand() {
         if (currentTrack == null) {
-            return new CommandResponse("There is nothing currently playing.");
+            return CommandResponse.text("There is nothing currently playing.");
         }
 
-        return new CommandResponse(createEmbed(currentTrack, musicManager));
+        return CommandResponse.embed(createEmbed(currentTrack, musicManager));
     }
 
     /**

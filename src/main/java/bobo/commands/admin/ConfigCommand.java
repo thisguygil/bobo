@@ -63,14 +63,14 @@ public class ConfigCommand extends AAdminCommand {
                 case "clips" -> configClips(guildId, channelId);
                 case "quotes" -> configQuotes(guildId, channelId);
                 case "fortnite-shop" -> configFortniteShop(guildId, channelId);
-                default -> new CommandResponse("Invalid usage. Use `/help config` for more information.");
+                default -> CommandResponse.text("Invalid usage. Use `/help config` for more information.");
             };
         } else {
             return switch (setting) {
                 case "clips" -> resetClips(guildId);
                 case "quotes" -> resetQuotes(guildId);
                 case "fortnite-shop" -> resetFortniteShop(guildId);
-                default -> new CommandResponse("Invalid usage. Use `/help config` for more information.");
+                default -> CommandResponse.text("Invalid usage. Use `/help config` for more information.");
             };
         }
     }
@@ -94,9 +94,9 @@ public class ConfigCommand extends AAdminCommand {
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
-            return new CommandResponse("An error occurred while configuring the clips channel.");
+            return CommandResponse.text("An error occurred while configuring the clips channel.");
         }
-        return new CommandResponse("Clips channel set to <#" + channelId + ">.");
+        return CommandResponse.text("Clips channel set to <#%s>.", channelId);
     }
 
     /**
@@ -118,9 +118,9 @@ public class ConfigCommand extends AAdminCommand {
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
-            return new CommandResponse("An error occurred while configuring the quotes channel.");
+            return CommandResponse.text("An error occurred while configuring the quotes channel.");
         }
-        return new CommandResponse("Quotes channel set to <#" + channelId + ">.");
+        return CommandResponse.text("Quotes channel set to <#%s>.", channelId);
     }
 
     /**
@@ -142,9 +142,9 @@ public class ConfigCommand extends AAdminCommand {
                 statement.executeUpdate();
             }
         } catch (SQLException e) {
-            return new CommandResponse("An error occurred while configuring the Fortnite Shop channel.");
+            return CommandResponse.text("An error occurred while configuring the Fortnite Shop channel.");
         }
-        return new CommandResponse("The daily Fortnite Shop will be sent in <#" + channelId + "> every day at 0:01 UTC.");
+        return CommandResponse.text("The daily Fortnite Shop will be sent in <#%s> every day at 0:01 UTC.", channelId);
     }
 
     /**
@@ -158,10 +158,10 @@ public class ConfigCommand extends AAdminCommand {
             statement.setString(1, guildId);
             statement.executeUpdate();
         } catch (SQLException e) {
-            return new CommandResponse("An error occurred while resetting the clips channel.");
+            return CommandResponse.text("An error occurred while resetting the clips channel.");
         }
         RandomCommand.guildClipListMap.remove(Bobo.getJDA().getGuildById(guildId));
-        return new CommandResponse("Clips channel reset.");
+        return CommandResponse.text("Clips channel reset.");
     }
 
     /**
@@ -175,10 +175,10 @@ public class ConfigCommand extends AAdminCommand {
             statement.setString(1, guildId);
             statement.executeUpdate();
         } catch (SQLException e) {
-            return new CommandResponse("An error occurred while resetting the quotes channel.");
+            return CommandResponse.text("An error occurred while resetting the quotes channel.");
         }
         RandomCommand.guildQuoteListMap.remove(Bobo.getJDA().getGuildById(guildId));
-        return new CommandResponse("Quotes channel reset.");
+        return CommandResponse.text("Quotes channel reset.");
     }
 
     /**
@@ -192,9 +192,9 @@ public class ConfigCommand extends AAdminCommand {
             statement.setString(1, guildId);
             statement.executeUpdate();
         } catch (SQLException e) {
-            return new CommandResponse("An error occurred while resetting the Fortnite Shop channel.");
+            return CommandResponse.text("An error occurred while resetting the Fortnite Shop channel.");
         }
-        return new CommandResponse("Fortnite Shop channel reset.");
+        return CommandResponse.text("Fortnite Shop channel reset.");
     }
 
     @Override

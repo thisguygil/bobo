@@ -21,12 +21,12 @@ public class DeafenCommand extends AVoiceCommand {
     protected CommandResponse handleVoiceCommand() {
         Guild guild = getGuild();
         if (!guild.getAudioManager().isConnected()) {
-            return new CommandResponse("I am not connected to a voice channel.");
+            return CommandResponse.text("I am not connected to a voice channel.");
         }
 
         boolean isDeafened = guild.getSelfMember().getVoiceState().isDeafened();
         guild.getAudioManager().setSelfDeafened(!isDeafened);
-        return new CommandResponse((isDeafened ? "Und" : "D") + "eafened.");
+        return CommandResponse.text((isDeafened ? "Und" : "D") + "eafened.");
     }
 
     @Override

@@ -19,19 +19,19 @@ public class RepeatCommand extends AMusicCommand {
     protected CommandResponse handleMusicCommand() {
         Member member = getMember();
         if (!ensureConnected(member)) {
-            return new CommandResponse("You must be connected to a voice channel to use this command.");
+            return CommandResponse.text("You must be connected to a voice channel to use this command.");
         }
 
         if (reAddTrackToQueue(member, currentTrack)) {
-            return new CommandResponse("The current track has been re-added to the queue.");
+            return CommandResponse.text("The current track has been re-added to the queue.");
         }
 
         if (reAddTrackToQueue(member, previousTrack)) {
             scheduler.nextTrack(); // If the previous track was re-added, it means the player is stopped and needs to be started again.
-            return new CommandResponse("The previous track has been re-added to the queue.");
+            return CommandResponse.text("The previous track has been re-added to the queue.");
         }
 
-        return new CommandResponse("There is nothing to repeat.");
+        return CommandResponse.text("There is nothing to repeat.");
     }
 
     /**

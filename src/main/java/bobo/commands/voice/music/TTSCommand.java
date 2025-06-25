@@ -11,7 +11,7 @@ import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.util.*;
 
-// NOTE: This classifies as a music command only due to the fact that it must use lavaplayer to play tts.
+// NOTE: This classifies as a music command only because it must use lavaplayer to play tts.
 // It should be a voice command, but it is not possible to play the tts without lavaplayer.
 public class TTSCommand extends AMusicCommand {
     private static final Map<Guild, Map<AudioTrack, String>> trackMessageMap = new HashMap<>();
@@ -33,14 +33,14 @@ public class TTSCommand extends AMusicCommand {
     @Override
     protected CommandResponse handleMusicCommand() {
         if (!ensureConnected(getMember())) {
-            return new CommandResponse("You must be connected to a voice channel to use this command.");
+            return CommandResponse.text("You must be connected to a voice channel to use this command.");
         }
 
         String message;
         try {
             message = getMultiwordOptionValue("message", 0);
         } catch (Exception e) {
-            return new CommandResponse("Please provide a message to say.");
+            return CommandResponse.text("Please provide a message to say.");
         }
         message = StringUtils.encodeUrl(message);
 

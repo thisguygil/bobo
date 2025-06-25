@@ -87,7 +87,7 @@ public class FMCommand extends AGeneralCommand {
         try {
             subcommand = getSubcommandName(0);
         } catch (RuntimeException e) {
-            return new CommandResponse("Invalid usage. Use `/help fm` for more information.");
+            return CommandResponse.text("Invalid usage. Use `/help fm` for more information.");
         }
 
         return switch (subcommand) {
@@ -100,18 +100,18 @@ public class FMCommand extends AGeneralCommand {
                 try {
                     action = getOptionValue("action", 1);
                 } catch (RuntimeException e) {
-                    yield new CommandResponse("Invalid usage. Use `/help fm` for more information.");
+                    yield CommandResponse.text("Invalid usage. Use `/help fm` for more information.");
                 }
 
                 yield switch (action) {
                     case "login" -> login();
                     case "logout" -> logout();
-                    default -> new CommandResponse("Invalid usage. Use `/help fm` for more information.");
+                    default -> CommandResponse.text("Invalid usage. Use `/help fm` for more information.");
                 };
             }
             case "info" -> {
                 if (!validateLogin()) {
-                    yield new CommandResponse("You are not logged in to Last.fm. Use `/fm auth login` to log in.");
+                    yield CommandResponse.text("You are not logged in to Last.fm. Use `/fm auth login` to log in.");
                 }
 
                 switch (source) {
@@ -123,7 +123,7 @@ public class FMCommand extends AGeneralCommand {
                 try {
                     type = getOptionValue("type", 1);
                 } catch (RuntimeException e) {
-                    yield new CommandResponse("Invalid usage. Use `/help fm` for more information.");
+                    yield CommandResponse.text("Invalid usage. Use `/help fm` for more information.");
                 }
 
                 String option;
@@ -137,10 +137,10 @@ public class FMCommand extends AGeneralCommand {
                     case "track" -> track(option);
                     case "album" ->  album(option);
                     case "artist" -> artist(option);
-                    default -> new CommandResponse("Invalid usage. Use `/help fm` for more information.");
+                    default -> CommandResponse.text("Invalid usage. Use `/help fm` for more information.");
                 };
             }
-            default -> new CommandResponse("Invalid usage. Use `/help fm` for more information.");
+            default -> CommandResponse.text("Invalid usage. Use `/help fm` for more information.");
         };
     }
 
@@ -154,13 +154,13 @@ public class FMCommand extends AGeneralCommand {
 
         // Make sure user isn't already logged in
         if (getUserName(userId) != null) {
-            return new CommandResponse("You are already logged in to Last.fm.");
+            return CommandResponse.text("You are already logged in to Last.fm.");
         }
 
         // Send GET request to get token
         String response = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "auth.getToken")), false);
         if (response == null) {
-            return new CommandResponse("An error occurred while getting the token.");
+            return CommandResponse.text("An error occurred while getting the token.");
         }
 
         JSONObject responseObject = new JSONObject(response);
@@ -183,7 +183,7 @@ public class FMCommand extends AGeneralCommand {
         }
 
         // Send link back to Discord to log in
-        return new CommandResponse("Log in to Last.fm [here](" + "https://www.last.fm/api/auth?api_key=" + API_KEY + "&token=" + token + ").");
+        return CommandResponse.text("Log in to Last.fm [here](" + "https://www.last.fm/api/auth?api_key=" + API_KEY + "&token=" + token + ").");
 
         // TODO: Add a callback to ensure the user actually logs in after running the command, where if they don't log in within a certain period of time, the token is deleted. For now, we assume the user logs in.
     }
@@ -198,16 +198,16 @@ public class FMCommand extends AGeneralCommand {
             }
         } catch (SQLException e) {
             logger.error("An error occurred while logging out of Last.fm. for user {}", userId, e);
-            return new CommandResponse("An error occurred while logging out of Last.fm.");
+            return CommandResponse.text("An error occurred while logging out of Last.fm.");
         }
 
-        return new CommandResponse("Successfully logged out of Last.fm.");
+        return CommandResponse.text("Successfully logged out of Last.fm.");
     }
 
     private CommandResponse track(String option) {
         String username = getUserName(getUser().getId());
         if (username == null) { // Should never happen, but just in case
-            return new CommandResponse("You are not logged in to Last.fm. Use `/fmlogin` to log in.");
+            return CommandResponse.text("You are not logged in to Last.fm. Use `/fmlogin` to log in.");
         }
 
         Member member = getMember();
@@ -216,7 +216,7 @@ public class FMCommand extends AGeneralCommand {
             // Get the last played track with a GET request to user.getRecentTracks
             String response = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "user.getRecentTracks", "user", username, "limit", "1")), false);
             if (response == null) {
-                return new CommandResponse("An error occurred while getting your last played track.");
+                return CommandResponse.text("An error occurred while getting your last played track.");
             }
 
             JSONObject responseObject = new JSONObject(response);
@@ -230,12 +230,12 @@ public class FMCommand extends AGeneralCommand {
             // Search the track information with a GET request to track.search
             String response = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "track.search", "track", option, "limit", "1")), false);
             if (response == null) {
-                return new CommandResponse("An error occurred while searching for the track.");
+                return CommandResponse.text("An error occurred while searching for the track.");
             }
 
             JSONObject responseObject = new JSONObject(response);
             if (responseObject.getJSONObject("results").getInt("opensearch:totalResults") == 0) {
-                return new CommandResponse("No results found for the track.");
+                return CommandResponse.text("No results found for the track.");
             }
 
             // Parse the track's name and artist
@@ -250,7 +250,7 @@ public class FMCommand extends AGeneralCommand {
         // Get the track's information with a GET request to track.getInfo
         String trackResponse = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "track.getInfo", "track", trackName, "artist", artistName, "username", username)), false);
         if (trackResponse == null) {
-            return new CommandResponse("An error occurred while getting the track's information.");
+            return CommandResponse.text("An error occurred while getting the track's information.");
         }
 
         // Parse the track's information
@@ -259,7 +259,7 @@ public class FMCommand extends AGeneralCommand {
         try {
             trackObject = responseObject.getJSONObject("track");
         } catch (JSONException e) {
-            return new CommandResponse("No results found for the track. This usually happens for recently released tracks. Check back later.");
+            return CommandResponse.text("No results found for the track. This usually happens for recently released tracks. Check back later.");
         }
         String trackUrl = trackObject.getString("url");
         String trackImage = null;
@@ -315,13 +315,13 @@ public class FMCommand extends AGeneralCommand {
             embed.addField("Summary", trackSummary, false);
         }
 
-        return new CommandResponse(embed.build());
+        return CommandResponse.embed(embed.build());
     }
 
     private CommandResponse album(String option) {
         String username = getUserName(getUser().getId());
         if (username == null) { // Should never happen, but just in case
-            return new CommandResponse("You are not logged in to Last.fm. Use `/fmlogin` to log in.");
+            return CommandResponse.text("You are not logged in to Last.fm. Use `/fmlogin` to log in.");
         }
 
         Member member = getMember();
@@ -330,7 +330,7 @@ public class FMCommand extends AGeneralCommand {
             // Get the last played artist with a GET request to user.getRecentTracks
             String response = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "user.getRecentTracks", "user", username, "limit", "1")), false);
             if (response == null) {
-                return new CommandResponse("An error occurred while getting your last played album.");
+                return CommandResponse.text("An error occurred while getting your last played album.");
             }
 
             JSONObject responseObject = new JSONObject(response);
@@ -345,12 +345,12 @@ public class FMCommand extends AGeneralCommand {
             // Search the artist information with a GET request to album.search
             String response = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "album.search", "album", option, "limit", "1")), false);
             if (response == null) {
-                return new CommandResponse("An error occurred while searching for the album.");
+                return CommandResponse.text("An error occurred while searching for the album.");
             }
 
             JSONObject responseObject = new JSONObject(response);
             if (responseObject.getJSONObject("results").getInt("opensearch:totalResults") == 0) {
-                return new CommandResponse("No results found for the album.");
+                return CommandResponse.text("No results found for the album.");
             }
 
             JSONObject albumObject = responseObject.getJSONObject("results")
@@ -364,7 +364,7 @@ public class FMCommand extends AGeneralCommand {
         // Get the album's information with a GET request to album.getInfo
         String response = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "album.getInfo", "album", albumName, "artist", artistName, "username", username)), false);
         if (response == null) {
-            return new CommandResponse("An error occurred while getting the album's information.");
+            return CommandResponse.text("An error occurred while getting the album's information.");
         }
 
         // Parse the album's information
@@ -373,7 +373,7 @@ public class FMCommand extends AGeneralCommand {
         try {
             albumObject = responseObject.getJSONObject("album");
         } catch (JSONException e) {
-            return new CommandResponse("No results found for the album. This usually happens for recently released albums. Check back later.");
+            return CommandResponse.text("No results found for the album. This usually happens for recently released albums. Check back later.");
         }
         String albumUrl = albumObject.getString("url");
         String albumImage = null;
@@ -416,13 +416,13 @@ public class FMCommand extends AGeneralCommand {
             embed.addField("Summary", albumSummary, false);
         }
 
-        return new CommandResponse(embed.build());
+        return CommandResponse.embed(embed.build());
     }
 
     private CommandResponse artist(String option) {
         String username = getUserName(getUser().getId());
         if (username == null) { // Should never happen, but just in case
-            return new CommandResponse("You are not logged in to Last.fm. Use `/fmlogin` to log in.");
+            return CommandResponse.text("You are not logged in to Last.fm. Use `/fmlogin` to log in.");
         }
 
         Member member = getMember();
@@ -431,7 +431,7 @@ public class FMCommand extends AGeneralCommand {
             // Get the last played artist with a GET request to user.getRecentTracks
             String response = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "user.getRecentTracks", "user", username, "limit", "1")), false);
             if (response == null) {
-                return new CommandResponse("An error occurred while getting your last played artist.");
+                return CommandResponse.text("An error occurred while getting your last played artist.");
             }
 
             JSONObject responseObject = new JSONObject(response);
@@ -444,12 +444,12 @@ public class FMCommand extends AGeneralCommand {
             // Search the artist information with a GET request to artist.search
             String response = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "artist.search", "artist", option, "limit", "1")), false);
             if (response == null) {
-                return new CommandResponse("An error occurred while searching for the artist.");
+                return CommandResponse.text("An error occurred while searching for the artist.");
             }
 
             JSONObject responseObject = new JSONObject(response);
             if (responseObject.getJSONObject("results").getInt("opensearch:totalResults") == 0) {
-                return new CommandResponse("No results found for the artist.");
+                return CommandResponse.text("No results found for the artist.");
             }
 
             artistName = responseObject.getJSONObject("results")
@@ -462,7 +462,7 @@ public class FMCommand extends AGeneralCommand {
         // Get the artist's image with a GET request to artist.getInfo
         String response = LastfmAPI.sendGetRequest(new HashMap<>(Map.of("method", "artist.getInfo", "artist", artistName, "username", username)), false);
         if (response == null) {
-            return new CommandResponse("An error occurred while getting the artist's information.");
+            return CommandResponse.text("An error occurred while getting the artist's information.");
         }
 
         // Parse the artist's information
@@ -471,7 +471,7 @@ public class FMCommand extends AGeneralCommand {
         try {
             artistObject = responseObject.getJSONObject("artist");
         } catch (JSONException e) {
-            return new CommandResponse("No results found for the artist. This usually happens for recently released artists. Check back later.");
+            return CommandResponse.text("No results found for the artist. This usually happens for recently released artists. Check back later.");
         }
         String artistUrl = artistObject.getString("url");
         String artistImage = null;
@@ -536,7 +536,7 @@ public class FMCommand extends AGeneralCommand {
             embed.addField("Summary", artistSummary, false);
         }
 
-        return new CommandResponse(embed.build());
+        return CommandResponse.embed(embed.build());
     }
 
     /**

@@ -4,18 +4,16 @@ import bobo.commands.CommandResponse;
 import bobo.utils.api_clients.SpotifyLink;
 import com.github.topi314.lavalyrics.LyricsManager;
 import com.github.topi314.lavalyrics.lyrics.AudioLyrics;
-import com.github.ygimenez.method.Pages;
-import com.github.ygimenez.model.InteractPage;
-import com.github.ygimenez.model.Page;
 import com.sedmelluq.discord.lavaplayer.track.AudioTrackInfo;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+
+import static bobo.commands.voice.music.QueueCommand.getPagedEmbedResponse;
 
 public class LyricsCommand extends AMusicCommand {
     public LyricsCommand() {
@@ -25,7 +23,7 @@ public class LyricsCommand extends AMusicCommand {
     @Override
     protected CommandResponse handleMusicCommand() {
         if (currentTrack == null) {
-            return new CommandResponse("There is nothing currently playing.");
+            return CommandResponse.text("There is nothing currently playing.");
         }
 
         LyricsManager lyricsManager = playerManager.getLyricsManager();
@@ -33,11 +31,11 @@ public class LyricsCommand extends AMusicCommand {
         try {
             lyrics = lyricsManager.loadLyrics(currentTrack.track());
         } catch (Exception e) {
-            return new CommandResponse("An error occurred while fetching the lyrics.");
+            return CommandResponse.text("An error occurred while fetching the lyrics.");
         }
 
         if (lyrics == null || lyrics.getLines() == null) {
-            return new CommandResponse("No lyrics found for the current track.");
+            return CommandResponse.text("No lyrics found for the current track.");
         }
 
         StringBuilder lyricsText = new StringBuilder();
@@ -47,7 +45,7 @@ public class LyricsCommand extends AMusicCommand {
         }
 
         if (lyricsText.isEmpty()) {
-            return new CommandResponse("No lyrics found for the current track.");
+            return CommandResponse.text("No lyrics found for the current track.");
         }
 
         List<EmbedBuilder> embedBuilders = new ArrayList<>();
@@ -61,24 +59,7 @@ public class LyricsCommand extends AMusicCommand {
         // Add the remaining lyrics
         embedBuilders.add(createEmbed(member, info, lyricsText.toString()));
 
-        int pageCount = 1;
-        List<Page> pages = new ArrayList<>();
-        for (EmbedBuilder embedBuilder : embedBuilders) {
-            embedBuilder.setFooter("Page " + pageCount + " of " + embedBuilders.size());
-            pages.add(InteractPage.of(embedBuilder.build()));
-            pageCount++;
-        }
-
-        if (pages.size() == 1) { // Don't paginate if there's only one page
-            return new CommandResponse((MessageEmbed) pages.getFirst().getContent());
-        } else {
-            return CommandResponse.builder()
-                    .addEmbeds((MessageEmbed) pages.getFirst().getContent())
-                    .setPostExecutionAsMessage(
-                            success -> Pages.paginate(success, pages, true)
-                    )
-                    .build();
-        }
+        return getPagedEmbedResponse(embedBuilders);
     }
 
     /**

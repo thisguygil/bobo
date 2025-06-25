@@ -34,7 +34,7 @@ public class SeekCommand extends AMusicCommand {
     @Override
     protected CommandResponse handleMusicCommand() {
         if (currentTrack == null) {
-            return new CommandResponse("There is nothing currently playing.");
+            return CommandResponse.text("There is nothing currently playing.");
         }
 
         String subcommand = getSubcommandName(0);
@@ -43,7 +43,7 @@ public class SeekCommand extends AMusicCommand {
             case "forward" -> seekForward(source);
             case "backward" -> seekBackward(source);
             case "position" -> seekPosition(source);
-            default -> new CommandResponse("Invalid usage. Use `/help seek` for more information.");
+            default -> CommandResponse.text("Invalid usage. Use `/help seek` for more information.");
         };
     }
 
@@ -55,15 +55,15 @@ public class SeekCommand extends AMusicCommand {
         try {
             seconds = Integer.parseInt(getOptionValue("seconds", 1));
         } catch (Exception e) {
-            return new CommandResponse("Invalid usage. Use `/help seek` for more information.");
+            return CommandResponse.text("Invalid usage. Use `/help seek` for more information.");
         }
         if (seconds <= 0) {
-            return new CommandResponse("Number of seconds must be positive.");
+            return CommandResponse.text("Number of seconds must be positive.");
         }
 
         AudioTrack currentAudioTrack = currentTrack.track();
         currentAudioTrack.setPosition(currentAudioTrack.getPosition() + seconds * 1000L);
-        return new CommandResponse("Seeked forward by " + markdownBold(seconds) + " seconds.");
+        return CommandResponse.text("Seeked forward by %s seconds.", markdownBold(seconds));
     }
 
     /**
@@ -74,15 +74,15 @@ public class SeekCommand extends AMusicCommand {
         try {
             seconds = Integer.parseInt(getOptionValue("seconds", 1));
         } catch (Exception e) {
-            return new CommandResponse("Invalid usage. Use `/help seek` for more information.");
+            return CommandResponse.text("Invalid usage. Use `/help seek` for more information.");
         }
         if (seconds <= 0) {
-            return new CommandResponse("Number of seconds must be positive.");
+            return CommandResponse.text("Number of seconds must be positive.");
         }
 
         AudioTrack currentAudioTrack = currentTrack.track();
         currentAudioTrack.setPosition(currentAudioTrack.getPosition() - seconds * 1000L);
-        return new CommandResponse("Seeked backward by " + markdownBold(seconds) + " seconds.");
+        return CommandResponse.text("Seeked backward by %s seconds.", markdownBold(seconds));
     }
 
     /**
@@ -93,16 +93,16 @@ public class SeekCommand extends AMusicCommand {
         try {
             position = getOptionValue("position", 1);
         } catch (Exception e) {
-            return new CommandResponse("Invalid usage. Use `/help seek` for more information.");
+            return CommandResponse.text("Invalid usage. Use `/help seek` for more information.");
         }
         long time = TimeFormat.parseTime(position);
         if (time == -1) {
-            return new CommandResponse("Invalid time format. Format: **HH:MM:SS**");
+            return CommandResponse.text("Invalid time format. Format: **HH:MM:SS**");
         }
 
         AudioTrack currentAudioTrack = currentTrack.track();
         currentAudioTrack.setPosition(time);
-        return new CommandResponse("Seeked to " + markdownBold(position));
+        return CommandResponse.text("Seeked to " + markdownBold(position));
     }
 
     @Override

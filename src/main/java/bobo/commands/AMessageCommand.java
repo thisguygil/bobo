@@ -42,11 +42,11 @@ public abstract class AMessageCommand implements ICommand {
     protected abstract CommandResponse handleCommand();
 
     /**
-     * Gets whether the bot should show typing before replying.
+     * Gets whether the bot should not show typing before replying.
      * <br>
-     * (Note: it is 'should NOT show typing' for consistency with {@link ASlashCommand#shouldBeEphemeral()}, as to be ephemeral and to not show typing are similar in that they are both invisible to other users.)
+     * (Note: it is 'should <b><em>not</em></b> show typing' for consistency with {@link ASlashCommand#shouldBeEphemeral()}, as to be ephemeral and to <b><em>not</em></b> show typing are similar in that they are both invisible to other users.)
      *
-     * @return Whether the bot should show typing before replying, or null if it could be either.
+     * @return Whether the bot should not show typing before replying, or null if it could be either.
      */
     @Nullable
     public abstract Boolean shouldNotShowTyping();

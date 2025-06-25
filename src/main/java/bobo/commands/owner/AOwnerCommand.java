@@ -16,11 +16,11 @@ public abstract class AOwnerCommand extends AMessageCommand {
 
     @Override
     protected CommandResponse handleCommand() {
-        if (event.getAuthor().getId().equals(Config.get("OWNER_ID"))) {
-            return handleOwnerCommand();
-        } else {
-            return new CommandResponse("You do not have the required permissions to execute this command.");
+        if (!event.getAuthor().getId().equals(Config.get("OWNER_ID"))) {
+            return CommandResponse.EMPTY;
         }
+
+        return handleOwnerCommand();
     }
 
     /**

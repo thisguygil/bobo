@@ -60,7 +60,7 @@ public class HelpCommand extends AGeneralCommand {
             }
         }
 
-        return new CommandResponse(message.toString());
+        return CommandResponse.text(message.toString());
     }
 
     @Override

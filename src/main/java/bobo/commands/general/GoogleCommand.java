@@ -44,13 +44,13 @@ public class GoogleCommand extends AGeneralCommand {
         try {
             subcommand = getSubcommandName(0);
         } catch (Exception e) {
-            return new CommandResponse("Invalid usage. Use `/help google` for more information.");
+            return CommandResponse.text("Invalid usage. Use `/help google` for more information.");
         }
 
         return switch (subcommand) {
             case "search" -> search();
             case "images" -> searchImages();
-            default -> new CommandResponse("Invalid usage. Use `/help google` for more information.");
+            default -> CommandResponse.text("Invalid usage. Use `/help google` for more information.");
         };
     }
 
@@ -62,18 +62,18 @@ public class GoogleCommand extends AGeneralCommand {
         try {
             query = getMultiwordOptionValue("query", 1);
         } catch (Exception e) {
-            return new CommandResponse("Invalid usage. Use `/help google` for more information.");
+            return CommandResponse.text("Invalid usage. Use `/help google` for more information.");
         }
 
         List<Result> results;
         try {
             results = GoogleCustomSearchService.search(query, false);
             if (results == null || results.isEmpty()) {
-                return new CommandResponse("No results found for query: " + query);
+                return CommandResponse.text("No results found for query: " + query);
             }
         } catch (Exception e) {
             logger.error("Error occurred while searching Google for query: {}", query);
-            return new CommandResponse(e.getMessage());
+            return CommandResponse.text(e.getMessage());
         }
 
         return getResults(results, query, false);
@@ -87,18 +87,18 @@ public class GoogleCommand extends AGeneralCommand {
         try {
             query = getMultiwordOptionValue("query", 1);
         } catch (Exception e) {
-            return new CommandResponse("Invalid usage. Use `/help google` for more information.");
+            return CommandResponse.text("Invalid usage. Use `/help google` for more information.");
         }
 
         List<Result> images;
         try {
             images = GoogleCustomSearchService.search(query, true);
             if (images == null || images.isEmpty()) {
-                return new CommandResponse("No images found for query: " + query);
+                return CommandResponse.text("No images found for query: " + query);
             }
         } catch (Exception e) {
             logger.error("Error occurred while searching Google Images for query: {}", query);
-            return new CommandResponse(e.getMessage());
+            return CommandResponse.text(e.getMessage());
         }
 
         return getResults(images, query, true);
@@ -156,10 +156,11 @@ public class GoogleCommand extends AGeneralCommand {
         }
 
         if (pages.size() == 1) {
-            return new CommandResponse((MessageEmbed) pages.getFirst().getContent());
+            return CommandResponse.embed((MessageEmbed) pages.getFirst().getContent());
         } else {
-            return CommandResponse.builder().addEmbeds((MessageEmbed) pages.getFirst().getContent())
-                    .setPostExecutionAsMessage(success -> Pages.paginate(success, pages, true))
+            return CommandResponse.builder()
+                    .addEmbeds((MessageEmbed) pages.getFirst().getContent())
+                    .setPostExecutionFromMessage(success -> Pages.paginate(success, pages, true))
                     .build();
         }
     }

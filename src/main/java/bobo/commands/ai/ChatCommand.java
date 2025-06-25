@@ -43,7 +43,7 @@ public class ChatCommand extends AAICommand {
         threadChannel.addThreadMember(member).queue();
 
         startConversation(threadChannel);
-        return new CommandResponse(String.format("Started a conversation with %s in %s", memberName, threadChannel.getAsMention()));
+        return CommandResponse.text("Started a conversation with %s in %s", memberName, threadChannel.getAsMention());
     }
 
     /**

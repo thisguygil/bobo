@@ -117,7 +117,7 @@ public class PlayerManager {
         final GuildMusicManager musicManager = this.getMusicManager(guild);
         TrackScheduler scheduler = musicManager.scheduler;
         if (AudioReceiveListener.isListening(guild)) {
-            return new CommandResponse("Cannot play music while listening in.");
+            return CommandResponse.text("Cannot play music while listening in.");
         }
 
         CompletableFuture<CommandResponse> futureResponse = new CompletableFuture<>();
@@ -131,7 +131,7 @@ public class PlayerManager {
             public void trackLoaded(AudioTrack track) {
                 CommandResponse finalResponse = CommandResponse.builder()
                         .setContent(PlayerManager.trackLoaded(guild, scheduler, track, trackURL, trackType))
-                        .setPostExecutionAsMessage(_ -> scheduler.queue(track, member, channel, trackType))
+                        .setPostExecutionFromMessage(_ -> scheduler.queue(track, member, channel, trackType))
                         .build();
 
                 futureResponse.complete(finalResponse);
@@ -154,7 +154,7 @@ public class PlayerManager {
                 String message = PlayerManager.playlistLoadedMessage(scheduler, playlist, trackURL, tracks);
                 CommandResponse finalResponse = CommandResponse.builder()
                         .setContent(message)
-                        .setPostExecutionAsMessage(_ -> {
+                        .setPostExecutionFromMessage(_ -> {
                             for (final AudioTrack track : tracks) {
                                 scheduler.queue(track, member, channel, TrackType.TRACK);
                             }
@@ -200,7 +200,7 @@ public class PlayerManager {
         try {
             return futureResponse.get();
         } catch (Exception e) {
-            return new CommandResponse("An error occurred while loading the track.");
+            return CommandResponse.text("An error occurred while loading the track.");
         }
     }
 

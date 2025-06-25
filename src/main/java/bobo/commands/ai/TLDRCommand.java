@@ -34,7 +34,7 @@ public class TLDRCommand extends AAICommand {
         try {
             minutesOption = Integer.parseInt(getOptionValue("minutes", 0));
         } catch (NumberFormatException e) {
-            return new CommandResponse("The number of minutes must be an integer.");
+            return CommandResponse.text("The number of minutes must be an integer.");
         } catch (RuntimeException ignored) {
             minutesOption = null;
         }
@@ -43,20 +43,23 @@ public class TLDRCommand extends AAICommand {
         if (minutesOption != null) {
             minutes = minutesOption;
             if (minutes <= 0) {
-                return new CommandResponse("The number of minutes must be greater than zero.");
+                return CommandResponse.text("The number of minutes must be greater than zero.");
             }
         }
 
         List<Message> messages = fetchMessages((MessageChannelUnion) getChannel(), minutes);
         if (messages.size() < 10) {
-            return new CommandResponse("Not enough messages to summarize.");
+            return CommandResponse.text("Not enough messages to summarize.");
         }
 
         String summary = summarizeMessages(messages);
         List<String> chunks = splitMessage(summary);
         MessageChannelUnion channel = (MessageChannelUnion) getChannel();
 
-        return new CommandResponse(chunks.getFirst(), null, null, null, message -> sendChunksSequentially(channel, chunks, 1), null, null);
+        return CommandResponse.builder()
+                .setContent(chunks.getFirst())
+                .setPostExecutionFromMessage(message -> sendChunksSequentially(channel, chunks, 1))
+                .build();
     }
 
     /**

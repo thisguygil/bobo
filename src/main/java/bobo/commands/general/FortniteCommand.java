@@ -63,7 +63,7 @@ public class FortniteCommand extends AGeneralCommand {
         try {
             subcommand = getSubcommandName(0);
         } catch (RuntimeException e) {
-            return new CommandResponse("Invalid usage. Use `/help fortnite` for more information.");
+            return CommandResponse.text("Invalid usage. Use `/help fortnite` for more information.");
         }
 
         CompletableFuture<CommandResponse> responseFuture = switch (subcommand) {
@@ -72,14 +72,14 @@ public class FortniteCommand extends AGeneralCommand {
                 try {
                     info = getOptionValue("info", 1);
                 } catch (RuntimeException e) {
-                     yield CompletableFuture.completedFuture(new CommandResponse("Invalid usage. Use `/help fortnite` for more information."));
+                     yield CompletableFuture.completedFuture(CommandResponse.text("Invalid usage. Use `/help fortnite` for more information."));
                 }
 
                 yield switch (info) {
                     case "shop" -> processShopCommand();
                     case "news" -> processNewsCommand();
                     case "map" -> processMapCommand();
-                    default -> CompletableFuture.completedFuture(new CommandResponse("Invalid usage. Use `/help fortnite` for more information."));
+                    default -> CompletableFuture.completedFuture(CommandResponse.text("Invalid usage. Use `/help fortnite` for more information."));
                 };
             }
             case "stats" -> {
@@ -87,12 +87,12 @@ public class FortniteCommand extends AGeneralCommand {
                 try {
                     username = getOptionValue("username", 1);
                 } catch (RuntimeException e) {
-                    yield CompletableFuture.completedFuture(new CommandResponse("Invalid usage. Use `/help fortnite` for more information."));
+                    yield CompletableFuture.completedFuture(CommandResponse.text("Invalid usage. Use `/help fortnite` for more information."));
                 }
 
                 yield processStatsCommand(username);
             }
-            default -> CompletableFuture.completedFuture(new CommandResponse("Invalid usage. Use `/help fortnite` for more information."));
+            default -> CompletableFuture.completedFuture(CommandResponse.text("Invalid usage. Use `/help fortnite` for more information."));
         };
 
         return responseFuture.join();
@@ -113,10 +113,11 @@ public class FortniteCommand extends AGeneralCommand {
         return CompletableFuture.supplyAsync(() -> {
             List<BufferedImage> images = FortniteAPI.getShopImages();
             if (images == null) {
-                return new CommandResponse("Failed to get shop images.");
+                return CommandResponse.text("Failed to get shop images.");
             }
 
-            return CommandResponse.builder().setContent(message)
+            return CommandResponse.builder()
+                    .setContent(message)
                     .addAttachments(images.stream()
                             .map(image -> convertBufferedImageToFile(image, "shop"))
                             .filter(Objects::nonNull)
@@ -140,10 +141,11 @@ public class FortniteCommand extends AGeneralCommand {
         return CompletableFuture.supplyAsync(() -> {
             File image = convertBufferedImageToFile(FortniteAPI.getMapImage(), "map");
             if (image == null) {
-                return new CommandResponse("Failed to get map image.");
+                return CommandResponse.text("Failed to get map image.");
             }
 
-            return CommandResponse.builder().addAttachments(FileUpload.fromData(image))
+            return CommandResponse.builder()
+                    .addAttachments(FileUpload.fromData(image))
                     .build();
         });
     }
@@ -157,7 +159,7 @@ public class FortniteCommand extends AGeneralCommand {
     private CompletableFuture<CommandResponse> processStatsCommand(String username) {
         return CompletableFuture.supplyAsync(() -> {
             String imageUrl = FortniteAPI.getStatsImage(username);
-            return new CommandResponse(imageUrl);
+            return CommandResponse.text(imageUrl);
         });
     }
 
@@ -169,7 +171,7 @@ public class FortniteCommand extends AGeneralCommand {
     private CompletableFuture<CommandResponse> processNewsCommand() {
         return CompletableFuture.supplyAsync(() -> {
             String imageUrl = FortniteAPI.getNewsImage();
-            return new CommandResponse(imageUrl);
+            return CommandResponse.text(imageUrl);
         });
     }
 

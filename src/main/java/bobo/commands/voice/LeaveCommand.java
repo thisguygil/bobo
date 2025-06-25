@@ -18,11 +18,11 @@ public class LeaveCommand extends AVoiceCommand {
     protected CommandResponse handleVoiceCommand() {
         Guild guild = getGuild();
         if (!guild.getAudioManager().isConnected()) {
-            return new CommandResponse("I must already be connected to a voice channel to use this command.");
+            return CommandResponse.text("I must already be connected to a voice channel to use this command.");
         }
 
         leave(guild);
-        return new CommandResponse("Left.");
+        return CommandResponse.text("Left.");
     }
 
     /**

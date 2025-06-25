@@ -10,10 +10,10 @@ public class DMCommand extends AOwnerCommand {
             userId = getOptionValue(0);
             message = getMultiwordOptionValue(1);
         } catch (RuntimeException e) {
-            return new CommandResponse("Invalid usage. Use `/help dm` for more information.");
+            return CommandResponse.text("Invalid usage. Use `/help dm` for more information.");
         }
 
-        CommandResponse response = new CommandResponse("Sending message to user...");
+        CommandResponse response = CommandResponse.text("Sending message to user...");
 
         event.getJDA().retrieveUserById(userId).queue(user -> {
             user.openPrivateChannel().queue(channel -> channel.sendMessage(message).queue(

@@ -44,7 +44,7 @@ public class QueueCommand extends AMusicCommand {
     @Override
     protected CommandResponse handleMusicCommand() {
         if (currentTrack == null) {
-            return new CommandResponse("The queue is currently empty.");
+            return CommandResponse.text("The queue is currently empty.");
         }
 
         String subcommandName;
@@ -56,7 +56,7 @@ public class QueueCommand extends AMusicCommand {
                 case "clear" -> clear();
                 case "shuffle" -> shuffle();
                 case "remove" -> remove(0);
-                default -> new CommandResponse("Please provide a subcommand.");
+                default -> CommandResponse.text("Please provide a subcommand.");
             };
         }
 
@@ -65,7 +65,7 @@ public class QueueCommand extends AMusicCommand {
             case "shuffle" -> shuffle();
             case "clear" -> clear();
             case "remove" -> remove(1);
-            default -> new CommandResponse("Invalid usage. Use `/help queue` for more information.");
+            default -> CommandResponse.text("Invalid usage. Use `/help queue` for more information.");
         };
     }
 
@@ -103,6 +103,16 @@ public class QueueCommand extends AMusicCommand {
         }
 
         // Add page counts to the footers and construct the pages
+        return getPagedEmbedResponse(embedBuilders);
+    }
+
+    /**
+     * Constructs a command response with pagination for the given embed builders.
+     *
+     * @param embedBuilders the list of embed builders to paginate
+     * @return the command response
+     */
+    public static CommandResponse getPagedEmbedResponse(List<EmbedBuilder> embedBuilders) {
         int pageCount = 1;
         List<Page> pages = new ArrayList<>();
         for (EmbedBuilder embedBuilder : embedBuilders) {
@@ -112,13 +122,11 @@ public class QueueCommand extends AMusicCommand {
         }
 
         if (pages.size() == 1) { // Don't paginate if there's only one page
-            return new CommandResponse((MessageEmbed) pages.getFirst().getContent());
+            return CommandResponse.embed((MessageEmbed) pages.getFirst().getContent());
         } else {
             return CommandResponse.builder()
                     .addEmbeds((MessageEmbed) pages.getFirst().getContent())
-                    .setPostExecutionAsMessage(
-                            success -> Pages.paginate(success, pages, true)
-                    )
+                    .setPostExecutionFromMessage(success -> Pages.paginate(success, pages, true))
                     .build();
         }
     }
@@ -148,7 +156,7 @@ public class QueueCommand extends AMusicCommand {
         Collections.shuffle(trackList);
         queue.clear();
         queue.addAll(trackList);
-        return new CommandResponse("Shuffled.");
+        return CommandResponse.text("Shuffled.");
     }
 
     /**
@@ -156,7 +164,7 @@ public class QueueCommand extends AMusicCommand {
      */
     private CommandResponse clear() {
         clearQueue(getGuild(), scheduler);
-        return new CommandResponse("Queue cleared.");
+        return CommandResponse.text("Queue cleared.");
     }
 
     /**
@@ -187,10 +195,10 @@ public class QueueCommand extends AMusicCommand {
         try {
             position = Integer.parseInt(getOptionValue("position", position));
         } catch (Exception e) {
-            return new CommandResponse("Please enter an integer corresponding to a track's position in the queue.");
+            return CommandResponse.text("Please enter an integer corresponding to a track's position in the queue.");
         }
         if (position < 1 || position > queue.size() + 1) {
-            return new CommandResponse("Please enter an integer corresponding to a track's position in the queue.");
+            return CommandResponse.text("Please enter an integer corresponding to a track's position in the queue.");
         }
 
         TrackRecord current = null;
@@ -215,17 +223,19 @@ public class QueueCommand extends AMusicCommand {
             }
         }
 
+        if (current == null) { // Should not happen, but just in case
+            return CommandResponse.text("The track at position %d is not valid.", position);
+        }
+
         AudioTrackInfo info = current.track().getInfo();
-        String message = String.format("Removed track at position %s: %s (%s) by %s. %s",
+        return CommandResponse.builder().setContent(
+                "Removed track at position %s: %s (%s) by %s. %s",
                 markdownBold(position),
                 markdownLinkNoEmbed(info.title, info.uri),
                 timeLeft(current.track(), 0), // Use 0 so it doesn't say "left - looping"
                 markdownBold(info.author),
                 position == 1 && wasLooping ? "Looping has been turned off." : ""
-        );
-
-
-        return new CommandResponse(message);
+        ).build();
     }
 
     /**

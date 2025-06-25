@@ -8,189 +8,94 @@ import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
+import org.intellij.lang.annotations.PrintFormat;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
+import java.util.Collections;
 import java.util.function.Consumer;
 
-public class CommandResponse {
-    private final String content;
-    private final Boolean invisible;
-    private final Collection<? extends FileUpload>  attachments;
-    private final Collection<? extends MessageEmbed> embeds;
-
-    // Post-execution actions. If one of these two is non-null, the other should be null.
-    private final Consumer<? super Message> postExecutionAsMessage; // Usually this one will be used, as it's the one for message commands, and for slash commands that have their replies deferred (which we do for most of them).
-    private final Consumer<? super InteractionHook> postExecutionAsHook;
-
-    // Handler for exceptions during command execution.
-    private final Consumer<? super Throwable> failureHandler;
-
+/**
+ * Represents a response to a command execution, encapsulating the content, visibility, attachments, embeds, and post-execution actions.
+ * If one of the post-execution actions is non-null, the other must be null.
+ *
+ * @param content                  The textual content of the response.
+ * @param invisible                Whether the reply should be ephemeral or the bot should show typing before replying.
+ * @param attachments              Files to be attached to the message.
+ * @param embeds                   Embeds to be sent with the message.
+ * @param postExecutionFromMessage Post-execution action after a message is sent.
+ * @param postExecutionFromHook    Post-execution action after a non-deferred interaction is completed.
+ * @param failureHandler           Handler for exceptions during command execution.
+ */
+public record CommandResponse(
+        String content,
+        Boolean invisible,
+        Collection<? extends FileUpload> attachments,
+        Collection<? extends MessageEmbed> embeds,
+        Consumer<? super Message> postExecutionFromMessage,
+        Consumer<? super InteractionHook> postExecutionFromHook,
+        Consumer<? super Throwable> failureHandler
+) {
     /**
-     * Constructs a CommandResponse with all parameters.
+     * Not recommended to use this constructor directly; use the {@link CommandResponseBuilder} or static methods instead for better readability and maintainability.
+     * However, we must expose this constructor because it is a record class.
+     * <br>
+     * Constructs a {@link CommandResponse} with the provided parameters.
      *
-     * @param content                The textual content of the response.
-     * @param invisible              Whether the reply should be ephemeral or the bot should show typing before replying.
-     * @param attachments            Files to be attached to the message.
-     * @param embeds                 Embeds to be sent with the message.
-     * @param postExecutionAsMessage Post-processing action after a message is sent.
-     * @param postExecutionAsHook    Post-processing action after a deferred interaction is completed.
-     * @param failureHandler         Handler for exceptions during command execution.
+     * @param content                  The textual content of the response.
+     * @param invisible                Whether the reply should be ephemeral or the bot should show typing before replying.
+     * @param attachments              Files to be attached to the message.
+     * @param embeds                   Embeds to be sent with the message.
+     * @param postExecutionFromMessage Post-execution action after a message is sent.
+     * @param postExecutionFromHook    Post-execution action after a non-deferred interaction is completed.
+     * @param failureHandler           Handler for exceptions during command execution.
      */
-    public CommandResponse(String content, Boolean invisible, Collection<? extends FileUpload>  attachments, Collection<? extends MessageEmbed> embeds, Consumer<? super Message> postExecutionAsMessage, Consumer<? super InteractionHook> postExecutionAsHook, Consumer<? super Throwable> failureHandler) {
+    public CommandResponse(
+            String content,
+            Boolean invisible,
+            Collection<? extends FileUpload> attachments,
+            Collection<? extends MessageEmbed> embeds,
+            Consumer<? super Message> postExecutionFromMessage,
+            Consumer<? super InteractionHook> postExecutionFromHook,
+            Consumer<? super Throwable> failureHandler
+    ) {
+        if (postExecutionFromMessage != null && postExecutionFromHook != null) {
+            throw new IllegalArgumentException("Only one of postExecutionFromMessage or postExecutionFromHook can be non-null.");
+        }
+
         this.content = content;
         this.invisible = invisible;
-        this.attachments = attachments;
-        this.embeds = embeds;
-        this.postExecutionAsMessage = postExecutionAsMessage;
-        this.postExecutionAsHook = postExecutionAsHook;
+        this.attachments = (attachments == null || attachments.isEmpty()) ? null : attachments;
+        this.embeds = (embeds == null || embeds.isEmpty()) ? null : embeds;
+        this.postExecutionFromMessage = postExecutionFromMessage;
+        this.postExecutionFromHook = postExecutionFromHook;
         this.failureHandler = failureHandler;
     }
 
     /**
-     * Constructs a CommandResponse with only text content.
+     * Converts the {@link CommandResponse} to {@link MessageCreateData} for sending as a new message.
      *
-     * @param content The textual content of the response.
-     */
-    public CommandResponse(String content) {
-        this(content, null, null, null, null, null, null);
-    }
-
-    /**
-     * Constructs a CommandResponse with content and visibility.
-     *
-     * @param content   The textual content of the response.
-     * @param invisible Whether the reply should be invisible/ephemeral.
-     */
-    public CommandResponse(String content, Boolean invisible) {
-        this(content, invisible, null, null, null, null, null);
-    }
-
-    /**
-     * Constructs a CommandResponse with a collection of embeds.
-     * We choose this constructor over attachments as embeds are more common, and we can't use both because they have the same parameter type (collection).
-     * Sadly, we can't use a vararg here, as it would conflict when the first arguments are null.
-     *
-     * @param embeds Embeds to be sent with the response.
-     */
-    public CommandResponse(Collection<? extends MessageEmbed> embeds) {
-        this(null, null, null, embeds, null, null, null);
-    }
-
-    /**
-     * Constructs a CommandResponse with a single embed.
-     *
-     * @param embed The embed to send.
-     */
-    public CommandResponse(MessageEmbed embed) { // So that we don't have to wrap a single embed in a list.
-        this(null, null, null, List.of(embed), null, null, null);
-    }
-
-    /**
-     * Constructs a default error CommandResponse.
-     */
-    public CommandResponse() {
-        this("Command Error.");
-    }
-
-    /**
-     * Converts the CommandResponse to {@link MessageCreateData} for sending as a new message.
-     *
-     * @return The MessageCreateData object.
+     * @return The {@link MessageCreateData} object.
      */
     public MessageCreateData asMessageCreateData() {
         MessageCreateBuilder builder = new MessageCreateBuilder();
-        if (content != null) builder.setContent(content);
-        if (attachments != null) builder.setFiles(attachments);
-        if (embeds != null) builder.setEmbeds(embeds);
+        if (content != null && !content.isEmpty()) builder.setContent(content);
+        if (attachments != null && !attachments.isEmpty()) builder.setFiles(attachments);
+        if (embeds != null && !embeds.isEmpty()) builder.setEmbeds(embeds);
         return builder.build();
     }
 
     /**
-     * Converts the CommandResponse to {@link MessageEditData} for editing an existing message.
+     * Converts the {@link CommandResponse} to {@link MessageEditData} for editing an existing message.
      *
-     * @return The MessageEditData object.
+     * @return The {@link MessageEditData} object.
      */
     public MessageEditData asMessageEditData() {
         MessageEditBuilder builder = new MessageEditBuilder();
-        if (content != null) builder.setContent(content);
-        if (attachments != null) builder.setFiles(attachments);
-        if (embeds != null) builder.setEmbeds(embeds);
+        if (content != null && !content.isEmpty()) builder.setContent(content);
+        if (attachments != null && !attachments.isEmpty()) builder.setFiles(attachments);
+        if (embeds != null && !embeds.isEmpty()) builder.setEmbeds(embeds);
         return builder.build();
-    }
-
-    /**
-     * Gets the content of the response.
-     *
-     * @return The textual content.
-     */
-    public String getContent() {
-        return content;
-    }
-
-    /**
-     * Indicates whether the response should be invisible/ephemeral.
-     *
-     * @return True if invisible, otherwise false.
-     */
-    public Boolean isInvisible() {
-        return invisible;
-    }
-
-    /**
-     * Gets the attachments to be sent.
-     *
-     * @return Collection of attachments.
-     */
-    public Collection<? extends FileUpload> getAttachments() {
-        return attachments;
-    }
-
-    /**
-     * Gets the embeds to be sent.
-     *
-     * @return Collection of embeds.
-     */
-    public Collection<? extends MessageEmbed> getEmbeds() {
-        return embeds;
-    }
-
-    /**
-     * Gets the post-execution action as a message.
-     *
-     * @return Consumer for message post-processing.
-     */
-    public Consumer<? super Message> getPostExecutionAsMessage() {
-        return postExecutionAsMessage;
-    }
-
-    /**
-     * Gets the post-execution action as a hook.
-     *
-     * @return Consumer for interaction hook post-processing.
-     */
-    public Consumer<? super InteractionHook> getPostExecutionAsHook() {
-        return postExecutionAsHook;
-    }
-
-    /**
-     * Gets the handler for failures/exceptions.
-     *
-     * @return Consumer for handling exceptions.
-     */
-    public Consumer<? super Throwable> getFailureHandler() {
-        return failureHandler;
-    }
-
-    /**
-     * Creates a new {@link CommandResponseBuilder} instance for constructing a CommandResponse.
-     *
-     * @return A new Builder.
-     */
-    public static CommandResponseBuilder builder() {
-        return new CommandResponseBuilder();
     }
 
     /**
@@ -201,15 +106,15 @@ public class CommandResponse {
         private Boolean invisible;
         private final Collection<FileUpload> attachments = new ArrayList<>();
         private final Collection<MessageEmbed> embeds = new ArrayList<>();
-        private Consumer<? super Message> postExecutionAsMessage;
-        private Consumer<? super InteractionHook> postExecutionAsHook;
+        private Consumer<? super Message> postExecutionFromMessage;
+        private Consumer<? super InteractionHook> postExecutionFromHook;
         private Consumer<? super Throwable> failureHandler;
 
         /**
          * Sets the textual content for the response.
          *
          * @param content The response content.
-         * @return This builder.
+         * @return This builder for chaining.
          */
         public CommandResponseBuilder setContent(String content) {
             this.content = content;
@@ -217,10 +122,22 @@ public class CommandResponse {
         }
 
         /**
-         * Sets the visibility (ephemeral) of the response.
+         * Sets the textual content for the response, formatted with the provided arguments.
          *
-         * @param invisible Whether the reply should be invisible/ephemeral.
-         * @return This builder.
+         * @param content The response content with format specifiers.
+         * @param args    Arguments to format the content with.
+         * @return This builder for chaining.
+         */
+        public CommandResponseBuilder setContent(@PrintFormat String content, Object... args) {
+            this.content = String.format(content, args);
+            return this;
+        }
+
+        /**
+         * Sets the visibility of the response.
+         *
+         * @param invisible Whether the reply should be invisible or not.
+         * @return This builder for chaining.
          */
         public CommandResponseBuilder setInvisible(Boolean invisible) {
             this.invisible = invisible;
@@ -228,10 +145,10 @@ public class CommandResponse {
         }
 
         /**
-         * Adds attachments to the response.
+         * Adds {@link FileUpload} attachments to the response.
          *
          * @param attachments Files to attach.
-         * @return This builder.
+         * @return This builder for chaining.
          */
         public CommandResponseBuilder addAttachments(Collection<FileUpload> attachments) {
             this.attachments.addAll(attachments);
@@ -239,21 +156,43 @@ public class CommandResponse {
         }
 
         /**
-         * Adds attachments to the response.
+         * Adds {@link FileUpload} attachments to the response.
          *
          * @param attachments Files to attach.
-         * @return This builder.
+         * @return This builder for chaining.
          */
         public CommandResponseBuilder addAttachments(FileUpload... attachments) {
-            this.attachments.addAll(Arrays.asList(attachments));
+            Collections.addAll(this.attachments, attachments);
             return this;
         }
 
         /**
-         * Adds embeds to the response.
+         * Sets {@link FileUpload} attachments for the response, replacing any existing ones.
+         *
+         * @param attachments Files to attach.
+         * @return This builder for chaining.
+         */
+        public CommandResponseBuilder setAttachments(Collection<FileUpload> attachments) {
+            this.attachments.clear();
+            return attachments != null ? this.addAttachments(attachments) : this;
+        }
+
+        /**
+         * Sets {@link FileUpload} attachments for the response, replacing any existing ones.
+         *
+         * @param attachments Files to attach.
+         * @return This builder for chaining.
+         */
+        public CommandResponseBuilder setAttachments(FileUpload... attachments) {
+            this.attachments.clear();
+            return attachments != null ? this.addAttachments(attachments) : this;
+        }
+
+        /**
+         * Adds {@link MessageEmbed} embeds to the response.
          *
          * @param embeds Embeds to add.
-         * @return This builder.
+         * @return This builder for chaining.
          */
         public CommandResponseBuilder addEmbeds(Collection<MessageEmbed> embeds) {
             this.embeds.addAll(embeds);
@@ -261,35 +200,57 @@ public class CommandResponse {
         }
 
         /**
-         * Adds embeds to the response.
+         * Adds {@link MessageEmbed} embeds to the response.
          *
          * @param embeds Embeds to add.
-         * @return This builder.
+         * @return This builder for chaining.
          */
         public CommandResponseBuilder addEmbeds(MessageEmbed... embeds) {
-            this.embeds.addAll(Arrays.asList(embeds));
+            Collections.addAll(this.embeds, embeds);
             return this;
         }
 
         /**
-         * Sets a post-processing action to run when the response is sent as a message.
+         * Sets {@link MessageEmbed} embeds for the response, replacing any existing ones.
          *
-         * @param consumer Action to run after sending a message.
-         * @return This builder.
+         * @param embeds Embeds to set.
+         * @return This builder for chaining.
          */
-        public CommandResponseBuilder setPostExecutionAsMessage(Consumer<? super Message> consumer) {
-            this.postExecutionAsMessage = consumer;
+        public CommandResponseBuilder setEmbeds(Collection<MessageEmbed> embeds) {
+            this.embeds.clear();
+            return embeds != null ? this.addEmbeds(embeds) : this;
+        }
+
+        /**
+         * Sets {@link MessageEmbed} embeds for the response, replacing any existing ones.
+         *
+         * @param embeds Embeds to set.
+         * @return This builder for chaining.
+         */
+        public CommandResponseBuilder setEmbeds(MessageEmbed... embeds) {
+            this.embeds.clear();
+            return embeds != null ? this.addEmbeds(embeds) : this;
+        }
+
+        /**
+         * Sets a post-processing action to run when the response is sent.
+         *
+         * @param consumer Action to run after sending the message.
+         * @return This builder for chaining.
+         */
+        public CommandResponseBuilder setPostExecutionFromMessage(Consumer<? super Message> consumer) {
+            this.postExecutionFromMessage = consumer;
             return this;
         }
 
         /**
-         * Sets a post-processing action to run when the response is sent as an interaction hook.
+         * Sets a post-processing action to run when the response.
          *
          * @param consumer Action to run after completing the interaction.
-         * @return This builder.
+         * @return This builder for chaining.
          */
-        public CommandResponseBuilder setPostExecutionAsHook(Consumer<? super InteractionHook> consumer) {
-            this.postExecutionAsHook = consumer;
+        public CommandResponseBuilder setPostExecutionFromHook(Consumer<? super InteractionHook> consumer) {
+            this.postExecutionFromHook = consumer;
             return this;
         }
 
@@ -297,7 +258,7 @@ public class CommandResponse {
          * Sets a handler to deal with exceptions during command execution.
          *
          * @param consumer Exception handler.
-         * @return This builder.
+         * @return This builder for chaining.
          */
         public CommandResponseBuilder setFailureHandler(Consumer<? super Throwable> consumer) {
             this.failureHandler = consumer;
@@ -307,11 +268,126 @@ public class CommandResponse {
         /**
          * Builds the {@link CommandResponse} instance with the current builder state.
          *
-         * @return The constructed CommandResponse.
+         * @return The constructed {@link CommandResponse}.
          */
         public CommandResponse build() {
-            return new CommandResponse(content, invisible, attachments, embeds, postExecutionAsMessage, postExecutionAsHook, failureHandler);
+            return new CommandResponse(
+                    content,
+                    invisible,
+                    attachments.isEmpty() ? null : attachments,
+                    embeds.isEmpty() ? null : embeds,
+                    postExecutionFromMessage,
+                    postExecutionFromHook,
+                    failureHandler
+            );
         }
     }
 
+    /**
+     * Creates a new {@link CommandResponseBuilder} instance for constructing a {@link CommandResponse}.
+     *
+     * @return The new builder.
+     */
+    public static CommandResponseBuilder builder() {
+        return new CommandResponseBuilder();
+    }
+
+    /**
+     * Creates a {@link CommandResponse} with just the text content.
+     *
+     * @param content The textual content of the response.
+     * @return The new {@link CommandResponse}.
+     */
+    public static CommandResponse text(String content) {
+        return builder().setContent(content).build();
+    }
+
+    /**
+     * Creates a {@link CommandResponse} with formatted text content.
+     *
+     * @param content The textual content of the response, with format specifiers.
+     * @param args    Arguments to format the content with.
+     * @return The new {@link CommandResponse}.
+     */
+    public static CommandResponse text(@PrintFormat String content, Object... args) {
+        return builder().setContent(content, args).build();
+    }
+
+    /**
+     * Creates a {@link CommandResponse} with just the content, and makes it invisible.
+     *
+     * @param content The textual content of the response.
+     * @return The new {@link CommandResponse}.
+     */
+    public static CommandResponse ephemeral(String content) {
+        return builder().setContent(content).setInvisible(true).build();
+    }
+
+    /**
+     * Creates a {@link CommandResponse} with just a {@link FileUpload} attachment.
+     *
+     * @param attachment The attachment to send.
+     * @return The new {@link CommandResponse}.
+     */
+    public static CommandResponse attachment(FileUpload attachment) {
+        return builder().addAttachments(attachment).build();
+    }
+
+    /**
+     * Creates a {@link CommandResponse} with multiple {@link FileUpload} attachments.
+     *
+     * @param attachments The attachments to send.
+     * @return The new {@link CommandResponse}.
+     */
+    public static CommandResponse attachments(Collection<FileUpload> attachments) {
+        return builder().addAttachments(attachments).build();
+    }
+
+    /**
+     * Creates a {@link CommandResponse} with multiple {@link FileUpload} attachments.
+     *
+     * @param attachments The attachments to send.
+     * @return The new {@link CommandResponse}.
+     */
+    public static CommandResponse attachments(FileUpload... attachments) {
+        return builder().addAttachments(attachments).build();
+    }
+
+    /**
+     * Creates a {@link CommandResponse} with just a {@link MessageEmbed} embed.
+     *
+     * @param embed The embed to send.
+     * @return The new {@link CommandResponse}.
+     */
+    public static CommandResponse embed(MessageEmbed embed) {
+        return builder().addEmbeds(embed).build();
+    }
+
+    /**
+     * Creates a {@link CommandResponse} with multiple {@link MessageEmbed} embeds.
+     *
+     * @param embeds The embeds to send.
+     * @return The new {@link CommandResponse}.
+     */
+    public static CommandResponse embeds(Collection<MessageEmbed> embeds) {
+        return builder().addEmbeds(embeds).build();
+    }
+
+    /**
+     * Creates a {@link CommandResponse} with multiple {@link MessageEmbed} embeds.
+     *
+     * @param embeds The embeds to send.
+     * @return The new {@link CommandResponse}.
+     */
+    public static CommandResponse embeds(MessageEmbed... embeds) {
+        return builder().addEmbeds(embeds).build();
+    }
+
+    /**
+     * An empty {@link CommandResponse} with no content.
+     * Meant to signify that no response is needed.
+     */
+    public static final CommandResponse EMPTY = new CommandResponse(
+            null, null, null, null, null, null, null
+    );
 }

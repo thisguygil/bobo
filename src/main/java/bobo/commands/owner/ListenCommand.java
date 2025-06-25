@@ -20,12 +20,12 @@ public class ListenCommand extends AOwnerCommand {
         Guild userGuild = event.getGuild();
         if (AudioReceiveListener.isListening(userGuild)) {
             AudioReceiveListener.stopListening(userGuild);
-            return new CommandResponse("Stopped listening to audio.");
+            return CommandResponse.text("Stopped listening to audio.");
         }
 
         Member member = event.getMember();
         if (!AMusicCommand.ensureConnected(member)) {
-            return new CommandResponse("You must be connected to a voice channel to use this command.");
+            return CommandResponse.text("You must be connected to a voice channel to use this command.");
         }
 
         AudioChannel channel;
@@ -34,25 +34,25 @@ public class ListenCommand extends AOwnerCommand {
             voiceChannelId = getOptionValue(0);
             channel = Bobo.getJDA().getChannelById(AudioChannel.class, voiceChannelId);
         } catch (RuntimeException e) {
-            return new CommandResponse("Please provide a valid voice channel id.");
+            return CommandResponse.text("Please provide a valid voice channel id.");
         }
 
         if (channel == null) {
-            return new CommandResponse("Invalid voice channel id.");
+            return CommandResponse.text("Invalid voice channel id.");
         }
 
         Guild channelGuild = channel.getGuild();
 
         if (userGuild.equals(channelGuild)) {
-            return new CommandResponse("You must provide a voice channel id from a different server.");
+            return CommandResponse.text("You must provide a voice channel id from a different server.");
         }
 
         if (!channelGuild.getAudioManager().isConnected()) {
-            return new CommandResponse("The bot is not connected to this voice channel.");
+            return CommandResponse.text("The bot is not connected to this voice channel.");
         }
 
         ((AudioReceiveListener) channelGuild.getAudioManager().getReceivingHandler()).setListener(channelGuild, userGuild);
-        return new CommandResponse(String.format("Listening to audio in voice channel %s.", channel.getAsMention()));
+        return CommandResponse.text("Listening to audio in voice channel %s.", channel.getAsMention());
     }
 
     @Nullable

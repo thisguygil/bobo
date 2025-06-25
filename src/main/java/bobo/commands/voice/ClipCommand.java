@@ -50,16 +50,16 @@ public class ClipCommand extends AVoiceCommand {
         AudioReceiveHandler receiveHandler = guild.getAudioManager().getReceivingHandler();
 
         if (receiveHandler == null) {
-            return new CommandResponse("I'm not connected to a voice channel.");
+            return CommandResponse.text("I'm not connected to a voice channel.");
         }
         if (guild.getSelfMember().getVoiceState().isDeafened()) {
-            return new CommandResponse("I can't be deafened when using this command.");
+            return CommandResponse.text("I can't be deafened when using this command.");
         }
 
         String name = getMultiwordOptionValue("name", 0, LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss")));
         File file = ((AudioReceiveListener) receiveHandler).createClip(30, name);
         if (file == null) {
-            return new CommandResponse("Clip creation failed.");
+            return CommandResponse.text("Clip creation failed.");
         }
 
         GuildChannel channel;
@@ -84,7 +84,7 @@ public class ClipCommand extends AVoiceCommand {
 
         return CommandResponse.builder()
                 .addAttachments(fileUpload)
-                .setPostExecutionAsMessage(success -> {
+                .setPostExecutionFromMessage(success -> {
                     if (!file.delete()) {
                         logger.error("Failed to delete file: {}", file.getName());
                     }

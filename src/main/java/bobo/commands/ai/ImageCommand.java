@@ -30,7 +30,7 @@ public class ImageCommand extends AAICommand {
         try {
             prompt = getMultiwordOptionValue("prompt", 0);
         } catch (RuntimeException e) {
-            return new CommandResponse("Invalid usage. Use `/help image` for more information.");
+            return CommandResponse.text("Invalid usage. Use `/help image` for more information.");
         }
 
         ImageGenerateParams createImageRequest = ImageGenerateParams.builder()
@@ -47,18 +47,18 @@ public class ImageCommand extends AAICommand {
                     .orElse(null);
 
             if (images == null) {
-                return new CommandResponse("Failed to generate image.");
+                return CommandResponse.text("Failed to generate image.");
             }
 
             imageUrl = images.getFirst()
                     .url()
                     .orElse(null);
         } catch (OpenAIException e) {
-            return new CommandResponse("Failed to generate image: " + e.getMessage());
+            return CommandResponse.text("Failed to generate image: " + e.getMessage());
         }
 
         if (imageUrl == null) {
-            return new CommandResponse("Failed to generate image.");
+            return CommandResponse.text("Failed to generate image.");
         }
 
         Member member = getMember();
@@ -68,7 +68,7 @@ public class ImageCommand extends AAICommand {
                 .setColor(Color.red)
                 .setImage(imageUrl)
                 .build();
-        return new CommandResponse(embed);
+        return CommandResponse.embed(embed);
 
     }
 

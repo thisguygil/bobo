@@ -28,20 +28,20 @@ public class SetActivityCommand extends AOwnerCommand {
         try {
             activityType = getOptionValue(0);
         } catch (RuntimeException e) {
-            return new CommandResponse("Invalid usage. Use `/help set-activity` for more information.");
+            return CommandResponse.text("Invalid usage. Use `/help set-activity` for more information.");
         }
 
         String activityName;
         String streamURL = null;
         if (activityType.equals("streaming")) {
             if (args.size() < 3) {
-                return new CommandResponse("Invalid usage. Use `/help set-activity` for more information.");
+                return CommandResponse.text("Invalid usage. Use `/help set-activity` for more information.");
             }
 
             streamURL = args.getLast(); // Can't use getOptionValue() because the activity name can be multiple words and is not at the end
 
             if (!Activity.isValidStreamingUrl(streamURL)) {
-                return new CommandResponse("Invalid stream URL: " + streamURL);
+                return CommandResponse.text("Invalid stream URL: " + streamURL);
             }
 
             // Can't use getMultiwordOptionValue() because the activity name can be multiple words and is not at the end
@@ -64,7 +64,7 @@ public class SetActivityCommand extends AOwnerCommand {
             }
         } catch (SQLException e) {
             System.err.println("Error setting the activity: " + e.getMessage());
-            return new CommandResponse("An error occurred while setting the activity.");
+            return CommandResponse.text("An error occurred while setting the activity.");
         }
 
         setActivity();
@@ -77,7 +77,7 @@ public class SetActivityCommand extends AOwnerCommand {
             case "competing" -> "Activity set to **Competing in " + activityName + "**";
             default -> "Status set to **" + activityName + "**";
         };
-        return new CommandResponse(message);
+        return CommandResponse.text(message);
     }
 
     /**

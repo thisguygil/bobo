@@ -80,13 +80,17 @@ public class CommandManager {
             response = slashCommand.handle(event);
         } else {
             logger.error("Slash command '{}' not found.", commandName);
-            response = new CommandResponse("Error retrieving command.");
+            response = CommandResponse.text("Error retrieving command.");
         }
 
-        if (response.isInvisible() != null) { // This means the command did not reply yet, and should
-            event.reply(response.asMessageCreateData()).setEphemeral(response.isInvisible()).queue(response.getPostExecutionAsHook(), response.getFailureHandler());
+        if (response == null || response == CommandResponse.EMPTY) {
+            return;
+        }
+
+        if (response.invisible() != null) { // This means the command did not reply yet, and should
+            event.reply(response.asMessageCreateData()).setEphemeral(response.invisible()).queue(response.postExecutionFromHook(), response.failureHandler());
         } else {
-            event.getHook().editOriginal(response.asMessageEditData()).queue(response.getPostExecutionAsMessage(), response.getFailureHandler());
+            event.getHook().editOriginal(response.asMessageEditData()).queue(response.postExecutionFromMessage(), response.failureHandler());
         }
     }
 
@@ -107,7 +111,7 @@ public class CommandManager {
         CommandResponse response;
         if (command instanceof ADualCommand dualCommand) {
             if (!event.getMember().getPermissions().containsAll(dualCommand.getPermissions())) {
-                response = new CommandResponse("You do not have the required permissions to execute this command.");
+                response = CommandResponse.text("You do not have the required permissions to execute this command.");
             } else {
                 logger.info("Dual command '{}' executed as message command by '{}'.", baseCommand, event.getAuthor().getName());
                 if (Boolean.FALSE.equals(dualCommand.shouldBeInvisible())) {
@@ -117,7 +121,7 @@ public class CommandManager {
             }
         } else if (command instanceof AMessageCommand messageCommand) {
             if (!event.getMember().getPermissions().containsAll(messageCommand.getPermissions())) {
-                response = new CommandResponse("You do not have the required permissions to execute this command.");
+                response = CommandResponse.text("You do not have the required permissions to execute this command.");
             } else {
                 logger.info("Message command '{}' executed by '{}'.", baseCommand, event.getAuthor().getName());
                 if (Boolean.FALSE.equals(messageCommand.shouldNotShowTyping())) {
@@ -125,18 +129,22 @@ public class CommandManager {
                 }
                 response = messageCommand.handle(event, baseCommand, args);
             }
-        } else { // It's a regular message or unrelated bot command
+        } else { // No way to distinguish between a mistakenly invalid usage and an unrelated message, so we do nothing.
+            return;
+        }
+
+        if (response == null || response == CommandResponse.EMPTY) {
             return;
         }
 
         MessageChannelUnion channel = event.getChannel();
-        if (Boolean.FALSE.equals(response.isInvisible())) { // This means the command did not send typing yet, and should
+        if (Boolean.FALSE.equals(response.invisible())) { // This means the command did not send typing yet, and should
             channel.sendTyping().queue();
         }
 
         channel.retrieveMessageById(event.getMessageId()).queue(
-                success -> success.reply(response.asMessageCreateData()).queue(response.getPostExecutionAsMessage(), response.getFailureHandler()),
-                failure -> channel.sendMessage(response.asMessageCreateData()).queue(response.getPostExecutionAsMessage(), response.getFailureHandler())
+                success -> success.reply(response.asMessageCreateData()).queue(response.postExecutionFromMessage(), response.failureHandler()),
+                failure -> channel.sendMessage(response.asMessageCreateData()).queue(response.postExecutionFromMessage(), response.failureHandler())
         );
     }
 }

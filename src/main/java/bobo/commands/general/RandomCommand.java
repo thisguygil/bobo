@@ -63,13 +63,13 @@ public class RandomCommand extends AGeneralCommand {
         try {
             subcommand = getSubcommandName(0);
         } catch (Exception e) {
-            return new CommandResponse("Invalid usage. Use `/help random` for more information.");
+            return CommandResponse.text("Invalid usage. Use `/help random` for more information.");
         }
 
         return switch (subcommand) {
             case "quote" -> randomQuote();
             case "clip" -> randomClip();
-            default -> new CommandResponse("Invalid usage. Use `/help random` for more information.");
+            default -> CommandResponse.text("Invalid usage. Use `/help random` for more information.");
         };
     }
 
@@ -83,15 +83,15 @@ public class RandomCommand extends AGeneralCommand {
             loadGuildQuotes(guild);
         } catch (SQLException e) {
             logger.warn("Failed to load quotes for guild {}.", guild.getId());
-            return new CommandResponse("An error occurred while getting the quote.");
+            return CommandResponse.text("An error occurred while getting the quote.");
         }
 
         List<Message> guildList = guildQuoteListMap.get(guild);
         if (guildList == null) {
-            return new CommandResponse("No quotes channel has been configured for this server. Configure one with `/config quotes`");
+            return CommandResponse.text("No quotes channel has been configured for this server. Configure one with `/config quotes`");
         }
         if (guildList.isEmpty()) {
-            return new CommandResponse("No quotes have been added to the quotes channel.");
+            return CommandResponse.text("No quotes have been added to the quotes channel.");
         }
 
         int randomIndex = (int) (Math.random() * guildList.size());
@@ -100,7 +100,7 @@ public class RandomCommand extends AGeneralCommand {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
         String time = randomMessage.getTimeCreated().format(formatter);
 
-        return new CommandResponse(messageContent + "\n" + time);
+        return CommandResponse.text(messageContent + "\n" + time);
     }
 
     /**
@@ -181,15 +181,15 @@ public class RandomCommand extends AGeneralCommand {
             loadGuildClips(guild);
         } catch (SQLException e) {
             logger.error("Failed to get clip.");
-            return new CommandResponse("An error occurred while getting the clip.");
+            return CommandResponse.text("An error occurred while getting the clip.");
         }
 
         List<Message> guildList = guildClipListMap.get(guild);
         if (guildList == null) {
-            return new CommandResponse("No clips channel has been configured for this server. Configure one with `/config clips`");
+            return CommandResponse.text("No clips channel has been configured for this server. Configure one with `/config clips`");
         }
         if (guildList.isEmpty()) {
-            return new CommandResponse("No clips have been added to the clips channel.");
+            return CommandResponse.text("No clips have been added to the clips channel.");
         }
 
         int randomIndex = (int) (Math.random() * guildList.size());
@@ -212,7 +212,7 @@ public class RandomCommand extends AGeneralCommand {
                     .addAttachments(fileUpload).build();
         } catch (Exception e) {
             logger.error("Failed to send clip as attachment.", e);
-            return new CommandResponse("Failed to send the clip.");
+            return CommandResponse.text("Failed to send the clip.");
         }
     }
 

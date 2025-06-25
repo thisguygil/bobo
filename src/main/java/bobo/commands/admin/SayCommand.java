@@ -16,7 +16,7 @@ public class SayCommand extends AAdminCommand {
     @Override
     protected CommandResponse handleAdminCommand() {
         event.getChannel().sendMessage(getOptionValue("content")).queue();
-        return new CommandResponse("Message sent");
+        return CommandResponse.text("Message sent");
     }
 
     @Override

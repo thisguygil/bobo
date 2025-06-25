@@ -19,7 +19,7 @@ public class RestartCommand extends AOwnerCommand {
         // Uses callback to ensure that the message is sent before the bot shuts down.
         return CommandResponse.builder()
                 .setContent("Restarting...")
-                .setPostExecutionAsMessage(success -> Bobo.restart())
+                .setPostExecutionFromMessage(success -> Bobo.restart())
                 .setFailureHandler(failure -> Bobo.restart())
                 .build();
     }

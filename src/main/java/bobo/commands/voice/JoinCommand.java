@@ -30,13 +30,13 @@ public class JoinCommand extends AVoiceCommand {
         AudioManager manager = getGuild().getAudioManager();
         AudioChannelUnion memberChannel = getMember().getVoiceState().getChannel();
         if (manager.isConnected() && memberChannel != null && memberChannel == manager.getConnectedChannel()) {
-            return new CommandResponse("Already connected to " + memberChannel.getAsMention());
+            return CommandResponse.text("Already connected to " + memberChannel.getAsMention());
         }
 
         if (join(getMember())) {
-            return new CommandResponse("Joined " + memberChannel.getAsMention());
+            return CommandResponse.text("Joined " + memberChannel.getAsMention());
         } else {
-            return new CommandResponse("You must be connected to a voice channel to use this command.");
+            return CommandResponse.text("You must be connected to a voice channel to use this command.");
         }
     }
 

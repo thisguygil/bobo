@@ -25,14 +25,14 @@ public class SQLCommand extends AOwnerCommand {
         try {
             statementStr = getMultiwordOptionValue(0);
         } catch (RuntimeException e) {
-            return new CommandResponse("Please provide a statement to execute.");
+            return CommandResponse.text("Please provide a statement to execute.");
         }
 
         try (Connection connection = SQLConnection.getConnection()) {
             try (Statement statement = connection.createStatement()) {
                 if (isUpdateQuery(statementStr)) {
                     int affectedRows = statement.executeUpdate(statementStr);
-                    return new CommandResponse("Query executed successfully. Rows affected: " + affectedRows);
+                    return CommandResponse.text("Query executed successfully. Rows affected: " + affectedRows);
                 } else {
                     ResultSet resultSet = statement.executeQuery(statementStr);
                     StringBuilder result = new StringBuilder("Query Results:\n");
@@ -56,14 +56,14 @@ public class SQLCommand extends AOwnerCommand {
                     }
 
                     if (result.length() > 2000) {
-                        return new CommandResponse("The result is too long to display.");
+                        return CommandResponse.text("The result is too long to display.");
                     } else {
-                        return new CommandResponse(result.toString());
+                        return CommandResponse.text(result.toString());
                     }
                 }
             }
         } catch (Exception e) {
-            return new CommandResponse("Error executing statement: " + e.getMessage());
+            return CommandResponse.text("Error executing statement: " + e.getMessage());
         }
     }
 

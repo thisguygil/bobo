@@ -33,7 +33,7 @@ public class PlayCommand extends AMusicCommand {
     @Override
     protected CommandResponse handleMusicCommand() {
         if (!ensureConnected(getMember())) {
-            return new CommandResponse("You must be connected to a voice channel to use this command.");
+            return CommandResponse.text("You must be connected to a voice channel to use this command.");
         }
 
         return switch (source) {
@@ -42,12 +42,12 @@ public class PlayCommand extends AMusicCommand {
                 yield switch (subcommandName) {
                     case "track" -> playTrack(0);
                     case "file" -> playFile();
-                    default -> new CommandResponse("Invalid usage. Use `/help play` for more information.");
+                    default -> CommandResponse.text("Invalid usage. Use `/help play` for more information.");
                 };
             }
             case MESSAGE_COMMAND -> {
                 if (args.isEmpty()) {
-                    yield new CommandResponse("Invalid usage. Use `/help play` for more information.");
+                    yield CommandResponse.text("Invalid usage. Use `/help play` for more information.");
                 }
 
                 String firstArg = args.getFirst();
@@ -73,7 +73,7 @@ public class PlayCommand extends AMusicCommand {
         try {
             track = getMultiwordOptionValue("track", argIndex);
         } catch (Exception e) {
-            return new CommandResponse("Please provide a track to play.");
+            return CommandResponse.text("Please provide a track to play.");
         }
 
         if ((new UrlValidator()).isValid(track)) {
@@ -82,12 +82,12 @@ public class PlayCommand extends AMusicCommand {
             try {
                 List<SearchResult> videoSearch = YouTubeUtil.searchForVideos(track);
                 if (videoSearch == null) {
-                    return new CommandResponse("Nothing found by " + StringUtils.markdownBold(track) + ".");
+                    return CommandResponse.text("Nothing found by " + StringUtils.markdownBold(track) + ".");
                 }
 
                 return playerManager.loadAndPlay((MessageChannel) getChannel(), getMember(), "https://www.youtube.com/watch?v=" + videoSearch.getFirst().getId().getVideoId(), TrackType.TRACK);
             } catch (Exception e) {
-                return new CommandResponse("Nothing found by " + StringUtils.markdownBold(track) + ".");
+                return CommandResponse.text("Nothing found by " + StringUtils.markdownBold(track) + ".");
             }
         }
     }
@@ -102,11 +102,11 @@ public class PlayCommand extends AMusicCommand {
         try {
             attachment = getAttachment("file");
         } catch (Exception e) {
-            return new CommandResponse("Please provide a track to play.");
+            return CommandResponse.text("Please provide a track to play.");
         }
 
         if (!isAudioFile(attachment.getFileName())) {
-            return new CommandResponse("Please attach a valid audio file.");
+            return CommandResponse.text("Please attach a valid audio file.");
         }
 
         return playerManager.loadAndPlay((MessageChannel) getChannel(), getMember(), attachment.getUrl(), TrackType.FILE);

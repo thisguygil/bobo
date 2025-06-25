@@ -21,12 +21,12 @@ public class MuteCommand extends AVoiceCommand {
     protected CommandResponse handleVoiceCommand() {
         Guild guild = getGuild();
         if (!guild.getAudioManager().isConnected()) {
-            return new CommandResponse("I am not connected to a voice channel.");
+            return CommandResponse.text("I am not connected to a voice channel.");
         }
 
         boolean isMuted = guild.getSelfMember().getVoiceState().isMuted();
         guild.getAudioManager().setSelfMuted(!isMuted);
-        return new CommandResponse((isMuted ? "Unm" : "M") + "uted.");
+        return CommandResponse.text((isMuted ? "Unm" : "M") + "uted.");
     }
 
     @Override

@@ -16,7 +16,7 @@ public class SkipCommand extends AMusicCommand {
     @Override
     protected CommandResponse handleMusicCommand() {
         if (currentTrack == null) {
-            return new CommandResponse("There is nothing currently playing.");
+            return CommandResponse.text("There is nothing currently playing.");
         } else {
             boolean wasLoopingTrack = scheduler.looping == LoopCommand.looping.TRACK;
             if (wasLoopingTrack) {
@@ -27,7 +27,7 @@ public class SkipCommand extends AMusicCommand {
             }
             scheduler.nextTrack();
             AudioReceiveListener.stopListening(getGuild());
-            return new CommandResponse("Skipped." + (wasLoopingTrack ? " Looping has been turned off." : ""));
+            return CommandResponse.text("Skipped." + (wasLoopingTrack ? " Looping has been turned off." : ""));
         }
     }
 
