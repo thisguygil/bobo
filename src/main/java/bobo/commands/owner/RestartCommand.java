@@ -32,7 +32,7 @@ public class RestartCommand extends AOwnerCommand {
     }
 
     @Override
-    public Boolean shouldNotShowTyping() {
+    public Boolean isHidden() {
         return false;
     }
 }

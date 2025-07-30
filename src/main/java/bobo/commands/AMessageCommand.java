@@ -1,15 +1,12 @@
 package bobo.commands;
 
 import bobo.Config;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 
-public abstract class AMessageCommand implements ICommand {
+public abstract class AMessageCommand implements IMessageCommand {
     protected static final String PREFIX = Config.get("PREFIX");
     protected MessageReceivedEvent event;
     protected String command;
@@ -35,48 +32,6 @@ public abstract class AMessageCommand implements ICommand {
 
         return handleCommand();
     }
-
-    /**
-     * Handles the command.
-     */
-    protected abstract CommandResponse handleCommand();
-
-    /**
-     * Gets whether the bot should not show typing before replying.
-     * <br>
-     * (Note: it is 'should <b><em>not</em></b> show typing' for consistency with {@link ASlashCommand#shouldBeEphemeral()}, as to be ephemeral and to <b><em>not</em></b> show typing are similar in that they are both invisible to other users.)
-     *
-     * @return Whether the bot should not show typing before replying, or null if it could be either.
-     */
-    @Nullable
-    public abstract Boolean shouldNotShowTyping();
-
-    /**
-     * Gets aliases of the command, if any exist.
-     *
-     * @return The aliases of the command.
-     */
-    public List<String> getAliases() {
-        return new ArrayList<>();
-    }
-
-    /**
-     * Gets the permissions of the command.
-     *
-     * @return The permissions of the command.
-     */
-    public List<Permission> getPermissions() {
-        List<Permission> permissions = new ArrayList<>(List.of(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND));
-        permissions.addAll(getCommandPermissions());
-        return permissions;
-    }
-
-    /**
-     * Gets the command permissions.
-     *
-     * @return The command permissions.
-     */
-    protected abstract List<Permission> getCommandPermissions();
 
     /**
      * Helper method to get the value of an option.

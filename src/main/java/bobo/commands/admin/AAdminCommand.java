@@ -19,7 +19,7 @@ public abstract class AAdminCommand extends ASlashCommand {
     }
 
     @Override
-    protected CommandResponse handleCommand() {
+    public CommandResponse handleCommand() {
         return handleAdminCommand();
     }
 
@@ -34,7 +34,7 @@ public abstract class AAdminCommand extends ASlashCommand {
     }
 
     @Override
-    protected List<Permission> getCommandPermissions() {
+    public List<Permission> getCommandPermissions() {
         List<Permission> permissions = new ArrayList<>();
         permissions.add(Permission.ADMINISTRATOR);
         return permissions;

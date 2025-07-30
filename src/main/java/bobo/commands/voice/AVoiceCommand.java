@@ -19,7 +19,7 @@ public abstract class AVoiceCommand extends ADualCommand {
     }
 
     @Override
-    protected CommandResponse handleCommand() {
+    public CommandResponse handleCommand() {
         return handleVoiceCommand();
     }
 
@@ -29,7 +29,7 @@ public abstract class AVoiceCommand extends ADualCommand {
     protected abstract CommandResponse handleVoiceCommand();
 
     @Override
-    protected List<Permission> getCommandPermissions() {
+    public List<Permission> getCommandPermissions() {
         List<Permission> permissions = getVoiceCommandPermissions();
         permissions.add(Permission.VOICE_CONNECT);
         return permissions;

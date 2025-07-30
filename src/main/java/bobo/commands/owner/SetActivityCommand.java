@@ -134,7 +134,7 @@ public class SetActivityCommand extends AOwnerCommand {
     }
 
     @Override
-    public Boolean shouldNotShowTyping() {
+    public Boolean isHidden() {
         return false;
     }
 }

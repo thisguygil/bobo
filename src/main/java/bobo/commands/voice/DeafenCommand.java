@@ -37,7 +37,7 @@ public class DeafenCommand extends AVoiceCommand {
     }
 
     @Override
-    public Boolean shouldBeInvisible() {
+    public Boolean isHidden() {
         return false;
     }
 }

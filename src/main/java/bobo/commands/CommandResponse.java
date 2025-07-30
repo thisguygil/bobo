@@ -2,7 +2,10 @@ package bobo.commands;
 
 import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.interactions.InteractionHook;
+import net.dv8tion.jda.api.requests.RestAction;
 import net.dv8tion.jda.api.utils.FileUpload;
 import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
@@ -14,24 +17,29 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 /**
  * Represents a response to a command execution, encapsulating the content, visibility, attachments, embeds, and post-execution actions.
  * If one of the post-execution actions is non-null, the other must be null.
  *
  * @param content                  The textual content of the response.
- * @param invisible                Whether the reply should be ephemeral or the bot should show typing before replying.
+ * @param hidden                Whether the reply should be ephemeral or the bot should show typing before replying.
  * @param attachments              Files to be attached to the message.
  * @param embeds                   Embeds to be sent with the message.
- * @param postExecutionFromMessage Post-execution action after a message is sent.
- * @param postExecutionFromHook    Post-execution action after a non-deferred interaction is completed.
+ * @param postExecutionFlatMap     Post-execution action to be queued in succession after this message, returning a {@link RestAction}.
+ * @param postExecutionHookFlatMap Post-execution action to be queued in succession after this non-deferred interaction, returning a {@link RestAction}.
+ * @param postExecutionFromMessage Post-execution action to be queued after this message is sent.
+ * @param postExecutionFromHook    Post-execution action to be queued after this non-deferred interaction is completed.
  * @param failureHandler           Handler for exceptions during command execution.
  */
 public record CommandResponse(
         String content,
-        Boolean invisible,
+        Boolean hidden,
         Collection<? extends FileUpload> attachments,
         Collection<? extends MessageEmbed> embeds,
+        Function<? super Message, ? extends RestAction<Message>> postExecutionFlatMap,
+        Function<? super InteractionHook, ? extends RestAction<InteractionHook>> postExecutionHookFlatMap,
         Consumer<? super Message> postExecutionFromMessage,
         Consumer<? super InteractionHook> postExecutionFromHook,
         Consumer<? super Throwable> failureHandler
@@ -43,18 +51,22 @@ public record CommandResponse(
      * Constructs a {@link CommandResponse} with the provided parameters.
      *
      * @param content                  The textual content of the response.
-     * @param invisible                Whether the reply should be ephemeral or the bot should show typing before replying.
+     * @param hidden                Whether the reply should be ephemeral or the bot should show typing before replying.
      * @param attachments              Files to be attached to the message.
      * @param embeds                   Embeds to be sent with the message.
-     * @param postExecutionFromMessage Post-execution action after a message is sent.
-     * @param postExecutionFromHook    Post-execution action after a non-deferred interaction is completed.
+     * @param postExecutionFlatMap     Post-execution action to be queued in succession after this message, returning a {@link RestAction}.
+     * @param postExecutionHookFlatMap Post-execution action to be queued in succession after this non-deferred interaction, returning a {@link RestAction}.
+     * @param postExecutionFromMessage Post-execution action to be queued after this message is sent.
+     * @param postExecutionFromHook    Post-execution action to be queued after this non-deferred interaction is completed.
      * @param failureHandler           Handler for exceptions during command execution.
      */
     public CommandResponse(
             String content,
-            Boolean invisible,
+            Boolean hidden,
             Collection<? extends FileUpload> attachments,
             Collection<? extends MessageEmbed> embeds,
+            Function<? super Message, ? extends RestAction<Message>> postExecutionFlatMap,
+            Function<? super InteractionHook, ? extends RestAction<InteractionHook>> postExecutionHookFlatMap,
             Consumer<? super Message> postExecutionFromMessage,
             Consumer<? super InteractionHook> postExecutionFromHook,
             Consumer<? super Throwable> failureHandler
@@ -64,9 +76,11 @@ public record CommandResponse(
         }
 
         this.content = content;
-        this.invisible = invisible;
+        this.hidden = hidden;
         this.attachments = (attachments == null || attachments.isEmpty()) ? null : attachments;
         this.embeds = (embeds == null || embeds.isEmpty()) ? null : embeds;
+        this.postExecutionFlatMap = postExecutionFlatMap;
+        this.postExecutionHookFlatMap = postExecutionHookFlatMap;
         this.postExecutionFromMessage = postExecutionFromMessage;
         this.postExecutionFromHook = postExecutionFromHook;
         this.failureHandler = failureHandler;
@@ -99,6 +113,32 @@ public record CommandResponse(
     }
 
     /**
+     * Applies the response to a {@link SlashCommandInteractionEvent} or {@link MessageReceivedEvent}.
+     *
+     * @param action The action to apply the response to.
+     */
+    public void applyToMessage(RestAction<Message> action) {
+        if (postExecutionFlatMap() != null) {
+            action.flatMap(postExecutionFlatMap()).queue(postExecutionFromMessage(), failureHandler());
+        } else {
+            action.queue(postExecutionFromMessage(), failureHandler());
+        }
+    }
+
+    /**
+     * Applies the response to an {@link InteractionHook}.
+     *
+     * @param action The action to apply the response to.
+     */
+    public void applyToHook(RestAction<InteractionHook> action) {
+        if (postExecutionHookFlatMap() != null) {
+            action.flatMap(postExecutionHookFlatMap()).queue(postExecutionFromHook(), failureHandler());
+        } else {
+            action.queue(postExecutionFromHook(), failureHandler());
+        }
+    }
+
+    /**
      * Builder class for constructing {@link CommandResponse} instances.
      */
     public static class CommandResponseBuilder {
@@ -106,6 +146,8 @@ public record CommandResponse(
         private Boolean invisible;
         private final Collection<FileUpload> attachments = new ArrayList<>();
         private final Collection<MessageEmbed> embeds = new ArrayList<>();
+        private Function<? super Message, ? extends RestAction<Message>> postExecutionFlatMap;
+        private Function<? super InteractionHook, ? extends RestAction<InteractionHook>> postExecutionHookFlatMap;
         private Consumer<? super Message> postExecutionFromMessage;
         private Consumer<? super InteractionHook> postExecutionFromHook;
         private Consumer<? super Throwable> failureHandler;
@@ -136,7 +178,7 @@ public record CommandResponse(
         /**
          * Sets the visibility of the response.
          *
-         * @param invisible Whether the reply should be invisible or not.
+         * @param invisible Whether the reply should be hidden or not.
          * @return This builder for chaining.
          */
         public CommandResponseBuilder setInvisible(Boolean invisible) {
@@ -233,6 +275,28 @@ public record CommandResponse(
         }
 
         /**
+         * Sets a post-processing action to run when the response is sent, returning a {@link RestAction}.
+         *
+         * @param consumer Action to run after sending the message.
+         * @return This builder for chaining.
+         */
+        public CommandResponseBuilder setPostExecutionFlatMap(Function<? super Message, ? extends RestAction<Message>> consumer) {
+            this.postExecutionFlatMap = consumer;
+            return this;
+        }
+
+        /**
+         * Sets a post-processing action to run when the response is sent, returning a {@link RestAction}.
+         *
+         * @param consumer Action to run after completing the interaction.
+         * @return This builder for chaining.
+         */
+        public CommandResponseBuilder setPostExecutionHookFlatMap(Function<? super InteractionHook, ? extends RestAction<InteractionHook>> consumer) {
+            this.postExecutionHookFlatMap = consumer;
+            return this;
+        }
+
+        /**
          * Sets a post-processing action to run when the response is sent.
          *
          * @param consumer Action to run after sending the message.
@@ -276,6 +340,8 @@ public record CommandResponse(
                     invisible,
                     attachments.isEmpty() ? null : attachments,
                     embeds.isEmpty() ? null : embeds,
+                    postExecutionFlatMap,
+                    postExecutionHookFlatMap,
                     postExecutionFromMessage,
                     postExecutionFromHook,
                     failureHandler
@@ -314,12 +380,12 @@ public record CommandResponse(
     }
 
     /**
-     * Creates a {@link CommandResponse} with just the content, and makes it invisible.
+     * Creates a {@link CommandResponse} with just the content, and makes it hidden.
      *
      * @param content The textual content of the response.
      * @return The new {@link CommandResponse}.
      */
-    public static CommandResponse ephemeral(String content) {
+    public static CommandResponse invisible(String content) {
         return builder().setContent(content).setInvisible(true).build();
     }
 
@@ -387,7 +453,5 @@ public record CommandResponse(
      * An empty {@link CommandResponse} with no content.
      * Meant to signify that no response is needed.
      */
-    public static final CommandResponse EMPTY = new CommandResponse(
-            null, null, null, null, null, null, null
-    );
+    public static final CommandResponse EMPTY = new CommandResponse(null, null, null, null, null, null, null, null, null);
 }

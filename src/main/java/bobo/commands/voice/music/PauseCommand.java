@@ -38,7 +38,7 @@ public class PauseCommand extends AMusicCommand {
     }
 
     @Override
-    public Boolean shouldBeInvisible() {
+    public Boolean isHidden() {
         return false;
     }
 }

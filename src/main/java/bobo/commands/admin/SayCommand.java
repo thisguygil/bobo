@@ -32,7 +32,7 @@ public class SayCommand extends AAdminCommand {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean isHidden() {
         return true;
     }
 }

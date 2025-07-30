@@ -38,7 +38,7 @@ public class DMCommand extends AOwnerCommand {
     }
 
     @Override
-    public Boolean shouldNotShowTyping() {
+    public Boolean isHidden() {
         return false;
     }
 }

@@ -2,7 +2,6 @@ package bobo.commands;
 
 import bobo.Bobo;
 import bobo.Config;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Message;
@@ -16,11 +15,9 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.ArrayList;
 import java.util.List;
 
-public abstract class ADualCommand implements ICommand {
+public abstract class ADualCommand implements ISlashCommand, IMessageCommand {
     // Slash command fields
     protected SlashCommandInteractionEvent slashEvent;
 
@@ -56,7 +53,7 @@ public abstract class ADualCommand implements ICommand {
      * @param event The event that triggered this action.
      * @return The command response.
      */
-    public CommandResponse handleSlashCommand(@Nonnull SlashCommandInteractionEvent event) {
+    public CommandResponse handle(@Nonnull SlashCommandInteractionEvent event) {
         this.slashEvent = event;
         this.source = CommandSource.SLASH_COMMAND;
 
@@ -71,7 +68,7 @@ public abstract class ADualCommand implements ICommand {
      * @param args The arguments of the command.
      * @return The command response.
      */
-    public CommandResponse handleMessageCommand(@Nonnull MessageReceivedEvent event, String command, List<String> args) {
+    public CommandResponse handle(@Nonnull MessageReceivedEvent event, String command, List<String> args) {
         this.messageEvent = event;
         this.command = command;
         this.args = args;
@@ -79,50 +76,6 @@ public abstract class ADualCommand implements ICommand {
 
         return handleCommand();
     }
-
-    /**
-     * Handles the command as the specified command type.
-     *
-     * @return The command response.
-     */
-    protected abstract CommandResponse handleCommand();
-
-
-    /**
-     * For a slash command, gets whether the reply should be ephemeral, or null if it could be either.
-     * For a message command, gets whether the bot should show typing before replying.
-     *
-     * @return Whether the reply should be ephemeral or whether the bot should show typing before replying, or null if it could be either.
-     */
-    @Nullable
-    public abstract Boolean shouldBeInvisible();
-
-    /**
-     * Gets aliases of the command, if any exist (for message commands).
-     *
-     * @return The aliases of the command.
-     */
-    public List<String> getAliases() {
-        return new ArrayList<>();
-    }
-
-    /**
-     * Gets the permissions of the command.
-     *
-     * @return The permissions of the command.
-     */
-    public List<Permission> getPermissions() {
-        List<Permission> permissions = new ArrayList<>(List.of(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND));
-        permissions.addAll(getCommandPermissions());
-        return permissions;
-    }
-
-    /**
-     * Gets the command permissions.
-     *
-     * @return The command permissions.
-     */
-    protected abstract List<Permission> getCommandPermissions();
 
     /**
      * Helper method to get the guild of the current command.

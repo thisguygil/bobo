@@ -181,7 +181,7 @@ public class GoogleCommand extends AGeneralCommand {
     }
 
     @Override
-    public Boolean shouldBeInvisible() {
+    public Boolean isHidden() {
         return false;
     }
 }

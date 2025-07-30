@@ -38,7 +38,7 @@ public class ResumeCommand extends AMusicCommand {
     }
 
     @Override
-    public Boolean shouldBeInvisible() {
+    public Boolean isHidden() {
         return false;
     }
 }

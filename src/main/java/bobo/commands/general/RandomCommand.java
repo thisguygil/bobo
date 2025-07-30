@@ -342,7 +342,7 @@ public class RandomCommand extends AGeneralCommand {
     }
 
     @Override
-    public Boolean shouldBeInvisible() {
+    public Boolean isHidden() {
         return false;
     }
 }

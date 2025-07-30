@@ -44,7 +44,7 @@ public class SkipCommand extends AMusicCommand {
     }
 
     @Override
-    public Boolean shouldBeInvisible() {
+    public Boolean isHidden() {
         return false;
     }
 }

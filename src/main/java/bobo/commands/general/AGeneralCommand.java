@@ -1,7 +1,6 @@
 package bobo.commands.general;
 
 import bobo.commands.ADualCommand;
-import bobo.commands.ASlashCommand;
 import bobo.commands.CommandResponse;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
@@ -20,7 +19,7 @@ public abstract class AGeneralCommand extends ADualCommand {
     }
 
     @Override
-    protected CommandResponse handleCommand() {
+    public CommandResponse handleCommand() {
         return handleGeneralCommand();
     }
 
@@ -30,7 +29,7 @@ public abstract class AGeneralCommand extends ADualCommand {
     protected abstract CommandResponse handleGeneralCommand();
 
     @Override
-    protected List<Permission> getCommandPermissions() {
+    public List<Permission> getCommandPermissions() {
         List<Permission> permissions = getGeneralCommandPermissions();
         permissions.add(Permission.MESSAGE_EMBED_LINKS);
         return permissions;

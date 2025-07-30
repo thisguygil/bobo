@@ -86,7 +86,7 @@ public class SQLCommand extends AOwnerCommand {
     }
 
     @Override
-    public Boolean shouldNotShowTyping() {
+    public Boolean isHidden() {
         return false;
     }
 }

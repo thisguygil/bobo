@@ -29,7 +29,7 @@ public abstract class AAICommand extends ADualCommand {
     }
 
     @Override
-    protected CommandResponse handleCommand() {
+    public CommandResponse handleCommand() {
         return handleAICommand();
     }
 
@@ -285,7 +285,7 @@ public abstract class AAICommand extends ADualCommand {
     }
 
     @Override
-    protected List<Permission> getCommandPermissions() {
+    public List<Permission> getCommandPermissions() {
         List<Permission> permissions = getAICommandPermissions();
         permissions.add(Permission.MESSAGE_EMBED_LINKS);
         return permissions;

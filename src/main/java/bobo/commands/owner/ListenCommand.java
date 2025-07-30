@@ -57,7 +57,7 @@ public class ListenCommand extends AOwnerCommand {
 
     @Nullable
     @Override
-    public Boolean shouldNotShowTyping() {
+    public Boolean isHidden() {
         return false;
     }
 

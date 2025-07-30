@@ -15,7 +15,7 @@ public abstract class AOwnerCommand extends AMessageCommand {
     public AOwnerCommand() {}
 
     @Override
-    protected CommandResponse handleCommand() {
+    public CommandResponse handleCommand() {
         if (!event.getAuthor().getId().equals(Config.get("OWNER_ID"))) {
             return CommandResponse.EMPTY;
         }
@@ -29,7 +29,7 @@ public abstract class AOwnerCommand extends AMessageCommand {
     protected abstract CommandResponse handleOwnerCommand();
 
     @Override
-    protected List<Permission> getCommandPermissions() {
+    public List<Permission> getCommandPermissions() {
         return new ArrayList<>(); // Empty because the owner should be able to use these commands anywhere
     }
 }

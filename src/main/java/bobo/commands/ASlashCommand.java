@@ -1,7 +1,6 @@
 package bobo.commands;
 
 import bobo.Bobo;
-import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.InteractionContextType;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
@@ -9,11 +8,8 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.build.CommandData;
 
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.List;
 
-public abstract class ASlashCommand implements ICommand {
+public abstract class ASlashCommand implements ISlashCommand {
     protected SlashCommandInteractionEvent event;
 
     /**
@@ -40,37 +36,6 @@ public abstract class ASlashCommand implements ICommand {
 
         return handleCommand();
     }
-
-    /**
-     * Handles the command.
-     */
-    protected abstract CommandResponse handleCommand();
-
-    /**
-     * Gets whether the reply should be ephemeral, or null if it could be either.
-     *
-     * @return Whether the reply should be ephemeral, or null if it could be either.
-     */
-    @Nullable
-    public abstract Boolean shouldBeEphemeral();
-
-    /**
-     * Gets the permissions of the command.
-     *
-     * @return The permissions of the command.
-     */
-    public List<Permission> getPermissions() {
-        List<Permission> permissions = new ArrayList<>(List.of(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND));
-        permissions.addAll(getCommandPermissions());
-        return permissions;
-    }
-
-    /**
-     * Gets the command permissions.
-     *
-     * @return The command permissions.
-     */
-    protected abstract List<Permission> getCommandPermissions();
 
     /**
      * Helper method to get the value of an option.

@@ -699,7 +699,7 @@ public class FMCommand extends AGeneralCommand {
 
     @Nullable
     @Override
-    public Boolean shouldBeInvisible() {
+    public Boolean isHidden() {
         return null; // Ephemeral for auth subcommands, non-ephemeral for everything else
     }
 

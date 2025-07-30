@@ -225,7 +225,7 @@ public class ChatCommand extends AAICommand {
     }
 
     @Override
-    public Boolean shouldBeInvisible() {
+    public Boolean isHidden() {
         return false;
     }
 }

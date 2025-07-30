@@ -3,7 +3,9 @@ package bobo.commands.general;
 import bobo.Bobo;
 import bobo.Config;
 import bobo.Listener;
-import bobo.commands.*;
+import bobo.commands.AMessageCommand;
+import bobo.commands.CommandResponse;
+import bobo.commands.ICommand;
 import bobo.commands.owner.AOwnerCommand;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
@@ -74,7 +76,7 @@ public class HelpCommand extends AGeneralCommand {
     }
 
     @Override
-    public Boolean shouldBeInvisible() {
+    public Boolean isHidden() {
         return false;
     }
 }

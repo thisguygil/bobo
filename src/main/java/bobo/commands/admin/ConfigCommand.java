@@ -212,7 +212,7 @@ public class ConfigCommand extends AAdminCommand {
     }
 
     @Override
-    public Boolean shouldBeEphemeral() {
+    public Boolean isHidden() {
         return false;
     }
 }
