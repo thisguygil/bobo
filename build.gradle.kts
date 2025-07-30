@@ -17,19 +17,19 @@ java {
 
 repositories {
     mavenCentral() // Most of the dependencies are in Maven Central
-    maven(url = "https://maven.lavalink.dev/releases") // For LavaLink YouTube source
+    maven(url = "https://maven.lavalink.dev/releases") // For Lavalink youtube-source
     maven(url = "https://maven.topi.wtf/releases") // For LavaSrc and LavaLyrics
 }
 
 dependencies {
     // Discord API and Utilities
     implementation("net.dv8tion:JDA:5.6.1")
-    implementation("com.github.ygimenez:Pagination-Utils:4.1.3")
+    implementation("com.github.ygimenez:Pagination-Utils:4.1.4b")
 
     // LavaPlayer
     implementation("dev.arbjerg:lavaplayer:2.2.4")
     implementation("dev.lavalink.youtube:v2:1.13.3")
-    implementation("com.github.topi314.lavasrc:lavasrc:4.7.2")
+    implementation("com.github.topi314.lavasrc:lavasrc:4.7.3")
     implementation("com.github.topi314.lavalyrics:lavalyrics:1.0.0")
 
     // Google APIs
@@ -51,8 +51,8 @@ dependencies {
     implementation("io.github.cdimascio:dotenv-java:3.2.0")
 
     // Other API Wrappers
-    implementation("se.michaelthelin.spotify:spotify-web-api-java:9.2.0")
-    implementation("com.openai:openai-java:2.9.0")
+    implementation("se.michaelthelin.spotify:spotify-web-api-java:9.3.0")
+    implementation("com.openai:openai-java:2.20.0")
 
     // Other Java Utilities
     implementation("org.reflections:reflections:0.10.2")
