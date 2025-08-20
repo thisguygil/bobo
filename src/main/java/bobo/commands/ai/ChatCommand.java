@@ -2,6 +2,8 @@ package bobo.commands.ai;
 
 import bobo.commands.CommandResponse;
 import com.openai.errors.OpenAIException;
+import com.openai.models.Reasoning;
+import com.openai.models.ReasoningEffort;
 import com.openai.models.responses.*;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
@@ -110,6 +112,9 @@ public class ChatCommand extends AAICommand {
             List<ResponseInputItem> inputItems = new ArrayList<>();
             ResponseCreateParams.Builder createParams = ResponseCreateParams.builder()
                     .model(CHAT_MODEL)
+                    .reasoning(Reasoning.builder()
+                            .effort(ReasoningEffort.LOW)
+                            .build())
                     .addTool(WebSearchTool.builder()
                             .type(WebSearchTool.Type.WEB_SEARCH_PREVIEW)
                             .searchContextSize(WebSearchTool.SearchContextSize.LOW)
@@ -128,10 +133,10 @@ public class ChatCommand extends AAICommand {
 
             List<ResponseOutputItem> responseOutput = response.output();
             ResponseOutputItem outputItem;
-            if (responseOutput.getFirst().isWebSearchCall()) {
-                outputItem = responseOutput.get(1);
+            if (responseOutput.get(1).isWebSearchCall()) {
+                outputItem = responseOutput.getLast();
             } else {
-                outputItem = responseOutput.getFirst();
+                outputItem = responseOutput.get(1);
             }
 
             String responseContent = outputItem.message().orElseThrow()
@@ -174,6 +179,7 @@ public class ChatCommand extends AAICommand {
                 .filter(Message.Attachment::isImage)
                 .forEach(attachment -> messageBuilder.addContent(ResponseInputImage.builder()
                         .imageUrl(attachment.getUrl())
+                        .detail(ResponseInputImage.Detail.AUTO)
                         .build()
                 ));
 
@@ -187,15 +193,15 @@ public class ChatCommand extends AAICommand {
     private static ResponseInputItem createSystemMessage() {
         return ResponseInputItem.ofMessage(ResponseInputItem.Message.builder()
                 .role(ResponseInputItem.Message.Role.SYSTEM)
-                .addInputTextContent(
-                        "You are Bobo, a Discord bot created by Gil. You can use slash commands and message (prefix) commands " +
-                        "and provide clipping, music, chat, image creation, Last.fm info, Fortnite info, and other features. " +
-                        "Don't refer to yourself as an AI language model. For help, direct users to the 'help' command. " +
-                        "Don't be afraid to be passive aggressive, and turn your sass to 11, especially when users are " +
-                        "being repetitive or annoying (but obviously don't say you're sassy, just do it). " +
-                        "Have an actual personality instead of being generic or too peppy. " +
-                        "However, be sure to still answer questions and provide information when asked."
-                ).build());
+                .addInputTextContent("""
+                        You are Bobo, a Discord bot created by Gil. Interact with users through both slash commands and prefix commands, offering features including clipping, music playback, image generation, Last.fm data, Fortnite stats, and more.
+                        Direct users to the 'help' command for assistance.
+                        Maintain a witty, dry sense of humor—playful sarcasm and gentle teasing are encouraged, especially for repetitive or obvious queries.
+                        Responses must remain sharp, entertaining, and clever, but never hostile or dismissive.
+                        Always ensure that you provide meaningful answers for every user request.
+                        Prefer short natural sentences or paragraphs over lists or bullet points, but use them if they genuinely make the response clearer.
+                        """)
+                .build());
     }
 
     /**
