@@ -11,8 +11,8 @@ application {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_24
-    targetCompatibility = JavaVersion.VERSION_24
+    sourceCompatibility = JavaVersion.VERSION_25
+    targetCompatibility = JavaVersion.VERSION_25
 }
 
 repositories {
@@ -28,37 +28,37 @@ dependencies {
 
     // LavaPlayer
     implementation("dev.arbjerg:lavaplayer:2.2.4")
-    implementation("dev.lavalink.youtube:v2:1.13.4")
-    implementation("com.github.topi314.lavasrc:lavasrc:4.8.0")
+    implementation("dev.lavalink.youtube:v2:1.16.0")
+    implementation("com.github.topi314.lavasrc:lavasrc:4.8.1")
     implementation("com.github.topi314.lavalyrics:lavalyrics:1.1.0")
 
     // Google APIs
     implementation("com.google.api-client:google-api-client:2.8.1")
     implementation("com.google.apis:google-api-services-customsearch:v1-rev20240821-2.0.0")
-    implementation("com.google.apis:google-api-services-youtube:v3-rev20250422-2.0.0")
+    implementation("com.google.apis:google-api-services-youtube:v3-rev20250714-2.0.0")
 
     // Image Processing
-    implementation("net.coobird:thumbnailator:0.4.20")
+    implementation("net.coobird:thumbnailator:0.4.21")
     implementation("com.twelvemonkeys.imageio:imageio-webp:3.12.0")
 
     // Database
-    implementation("com.mysql:mysql-connector-j:9.3.0")
+    implementation("com.mysql:mysql-connector-j:9.5.0")
 
     // Logging
-    implementation("ch.qos.logback:logback-classic:1.5.18")
+    implementation("ch.qos.logback:logback-classic:1.5.20")
 
     // Local Testing
     implementation("io.github.cdimascio:dotenv-java:3.2.0")
 
     // Other API Wrappers
     implementation("se.michaelthelin.spotify:spotify-web-api-java:9.3.0")
-    implementation("com.openai:openai-java:3.1.2")
+    implementation("com.openai:openai-java:4.7.1")
 
     // Other Java Utilities
     implementation("org.reflections:reflections:0.10.2")
-    implementation("org.apache.commons:commons-text:1.13.1")
-    implementation("org.apache.httpcomponents.client5:httpclient5:5.5")
-    implementation("commons-validator:commons-validator:1.9.0")
+    implementation("org.apache.commons:commons-text:1.14.0")
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.5.1")
+    implementation("commons-validator:commons-validator:1.10.0")
     implementation("org.json:json:20250517")
 }
 

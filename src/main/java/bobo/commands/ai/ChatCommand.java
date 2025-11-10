@@ -116,7 +116,7 @@ public class ChatCommand extends AAICommand {
                             .effort(ReasoningEffort.LOW)
                             .build())
                     .addTool(WebSearchTool.builder()
-                            .type(WebSearchTool.Type.WEB_SEARCH_PREVIEW)
+                            .type(WebSearchTool.Type.WEB_SEARCH)
                             .searchContextSize(WebSearchTool.SearchContextSize.LOW)
                             .build());
 
