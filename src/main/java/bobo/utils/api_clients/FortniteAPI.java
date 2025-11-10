@@ -22,6 +22,8 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
@@ -37,11 +39,11 @@ public final class FortniteAPI {
      */
     private enum ShopItemType {
         BUNDLE,
-        BR_ITEM,
+        BR_ITEM, // Skins, emotes, pickaxes, gliders, back blings, wraps, contrails, sprays, loading screens, kicks, sidekicks
         INSTRUMENT,
         LEGO_KIT,
         CAR,
-        TRACK
+        JAM_TRACK,
     }
     private static final int shopMargin = 20; // Number of pixels between the edge of the image and the content. Might be better to make this a percentage of the background image size, but it works either way
     private static final double shopLengthPerImagePercentage = 0.96; // Percentage of the length per square that each image should take up. Should be (1 - paddingPercentage)
@@ -84,11 +86,11 @@ public final class FortniteAPI {
 
             // Separate shop items into two lists: one with tracks and one without tracks
             List<ShopItem> nonTrackItems = shopItems.stream()
-                    .filter(item -> item.shopItemType != ShopItemType.TRACK)
+                    .filter(item -> item.shopItemType != ShopItemType.JAM_TRACK)
                     .toList();
 
             List<ShopItem> trackItems = shopItems.stream()
-                    .filter(item -> item.shopItemType == ShopItemType.TRACK)
+                    .filter(item -> item.shopItemType == ShopItemType.JAM_TRACK)
                     .toList();
 
             // Create images for both categories
@@ -236,6 +238,16 @@ public final class FortniteAPI {
                         y += itemImageWidth + padding;
                     }
 
+                    // Draw the background gradient
+                    drawGradientBackground(
+                            g2d,
+                            x,
+                            y,
+                            itemImageWidth,
+                            itemImageHeight,
+                            shopItems.get(i).backgroundColors()
+                    );
+
                     // Draw the image
                     g2d.drawImage(itemImage, x, y, null);
 
@@ -335,6 +347,51 @@ public final class FortniteAPI {
         return outputImage;
     }
 
+    private static Color parseRgba8(String rgbaHex) {
+        // Expect exactly 8 hex chars: RRGGBBAA
+        if (rgbaHex == null || rgbaHex.length() != 8) {
+            // Fallback to opaque white if malformed
+            return new Color(255, 255, 255, 255);
+        }
+        int r = Integer.parseInt(rgbaHex.substring(0, 2), 16);
+        int g = Integer.parseInt(rgbaHex.substring(2, 4), 16);
+        int b = Integer.parseInt(rgbaHex.substring(4, 6), 16);
+        int a = Integer.parseInt(rgbaHex.substring(6, 8), 16);
+        return new Color(r, g, b, a);
+    }
+
+    /**
+     * Paints a vertical gradient (or solid) into the given rect.
+     * Supports 1..N colors; N>=2 uses evenly spaced stops.
+     */
+    private static void drawGradientBackground(Graphics2D g2d, int x, int y, int w, int h, List<String> rgbaHexes) {
+        if (rgbaHexes == null || rgbaHexes.isEmpty()) {
+            return;
+        }
+
+        if (rgbaHexes.size() == 1) {
+            g2d.setPaint(parseRgba8(rgbaHexes.get(0)));
+            g2d.fillRect(x, y, w, h);
+            return;
+        }
+
+        // Build colors + even fractions for LinearGradientPaint
+        int n = rgbaHexes.size();
+        float[] fractions = new float[n];
+        Color[] colors = new Color[n];
+        for (int i = 0; i < n; i++) {
+            fractions[i] = (float) i / (n - 1);
+            colors[i] = parseRgba8(rgbaHexes.get(i));
+        }
+
+        // Vertical gradient top->bottom
+        java.awt.LinearGradientPaint paint = new java.awt.LinearGradientPaint(
+                x, y, x, y + h, fractions, colors
+        );
+        g2d.setPaint(paint);
+        g2d.fillRect(x, y, w, h);
+    }
+
     /**
      * Gets the current Fortnite map image.
      *
@@ -419,56 +476,62 @@ public final class FortniteAPI {
     @Nonnull
     private static List<ShopItem> parseShopItems(String jsonResponse) {
         List<ShopItem> shopItems = new ArrayList<>();
+        if (jsonResponse == null) return shopItems;
 
         JSONObject shopData = new JSONObject(jsonResponse);
-        if (!shopData.has("data")) {
-            return shopItems;
-        }
+        if (!shopData.has("data")) return shopItems;
 
         JSONArray items = shopData.getJSONObject("data").getJSONArray("entries");
         for (int i = 0; i < items.length(); i++) {
             JSONObject item = items.getJSONObject(i);
+
+            JSONObject newDisplayAsset;
             ShopItemType shopItemType = null;
             String itemName = "";
             String imageUrl;
-            String color = "";
+            ArrayList<String> colors = new ArrayList<>();
             String rarity = "";
             String set = "";
             String itemType = "";
 
-            // Check if the item has an asset, if not then skip it
-            if (!item.has("newDisplayAsset")) {
-                continue;
-            }
-            JSONObject newDisplayAsset;
-            try {
+            try { // See if it's a normal item
                 newDisplayAsset = item.getJSONObject("newDisplayAsset");
-            } catch (JSONException e) {
-                continue;
-            }
 
-            // Gets the item image URL and hex color if needed
-            JSONArray materialInstances = newDisplayAsset.getJSONArray("materialInstances");
-            if (!materialInstances.isEmpty()) {
-                JSONObject images = materialInstances.getJSONObject(0).getJSONObject("images");
-                if (images.has("Background")) {
-                    imageUrl = images.getString("Background");
-                } else if (images.has("OfferImage")) {
-                    imageUrl = images.getString("OfferImage");
-                } else if (images.has("CarTexture")) {
-                    imageUrl = images.getString("CarTexture");
-                } else {
-                    continue;
-                }
-            } else {
+                // Get the item image URL and background colors
                 imageUrl = newDisplayAsset.getJSONArray("renderImages").getJSONObject(0).getString("image");
-                color = item.getJSONObject("colors").getString("color1");
+                JSONObject colorsObject = item.getJSONObject("colors");
+                Iterator<String> keys = colorsObject.keys();
+                while (keys.hasNext()) {
+                    String key = keys.next();
+                    if (!key.equals("textBackgroundColor")) {
+                        colors.add(colorsObject.getString(key));
+                    }
+                }
+            } catch (JSONException e) { // Must be a jam track
+                JSONObject trackObject = item.getJSONArray("tracks").getJSONObject(0);
+                shopItemType = ShopItemType.JAM_TRACK;
+                itemName = trackObject.getString("title");
+                imageUrl = trackObject.getString("albumArt");
+                set = trackObject.getString("artist");
             }
 
-            // Get the shop item type, name, and item type. For all except bundles and tracks, we'll also get the rarity and set if it exists
+            // Get the item info
             try {
                 itemName = item.getJSONObject("bundle").getString("name");
                 shopItemType = ShopItemType.BUNDLE;
+                try { // try to get the first item's rarity and set for the bundle
+                    JSONObject itemObject;
+                    try {
+                        itemObject = item.getJSONArray("brItems").getJSONObject(0);
+                    } catch (JSONException ignored) {
+                        itemObject = item.getJSONArray("cars").getJSONObject(0);
+                    }
+                    rarity = itemObject.getJSONObject("rarity").getString("value");
+                    try {
+                        set = itemObject.getJSONObject("set").getString("value");
+                    } catch (JSONException ignored) {}
+                    itemType = itemObject.getJSONObject("type").getString("value");
+                } catch (JSONException ignored) {}
             } catch (JSONException e) {
                 try {
                     JSONObject itemObject = item.getJSONArray("brItems").getJSONObject(0);
@@ -482,7 +545,7 @@ public final class FortniteAPI {
                 } catch (JSONException ignored) {}
                 try {
                     itemName = item.getJSONArray("tracks").getJSONObject(0).getString("title");
-                    shopItemType = ShopItemType.TRACK;
+                    shopItemType = ShopItemType.JAM_TRACK;
                 } catch (JSONException ignored) {}
                 try {
                     JSONObject itemObject = item.getJSONArray("instruments").getJSONObject(0);
@@ -518,7 +581,7 @@ public final class FortniteAPI {
 
             // Get the item price and add the item to the list
             int itemPrice = item.getInt("finalPrice");
-            ShopItem shopItem = new ShopItem(shopItemType, itemName, itemPrice, imageUrl, color, rarity, set, itemType);
+            ShopItem shopItem = new ShopItem(shopItemType, itemName, itemPrice, imageUrl, colors, rarity, set, itemType);
             if (!shopItems.contains(shopItem)) {
                 shopItems.add(shopItem);
             }
@@ -597,68 +660,62 @@ public final class FortniteAPI {
     /**
      * Record representing a shop item. Implements {@link Comparable} so that the items can be sorted.
      */
-    private record ShopItem(ShopItemType shopItemType, String name, int price, String imageUrl, String backgroundColor, String rarity, String set, String itemType) implements Comparable<ShopItem> {
+    private record ShopItem(ShopItemType shopItemType, String name, int price, String imageUrl, ArrayList<String> backgroundColors, String rarity, String set, String itemType) implements Comparable<ShopItem> {
         /**
          * Compares the items by whether they are bundles, then by shop item type, then by rarity, then by set, then by item type, then by name
          * @param item2 the other item to be compared.
          * @return a negative integer, zero, or a positive integer as this item is less than, equal to, or greater than the other item.
          */
         @Override
-        public int compareTo(@Nonnull ShopItem item2) {
-            // Bundle comparison
-            if (this.shopItemType == ShopItemType.BUNDLE && item2.shopItemType != ShopItemType.BUNDLE) {
-                return -1;
-            } else if (this.shopItemType != ShopItemType.BUNDLE && item2.shopItemType == ShopItemType.BUNDLE) {
-                return 1;
+        public int compareTo(ShopItem other) {
+            if (other == null) return -1;
+
+            // 1) ITEM TYPE
+            final List<String> itemTypeOrder = Arrays.asList(
+                    "outfit", "sidekick", "backpack", "pickaxe", "glider", "shoe",
+                    "contrail", "aura", "emote", "wrap", "music", "loadingscreen",
+                    "guitar", "keyboard", "bass", "microphone", "drums", "skin" // cars report "skin"
+            );
+            int t1 = indexOrLast(itemTypeOrder, safeLower(this.itemType));
+            int t2 = indexOrLast(itemTypeOrder, safeLower(other.itemType));
+            if (t1 != t2) return Integer.compare(t1, t2);
+
+            // 2) RARITY
+            final List<String> rarityOrder = Arrays.asList(
+                    "gaminglegends", "slurp", "shadow", "starwars", "lava",
+                    "frozen", "icon", "dc", "dark", "marvel", "transcendent",
+                    "exotic", "mythic", "legendary", "epic", "rare", "uncommon", "common"
+            );
+            int r1 = indexOrLast(rarityOrder, safeLower(this.rarity));
+            int r2 = indexOrLast(rarityOrder, safeLower(other.rarity));
+            if (r1 != r2) return Integer.compare(r1, r2); // list already highest->lowest
+
+            // 3) SET
+            String s1 = safeTrim(this.set);
+            String s2 = safeTrim(other.set);
+            boolean s1Empty = s1.isEmpty(), s2Empty = s2.isEmpty();
+            if (s1Empty != s2Empty) return s1Empty ? 1 : -1;       // non-empty before empty
+            if (!s1Empty) {
+                int setCmp = s1.compareToIgnoreCase(s2);
+                if (setCmp != 0) return setCmp;
             }
 
-            // ShopItemType comparison
-            int typeComparison = this.shopItemType.compareTo(item2.shopItemType);
-            if (typeComparison != 0) return typeComparison;
+            // 4) BUNDLE/NON-BUNDLE
+            boolean thisIsBundle = this.shopItemType == ShopItemType.BUNDLE;
+            boolean otherIsBundle = other.shopItemType == ShopItemType.BUNDLE;
+            if (thisIsBundle != otherIsBundle) return thisIsBundle ? -1 : 1;
 
-            // Bundles and tracks don't have rarity, set, or item type, so we shouldn't compare them
-            // Instruments don't have sets, so we shouldn't compare them
-            if (this.shopItemType != ShopItemType.BUNDLE && item2.shopItemType != ShopItemType.TRACK) {
-                // Check if items are in the same set. If so, then we don't need to compare rarity or set
-                if (this.shopItemType != ShopItemType.INSTRUMENT && !this.set.equals(item2.set)) {
-                    // Rarity comparison
-                    int rarityComparison = this.rarity.compareTo(item2.rarity);
-                    if (rarityComparison != 0) return rarityComparison;
+            // 5) NAME (alphabetical, last resort)
+            String n1 = this.name == null ? "" : this.name;
+            String n2 = other.name == null ? "" : other.name;
+            return n1.compareToIgnoreCase(n2);
+        }
 
-                    // Set comparison
-                    if (this.set.isEmpty() && !item2.set.isEmpty()) {
-                        return -1;
-                    } else if (!this.set.isEmpty() && item2.set.isEmpty()) {
-                        return 1;
-                    } else if (!this.set.isEmpty()) {
-                        int setComparison = this.set.compareTo(item2.set);
-                        if (setComparison != 0) return setComparison;
-                    }
-                } else {
-                    if (this.shopItemType != ShopItemType.INSTRUMENT) {
-                        // Rarity comparison
-                        int rarityComparison = this.rarity.compareTo(item2.rarity);
-                        if (rarityComparison != 0) return rarityComparison;
-                    }
-                }
-
-                // Item type comparison. (for some reason the car type is "skin")
-                List<String> itemTypeOrder = List.of("outfit", "backpack", "pickaxe", "glider", "contrail", "aura", "emote", "wrap", "music", "loadingscreen", "guitar", "keyboard", "bass", "microphone", "drums", "skin");
-                int thisItemTypeIndex = itemTypeOrder.indexOf(this.itemType);
-                int item2ItemTypeIndex = itemTypeOrder.indexOf(item2.itemType);
-
-                if (thisItemTypeIndex == -1 && item2ItemTypeIndex != -1) {
-                    return 1;
-                } else if (thisItemTypeIndex != -1 && item2ItemTypeIndex == -1) {
-                    return -1;
-                } else {
-                    int itemTypeComparison = Integer.compare(thisItemTypeIndex, item2ItemTypeIndex);
-                    if (itemTypeComparison != 0) return itemTypeComparison;
-                }
-            }
-
-            // Name comparison. Returns here as it is the last comparison
-            return this.name.compareTo(item2.name);
+        private static String safeLower(String s) { return s == null ? "" : s.trim().toLowerCase(); }
+        private static String safeTrim(String s)  { return s == null ? "" : s.trim(); }
+        private static int indexOrLast(java.util.List<String> order, String key) {
+            int idx = order.indexOf(key);
+            return idx >= 0 ? idx : order.size();
         }
 
         /**
