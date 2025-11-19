@@ -4,14 +4,16 @@ import bobo.Config;
 import net.coobird.thumbnailator.Thumbnails;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.jetbrains.annotations.Nullable;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.imageio.ImageIO;
@@ -28,6 +30,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 
 public final class FortniteAPI {
+    private static final Logger logger = LoggerFactory.getLogger(FortniteAPI.class);
     private static final String API_KEY = Config.get("FORTNITE_API_KEY");
     private static final String baseURL = "https://fortnite-api.com";
 
@@ -107,7 +110,7 @@ public final class FortniteAPI {
                 return List.of(imageWithoutTracks, imageOnlyTracks);
             }
         } catch (IOException | URISyntaxException | FontFormatException e) {
-            e.printStackTrace();
+            logger.error("Failed to create shop images.", e);
             return null;
         }
     }
@@ -299,11 +302,11 @@ public final class FortniteAPI {
                 g2d.dispose();
                 return background;
             }).exceptionally(e -> {
-                e.printStackTrace();
+                logger.error("Failed to draw shop items.", e);
                 return null;
             }).join();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Failed to draw shop items.", e);
             return null;
         }
     }
@@ -347,6 +350,12 @@ public final class FortniteAPI {
         return outputImage;
     }
 
+    /**
+     * Parses an RGBA hex string into a Color object.
+     *
+     * @param rgbaHex The RGBA hex string.
+     * @return The Color object.
+     */
     private static Color parseRgba8(String rgbaHex) {
         // Expect exactly 8 hex chars: RRGGBBAA
         if (rgbaHex == null || rgbaHex.length() != 8) {
@@ -370,7 +379,7 @@ public final class FortniteAPI {
         }
 
         if (rgbaHexes.size() == 1) {
-            g2d.setPaint(parseRgba8(rgbaHexes.get(0)));
+            g2d.setPaint(parseRgba8(rgbaHexes.getFirst()));
             g2d.fillRect(x, y, w, h);
             return;
         }
@@ -406,7 +415,8 @@ public final class FortniteAPI {
             try {
                 return ImageIO.read((new URI(mapImageUrl)).toURL());
             } catch (IOException | URISyntaxException e) {
-                e.printStackTrace();
+                logger.error("Failed to get map image.", e);
+                return null;
             }
         }
 
@@ -508,11 +518,17 @@ public final class FortniteAPI {
                     }
                 }
             } catch (JSONException e) { // Must be a jam track
-                JSONObject trackObject = item.getJSONArray("tracks").getJSONObject(0);
-                shopItemType = ShopItemType.JAM_TRACK;
-                itemName = trackObject.getString("title");
-                imageUrl = trackObject.getString("albumArt");
-                set = trackObject.getString("artist");
+                try {
+                    JSONObject trackObject = item.getJSONArray("tracks").getJSONObject(0);
+                    shopItemType = ShopItemType.JAM_TRACK;
+                    itemName = trackObject.getString("title");
+                    imageUrl = trackObject.getString("albumArt");
+                    set = trackObject.getString("artist");
+                } catch (JSONException ex) { // I lied and it isn't a jam track
+                    imageUrl = item.getJSONArray("brItems").getJSONObject(0)
+                            .getJSONObject("images")
+                            .getString("icon");
+                }
             }
 
             // Get the item info
@@ -639,19 +655,16 @@ public final class FortniteAPI {
      */
     @Nullable
     private static String sendGetRequest(String endpoint) {
-        try {
-            HttpClient httpClient = HttpClients.createDefault();
+        try (CloseableHttpClient httpClient = HttpClients.createDefault()) {
             HttpGet httpGet = new HttpGet(baseURL + endpoint);
-
             httpGet.setHeader("Authorization", API_KEY);
-
             HttpResponse response = httpClient.execute(httpGet);
             HttpEntity entity = response.getEntity();
             if (entity != null) {
                 return EntityUtils.toString(entity);
             }
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("Failed to send GET request to Fortnite API.", e);
         }
 
         return null;
@@ -663,13 +676,11 @@ public final class FortniteAPI {
     private record ShopItem(ShopItemType shopItemType, String name, int price, String imageUrl, ArrayList<String> backgroundColors, String rarity, String set, String itemType) implements Comparable<ShopItem> {
         /**
          * Compares the items by whether they are bundles, then by shop item type, then by rarity, then by set, then by item type, then by name
-         * @param item2 the other item to be compared.
+         * @param other the other item to be compared.
          * @return a negative integer, zero, or a positive integer as this item is less than, equal to, or greater than the other item.
          */
         @Override
-        public int compareTo(ShopItem other) {
-            if (other == null) return -1;
-
+        public int compareTo(@Nonnull ShopItem other) {
             // 1) ITEM TYPE
             final List<String> itemTypeOrder = Arrays.asList(
                     "outfit", "sidekick", "backpack", "pickaxe", "glider", "shoe",
@@ -711,6 +722,7 @@ public final class FortniteAPI {
             return n1.compareToIgnoreCase(n2);
         }
 
+        // Helper methods for comparison
         private static String safeLower(String s) { return s == null ? "" : s.trim().toLowerCase(); }
         private static String safeTrim(String s)  { return s == null ? "" : s.trim(); }
         private static int indexOrLast(java.util.List<String> order, String key) {
