@@ -55,7 +55,7 @@ public class PlayerManager {
                 new WebEmbeddedWithThumbnail(),
                 new AndroidMusicWithThumbnail(),
                 new AndroidVrWithThumbnail(),
-                new TvHtml5EmbeddedWithThumbnail()
+                new TvHtml5SimplyWithThumbnail()
         );
 
         String poToken = Config.get("PO_TOKEN");

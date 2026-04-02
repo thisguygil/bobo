@@ -92,7 +92,7 @@ public record CommandResponse(
      * @return The {@link MessageCreateData} object.
      */
     public MessageCreateData asMessageCreateData() {
-        MessageCreateBuilder builder = new MessageCreateBuilder();
+        MessageCreateBuilder builder = new MessageCreateBuilder().mentionRepliedUser(false);
         if (content != null && !content.isEmpty()) builder.setContent(content);
         if (attachments != null && !attachments.isEmpty()) builder.setFiles(attachments);
         if (embeds != null && !embeds.isEmpty()) builder.setEmbeds(embeds);
@@ -105,7 +105,7 @@ public record CommandResponse(
      * @return The {@link MessageEditData} object.
      */
     public MessageEditData asMessageEditData() {
-        MessageEditBuilder builder = new MessageEditBuilder();
+        MessageEditBuilder builder = new MessageEditBuilder().mentionRepliedUser(false);
         if (content != null && !content.isEmpty()) builder.setContent(content);
         if (attachments != null && !attachments.isEmpty()) builder.setFiles(attachments);
         if (embeds != null && !embeds.isEmpty()) builder.setEmbeds(embeds);

@@ -2,9 +2,11 @@ package bobo;
 
 import bobo.utils.DailyTask;
 import bobo.utils.api_clients.SQLConnection;
+import club.minnced.discord.jdave.interop.JDaveSessionFactory;
 import com.github.ygimenez.model.PaginatorBuilder;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.JDABuilder;
+import net.dv8tion.jda.api.audio.AudioModuleConfig;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.unions.AudioChannelUnion;
 import net.dv8tion.jda.api.requests.GatewayIntent;
@@ -32,10 +34,12 @@ public class Bobo {
     private static final String insertVoiceChannelsShutdownTableSQL = "INSERT INTO voice_channels_shutdown (channel_id) VALUES (?)";
     private static final String resetVoiceChannelsShutdownTableSQL = "DELETE FROM voice_channels_shutdown";
 
-    public static void main(String[] args) {
+    public static void main() {
         jda = JDABuilder.createDefault(Config.get("TOKEN"))
                 .enableIntents(GatewayIntent.MESSAGE_CONTENT)
                 .enableCache(CacheFlag.VOICE_STATE)
+                .setAudioModuleConfig(new AudioModuleConfig()
+                        .withDaveSessionFactory(new JDaveSessionFactory()))
                 .build();
 
         jda.addEventListener(new Listener());
