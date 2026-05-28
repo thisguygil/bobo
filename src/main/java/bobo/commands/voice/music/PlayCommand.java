@@ -16,6 +16,11 @@ import javax.annotation.Nonnull;
 import java.util.List;
 
 public class PlayCommand extends AMusicCommand {
+    private enum PlayMode {
+        TRACK,
+        FILE
+    }
+
     /**
      * Creates a new play command.
      */
@@ -36,29 +41,36 @@ public class PlayCommand extends AMusicCommand {
             return CommandResponse.text("You must be connected to a voice channel to use this command.");
         }
 
-        return switch (source) {
-            case SLASH_COMMAND -> {
-                String subcommandName = getSubcommandName(0);
-                yield switch (subcommandName) {
-                    case "track" -> playTrack(0);
-                    case "file" -> playFile();
-                    default -> CommandResponse.text("Invalid usage. Use `/help play` for more information.");
-                };
-            }
-            case MESSAGE_COMMAND -> {
-                if (args.isEmpty()) {
-                    yield CommandResponse.text("Invalid usage. Use `/help play` for more information.");
-                }
+        PlayMode mode;
+        int trackArgIndex = 0;
 
-                String firstArg = args.getFirst();
-                if (firstArg.equals("file")) {
-                    yield playFile();
-                } else if (firstArg.equals("track")) {
-                    yield playTrack(1);
-                } else {
-                    yield playTrack(0);
-                }
+        if (source == CommandSource.SLASH_COMMAND) {
+            String subcommandName = getSubcommandName(0);
+            mode = switch (subcommandName) {
+                case "track" -> PlayMode.TRACK;
+                case "file" -> PlayMode.FILE;
+                default -> null;
+            };
+        } else {
+            if (args.isEmpty()) {
+                return playFile();
             }
+
+            String firstArg = args.getFirst().toLowerCase();
+            switch (firstArg) {
+                case "track" -> {
+                    mode = PlayMode.TRACK;
+                    trackArgIndex = 1;
+                }
+                case "file" -> mode = PlayMode.FILE;
+                default -> mode = PlayMode.TRACK;
+            }
+        }
+
+        return switch (mode) {
+            case TRACK -> playTrack(trackArgIndex);
+            case FILE -> playFile();
+            case null -> CommandResponse.text("Invalid usage. Use `/help play` for more information.");
         };
     }
 
