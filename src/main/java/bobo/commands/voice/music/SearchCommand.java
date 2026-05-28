@@ -380,7 +380,7 @@ public class SearchCommand extends AMusicCommand {
     private CommandResponse handleResult(String message, String type, String[] links) {
         message += String.format("Which %s would you like to play? Press the corresponding button, or %s to cancel.", type, EMOJIS.getFirst());
 
-        EmojiMapping<ThrowingConsumer<ButtonWrapper>> buttons = doResults(links);
+        Map<ButtonId<?>, ThrowingConsumer<ButtonWrapper>> buttons = doResults(links);
 
         return CommandResponse.builder()
                 .setContent(StringEscapeUtils.unescapeHtml4(message))
@@ -397,7 +397,7 @@ public class SearchCommand extends AMusicCommand {
      * @param links The links to the search results.
      * @return The buttons to deal with.
      */
-    private static EmojiMapping<ThrowingConsumer<ButtonWrapper>> doResults(String[] links) {
+    private static Map<ButtonId<?>, ThrowingConsumer<ButtonWrapper>> doResults(String[] links) {
         ThrowingConsumer<ButtonWrapper> handleButton = (wrapper) -> {
             Emoji emoji = wrapper.getButton().getEmoji();
             if (emoji == null) {
@@ -433,11 +433,11 @@ public class SearchCommand extends AMusicCommand {
         };
 
         return switch (links.length) {
-            case 1 -> new EmojiMapping<>(Map.of(new EmojiId(EMOJIS.getFirst()), handleButton, new EmojiId(EMOJIS.get(1)), handleButton));
-            case 2 -> new EmojiMapping<>(Map.of(new EmojiId(EMOJIS.getFirst()), handleButton, new EmojiId(EMOJIS.get(1)), handleButton, new EmojiId(EMOJIS.get(2)), handleButton));
-            case 3 -> new EmojiMapping<>(Map.of(new EmojiId(EMOJIS.getFirst()), handleButton, new EmojiId(EMOJIS.get(1)), handleButton, new EmojiId(EMOJIS.get(2)), handleButton, new EmojiId(EMOJIS.get(3)), handleButton));
-            case 4 -> new EmojiMapping<>(Map.of(new EmojiId(EMOJIS.getFirst()), handleButton, new EmojiId(EMOJIS.get(1)), handleButton, new EmojiId(EMOJIS.get(2)), handleButton, new EmojiId(EMOJIS.get(3)), handleButton, new EmojiId(EMOJIS.get(4)), handleButton));
-            case 5 -> new EmojiMapping<>(Map.of(new EmojiId(EMOJIS.getFirst()), handleButton, new EmojiId(EMOJIS.get(1)), handleButton, new EmojiId(EMOJIS.get(2)), handleButton, new EmojiId(EMOJIS.get(3)), handleButton, new EmojiId(EMOJIS.get(4)), handleButton, new EmojiId(EMOJIS.get(5)), handleButton));
+            case 1 -> Map.of(new EmojiId(EMOJIS.getFirst()), handleButton, new EmojiId(EMOJIS.get(1)), handleButton);
+            case 2 -> Map.of(new EmojiId(EMOJIS.getFirst()), handleButton, new EmojiId(EMOJIS.get(1)), handleButton, new EmojiId(EMOJIS.get(2)), handleButton);
+            case 3 -> Map.of(new EmojiId(EMOJIS.getFirst()), handleButton, new EmojiId(EMOJIS.get(1)), handleButton, new EmojiId(EMOJIS.get(2)), handleButton, new EmojiId(EMOJIS.get(3)), handleButton);
+            case 4 -> Map.of(new EmojiId(EMOJIS.getFirst()), handleButton, new EmojiId(EMOJIS.get(1)), handleButton, new EmojiId(EMOJIS.get(2)), handleButton, new EmojiId(EMOJIS.get(3)), handleButton, new EmojiId(EMOJIS.get(4)), handleButton);
+            case 5 -> Map.of(new EmojiId(EMOJIS.getFirst()), handleButton, new EmojiId(EMOJIS.get(1)), handleButton, new EmojiId(EMOJIS.get(2)), handleButton, new EmojiId(EMOJIS.get(3)), handleButton, new EmojiId(EMOJIS.get(4)), handleButton, new EmojiId(EMOJIS.get(5)), handleButton);
             default -> throw new IllegalStateException("Unexpected value: " + links.length);
         };
     }

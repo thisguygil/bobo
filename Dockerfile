@@ -1,5 +1,5 @@
 # Stage 1: Build the bot
-FROM gradle:9.4.1-jdk25 AS build
+FROM gradle:jdk25-noble AS build
 WORKDIR /app
 
 # Copy Gradle files and cache dependencies
@@ -18,12 +18,9 @@ RUN mv /app/build/libs/bobo-1.0.jar /app/bot.jar
 FROM eclipse-temurin:25-jdk-noble
 WORKDIR /app
 
-# Install packages
+# Install fontconfig package
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends \
-        fontconfig \
-        libstdc++6 \
-        libgcc-s1 && \
+    apt-get install -y fontconfig && \
     rm -rf /var/lib/apt/lists/*
 
 # Copy the main JAR and dependency libraries

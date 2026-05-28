@@ -26,18 +26,18 @@ dependencies {
     implementation("net.dv8tion:JDA:6.4.1")
     implementation("club.minnced:jdave-api:0.1.8")
     implementation("club.minnced:jdave-native-linux-x86-64:0.1.8")
-    implementation("com.github.ygimenez:Pagination-Utils:4.2.1")
+    implementation("com.github.ygimenez:Pagination-Utils:4.3.0")
 
     // LavaPlayer
     implementation("dev.arbjerg:lavaplayer:2.2.6")
-    implementation("dev.lavalink.youtube:v2:1.18.0")
-    implementation("com.github.topi314.lavasrc:lavasrc:4.8.1")
+    implementation("dev.lavalink.youtube:v2:1.18.1")
+    implementation("com.github.topi314.lavasrc:lavasrc:4.8.3")
     implementation("com.github.topi314.lavalyrics:lavalyrics:1.1.0")
 
     // Google APIs
     implementation("com.google.api-client:google-api-client:2.9.0")
     implementation("com.google.apis:google-api-services-customsearch:v1-rev20240821-2.0.0")
-    implementation("com.google.apis:google-api-services-youtube:v3-rev20251217-2.0.0")
+    implementation("com.google.apis:google-api-services-youtube:v3-rev20260323-2.0.0")
 
     // Image Processing
     implementation("net.coobird:thumbnailator:0.4.21")
@@ -47,21 +47,21 @@ dependencies {
     implementation("com.mysql:mysql-connector-j:9.6.0")
 
     // Logging
-    implementation("ch.qos.logback:logback-classic:1.5.29")
+    implementation("ch.qos.logback:logback-classic:1.5.32")
 
     // Local Testing
     implementation("io.github.cdimascio:dotenv-java:3.2.0")
 
     // Other API Wrappers
     implementation("se.michaelthelin.spotify:spotify-web-api-java:9.4.0")
-    implementation("com.openai:openai-java:4.30.0")
+    implementation("com.openai:openai-java:4.37.0")
 
     // Other Java Utilities
     implementation("org.reflections:reflections:0.10.2")
     implementation("org.apache.commons:commons-text:1.15.0")
-    implementation("org.apache.httpcomponents.client5:httpclient5:5.6")
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.6.1")
     implementation("commons-validator:commons-validator:1.10.1")
-    implementation("org.json:json:20251224")
+    implementation("org.json:json:20260522")
 }
 
 tasks.withType<JavaCompile> {
