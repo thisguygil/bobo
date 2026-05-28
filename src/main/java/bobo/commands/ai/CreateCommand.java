@@ -15,22 +15,24 @@ import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ImageCommand extends AAICommand {
+public class CreateCommand extends AAICommand {
     /**
      * Creates a new image command.
      */
-    public ImageCommand() {
-        super(Commands.slash("image", "Uses OpenAI (DALL-E 3) to generate an image of the given prompt.")
+    public CreateCommand() {
+        super(Commands.slash("create", "Uses OpenAI to generate an image of the given prompt.")
                 .addOption(OptionType.STRING, "prompt", "Image to generate", true));
     }
 
     @Override
     protected CommandResponse handleAICommand() {
+        return CommandResponse.text("This command is temporarily disabled due to an error");
+        /*
         String prompt;
         try {
             prompt = getMultiwordOptionValue("prompt", 0);
         } catch (RuntimeException e) {
-            return CommandResponse.text("Invalid usage. Use `/help image` for more information.");
+            return CommandResponse.text("Invalid usage. Use `/help create` for more information.");
         }
 
         ImageGenerateParams createImageRequest = ImageGenerateParams.builder()
@@ -69,19 +71,19 @@ public class ImageCommand extends AAICommand {
                 .setImage(imageUrl)
                 .build();
         return CommandResponse.embed(embed);
-
+         */
     }
 
     @Override
     public String getName() {
-        return "image";
+        return "create";
     }
 
     @Override
     public String getHelp() {
         return super.getHelp() + " " + """
-                Generates an image of the given prompt.
-                Usage: `/image <prompt>`""";
+                AI generates an image of the given prompt.
+                Usage: `/create <prompt>`""";
     }
 
     @Override

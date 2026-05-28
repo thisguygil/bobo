@@ -157,7 +157,6 @@ public class GoogleCommand extends AGeneralCommand {
                 String imageContextUrl = imageResult.getImage().getContextLink();
 
                 MessageEmbed embed = new EmbedBuilder()
-                        .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getEffectiveAvatarUrl())
                         .setTitle("\uD83D\uDDBC️ Google Images - " + query + range)
                         .setFooter("Page " + (i + 1) + "/" + results.size())
                         .setColor(Color.red)
@@ -170,7 +169,6 @@ public class GoogleCommand extends AGeneralCommand {
             int resultsPerPage = 5;
             for (int i = 0; i < results.size(); i += resultsPerPage) {
                 EmbedBuilder builder = new EmbedBuilder()
-                        .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getEffectiveAvatarUrl())
                         .setTitle("\uD83D\uDD0E Google Search - " + query + range)
                         .setColor(Color.blue);
 
@@ -205,7 +203,7 @@ public class GoogleCommand extends AGeneralCommand {
      */
     private boolean isImageOnlyAlias() {
         return source == CommandSource.MESSAGE_COMMAND
-                && command.equalsIgnoreCase("img");
+                && (command.equalsIgnoreCase("img") || command.equalsIgnoreCase("image"));
     }
 
     @Override
@@ -230,6 +228,6 @@ public class GoogleCommand extends AGeneralCommand {
 
     @Override
     public List<String> getAliases() {
-        return List.of("img"); // Technically an alias for the whole Google command, but meant to only work for images
+        return List.of("img", "image"); // Technically aliases for the whole Google command, but meant to only work for images
     }
 }

@@ -41,7 +41,7 @@ public class Bobo {
                 .setAudioModuleConfig(new AudioModuleConfig()
                         .withDaveSessionFactory(new JDaveSessionFactory()))
                 .build();
-
+        jda.updateCommands().complete();
         jda.addEventListener(new Listener());
 
         createPaginator();

@@ -82,7 +82,7 @@ Can be used by anyone with proper permissions
 * `/google <subcommand> <query>` - Searches Google for `<query>`
   * Subcommands:
     * `search` - Searches given query on Google.
-    * `images` - Searches given query on Google Images.
+    * `images` - Searches given query on Google Images. (aliases: `!image`, `!img`)
 * `/fortnite` - Get info about Fortnite
   * Subcommands:
     * `stats <username>` - Gets the stats of `<username>` in Fortnite
@@ -108,7 +108,7 @@ Can be used by anyone with proper permissions
 #### AI Commands
 * `/tldr <minutes>` - Summarizes the recent conversation in the channel. `<minutes>` is the number of minutes to look back in the channel. If not provided, searches until a 5-minute gap is found
 * `/chat` - Opens a thread to chat with ChatGPT
-* `/image` - Generates an image with DALL-E 3
+* `/create` - Generates an image with OpenAI
 
 #### Voice Commands
 Can be used only while in an audio channel
