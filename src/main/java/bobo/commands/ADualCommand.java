@@ -199,6 +199,25 @@ public abstract class ADualCommand implements ISlashCommand, IMessageCommand {
     }
 
     /**
+     * Helper method to get the integer value of an option.
+     *
+     * @param optionName The name of the option.
+     * @param defaultValue The default value of the option.
+     * @return The value of the option.
+     */
+    protected Integer getIntegerOption(String optionName, Integer defaultValue) {
+        return switch (source) {
+            case SLASH_COMMAND -> {
+                OptionMapping option = slashEvent.getOption(optionName);
+                yield option != null
+                        ? Integer.valueOf(option.getAsInt())
+                        : defaultValue;
+            }
+            case MESSAGE_COMMAND -> defaultValue;
+        };
+    }
+
+    /**
      * Helper method to get the attachment.
      *
      * @param optionName The name of the option.

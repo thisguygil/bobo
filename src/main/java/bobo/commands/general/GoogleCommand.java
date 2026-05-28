@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,13 @@ import static bobo.utils.StringUtils.markdownLink;
 
 public class GoogleCommand extends AGeneralCommand {
     private static final Logger logger = LoggerFactory.getLogger(GoogleCommand.class);
+    private static final List<OptionData> googleSearchOptions = List.of(
+            new OptionData(OptionType.STRING, "query", "What to search", true),
+            new OptionData(OptionType.INTEGER, "after", "Only results after this year"),
+            new OptionData(OptionType.INTEGER, "before", "Only results before this year"),
+            new OptionData(OptionType.INTEGER, "results", "Number of results (1-100, default 25)")
+                    .setRequiredRange(1, 100)
+    );
 
     /**
      * Creates a new Google command.
@@ -31,15 +39,19 @@ public class GoogleCommand extends AGeneralCommand {
         super(Commands.slash("google", "Searches given query on Google.")
                 .addSubcommands(
                         new SubcommandData("search", "Searches given query on Google.")
-                                .addOption(OptionType.STRING, "query", "What to search", true),
+                                .addOptions(googleSearchOptions),
                         new SubcommandData("images", "Searches for images on Google.")
-                                .addOption(OptionType.STRING, "query", "What to search", true)
+                                .addOptions(googleSearchOptions)
                 )
         );
     }
 
     @Override
     protected CommandResponse handleGeneralCommand() {
+        if (isImageOnlyAlias()) {
+            return search(true, 0);
+        }
+
         String subcommand;
         try {
             subcommand = getSubcommandName(0);
@@ -47,61 +59,68 @@ public class GoogleCommand extends AGeneralCommand {
             return CommandResponse.text("Invalid usage. Use `/help google` for more information.");
         }
 
-        return switch (subcommand) {
-            case "search" -> search();
-            case "images" -> searchImages();
-            default -> CommandResponse.text("Invalid usage. Use `/help google` for more information.");
+        int argIndex = source == CommandSource.MESSAGE_COMMAND ? 1 : 0;
+        return switch (subcommand.toLowerCase()) {
+            case "search" -> search(false, argIndex);
+            case "images" -> search(true, argIndex);
+            default -> source == CommandSource.MESSAGE_COMMAND
+                    ? search(false, 0)
+                    : CommandResponse.text("Invalid usage. Use `/help google` for more information.");
         };
     }
 
     /**
      * Searches the given query on Google.
+     *
+     * @param isImageSearch Whether the search should return images or web pages.
+     * @param argIndex What message array index to start looking at message command arguments
+     * @return The command response
      */
-    private CommandResponse search() {
+    private CommandResponse search(boolean isImageSearch, int argIndex) {
         String query;
         try {
-            query = getMultiwordOptionValue("query", 1);
+            query = getMultiwordOptionValue("query", argIndex);
         } catch (Exception e) {
-            return CommandResponse.text("Invalid usage. Use `/help google` for more information.");
+            return CommandResponse.text(
+                    "Invalid usage. Use `/help google` for more information."
+            );
+        }
+
+        Integer after = getIntegerOption("after", null);
+        Integer before = getIntegerOption("before", null);
+        int maxResults = getIntegerOption("results", 25);
+
+        if (after != null && before != null && after > before) {
+            return CommandResponse.text("`after` cannot be greater than `before`.");
         }
 
         List<Result> results;
         try {
-            results = GoogleCustomSearchService.search(query, false);
-            if (results == null || results.isEmpty()) {
-                return CommandResponse.text("No results found for query: " + query);
+            results = GoogleCustomSearchService.search(
+                    query,
+                    isImageSearch,
+                    after,
+                    before,
+                    maxResults
+            );
+
+            if (results.isEmpty()) {
+                return CommandResponse.text("No %s found for query: %s",
+                                isImageSearch ? "images" : "results",
+                                query
+                );
             }
         } catch (Exception e) {
-            logger.error("Error occurred while searching Google for query: {}", query);
+            logger.error("Error occurred while searching Google{} for query: {}",
+                    isImageSearch ? " Images" : "",
+                    query,
+                    e
+            );
+
             return CommandResponse.text(e.getMessage());
         }
 
-        return getResults(results, query, false);
-    }
-
-    /**
-     * Searches for images on Google.
-     */
-    private CommandResponse searchImages() {
-        String query;
-        try {
-            query = getMultiwordOptionValue("query", 1);
-        } catch (Exception e) {
-            return CommandResponse.text("Invalid usage. Use `/help google` for more information.");
-        }
-
-        List<Result> images;
-        try {
-            images = GoogleCustomSearchService.search(query, true);
-            if (images == null || images.isEmpty()) {
-                return CommandResponse.text("No images found for query: " + query);
-            }
-        } catch (Exception e) {
-            logger.error("Error occurred while searching Google Images for query: {}", query);
-            return CommandResponse.text(e.getMessage());
-        }
-
-        return getResults(images, query, true);
+        return getResults(results, query, isImageSearch, before, after);
     }
 
     /**
@@ -110,11 +129,25 @@ public class GoogleCommand extends AGeneralCommand {
      * @param results       The search results.
      * @param query         The search query.
      * @param isImageSearch Whether the search is for images.
+     * @param before        The before year filtered by the user
+     * @param after         The after year filtered by the user
+     * @return The command response
      */
-    private CommandResponse getResults(List<Result> results, String query, boolean isImageSearch) {
+    private CommandResponse getResults(List<Result> results, String query, boolean isImageSearch, Integer before, Integer after) {
         final List<Page> pages = new ArrayList<>();
         Member member = getMember();
         assert member != null;
+
+        String range;
+        if (before != null && after != null) {
+            range = String.format(" [%d-%d]", after, before);
+        } else if (before != null) {
+            range = String.format(" [before %d]", before);
+        } else if (after != null) {
+            range = String.format(" [after %d]", after);
+        } else {
+            range = "";
+        }
 
         if (isImageSearch) {
             for (int i = 0; i < results.size(); i++) {
@@ -125,7 +158,7 @@ public class GoogleCommand extends AGeneralCommand {
 
                 MessageEmbed embed = new EmbedBuilder()
                         .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getEffectiveAvatarUrl())
-                        .setTitle("Image Search Result for: " + query)
+                        .setTitle("\uD83D\uDDBC️ Google Images - " + query + range)
                         .setFooter("Page " + (i + 1) + "/" + results.size())
                         .setColor(Color.red)
                         .addField(title, imageContextUrl, false)
@@ -138,7 +171,7 @@ public class GoogleCommand extends AGeneralCommand {
             for (int i = 0; i < results.size(); i += resultsPerPage) {
                 EmbedBuilder builder = new EmbedBuilder()
                         .setAuthor(member.getUser().getGlobalName(), "https://discord.com/users/" + member.getId(), member.getEffectiveAvatarUrl())
-                        .setTitle("Search Results for: " + query)
+                        .setTitle("\uD83D\uDD0E Google Search - " + query + range)
                         .setColor(Color.blue);
 
                 for (int j = 0; j < resultsPerPage && i + j < results.size(); j++) {
@@ -165,6 +198,16 @@ public class GoogleCommand extends AGeneralCommand {
         }
     }
 
+    /**
+     * Helper method that tells if the alias used was the one for the images subcommand
+     *
+     * @return true if the alias used was the one for the images subcommand
+     */
+    private boolean isImageOnlyAlias() {
+        return source == CommandSource.MESSAGE_COMMAND
+                && command.equalsIgnoreCase("img");
+    }
+
     @Override
     public String getName() {
         return "google";
@@ -183,5 +226,10 @@ public class GoogleCommand extends AGeneralCommand {
     @Override
     public Boolean isHidden() {
         return false;
+    }
+
+    @Override
+    public List<String> getAliases() {
+        return List.of("img"); // Technically an alias for the whole Google command, but meant to only work for images
     }
 }
