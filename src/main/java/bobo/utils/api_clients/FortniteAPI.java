@@ -504,7 +504,7 @@ public final class FortniteAPI {
             String set = "";
             String itemType = "";
 
-            try { // See if it's a normal item
+            if (item.has("newDisplayAsset")) {
                 newDisplayAsset = item.getJSONObject("newDisplayAsset");
 
                 // Get the item image URL and background colors
@@ -517,17 +517,30 @@ public final class FortniteAPI {
                         colors.add(colorsObject.getString(key));
                     }
                 }
-            } catch (JSONException e) { // Must be a jam track
-                try {
+            } else { // Missing asset - most likely a jam track or a car
+                if (item.has("tracks")) {
                     JSONObject trackObject = item.getJSONArray("tracks").getJSONObject(0);
                     shopItemType = ShopItemType.JAM_TRACK;
                     itemName = trackObject.getString("title");
                     imageUrl = trackObject.getString("albumArt");
                     set = trackObject.getString("artist");
-                } catch (JSONException ex) { // I lied and it isn't a jam track
+                } else if (item.has("cars")) {
+                    JSONObject trackObject = item.getJSONArray("cars").getJSONObject(0);
+                    shopItemType = ShopItemType.CAR;
+                    itemName = trackObject.getString("name");
+                    imageUrl = trackObject.getJSONObject("images").getString("small");
+                } else { // I lied and it is just a normal item
                     imageUrl = item.getJSONArray("brItems").getJSONObject(0)
                             .getJSONObject("images")
                             .getString("icon");
+                    JSONObject colorsObject = item.getJSONObject("colors");
+                    Iterator<String> keys = colorsObject.keys();
+                    while (keys.hasNext()) {
+                        String key = keys.next();
+                        if (!key.equals("textBackgroundColor")) {
+                            colors.add(colorsObject.getString(key));
+                        }
+                    }
                 }
             }
 

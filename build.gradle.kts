@@ -23,14 +23,14 @@ repositories {
 
 dependencies {
     // Discord API and Utilities
-    implementation("net.dv8tion:JDA:6.4.1")
+    implementation("net.dv8tion:JDA:6.5.0")
     implementation("club.minnced:jdave-api:0.1.8")
     implementation("club.minnced:jdave-native-linux-x86-64:0.1.8")
     implementation("com.github.ygimenez:Pagination-Utils:4.3.0")
 
     // LavaPlayer
-    implementation("dev.arbjerg:lavaplayer:2.2.6")
-    implementation("dev.lavalink.youtube:v2:1.18.1")
+    implementation("dev.arbjerg:lavaplayer:2.2.7")
+    implementation("dev.lavalink.youtube:v2:1.18.2")
     implementation("com.github.topi314.lavasrc:lavasrc:4.8.3")
     implementation("com.github.topi314.lavalyrics:lavalyrics:1.1.0")
 
@@ -41,10 +41,10 @@ dependencies {
 
     // Image Processing
     implementation("net.coobird:thumbnailator:0.4.21")
-    implementation("com.twelvemonkeys.imageio:imageio-webp:3.13.1")
+    implementation("com.twelvemonkeys.imageio:imageio-webp:3.14.0")
 
     // Database
-    implementation("com.mysql:mysql-connector-j:9.6.0")
+    implementation("com.mysql:mysql-connector-j:26.7.0")
 
     // Logging
     implementation("ch.qos.logback:logback-classic:1.5.32")
@@ -54,14 +54,14 @@ dependencies {
 
     // Other API Wrappers
     implementation("se.michaelthelin.spotify:spotify-web-api-java:9.4.0")
-    implementation("com.openai:openai-java:4.37.0")
+    implementation("com.openai:openai-java:4.43.0")
 
     // Other Java Utilities
     implementation("org.reflections:reflections:0.10.2")
     implementation("org.apache.commons:commons-text:1.15.0")
     implementation("org.apache.httpcomponents.client5:httpclient5:5.6.1")
     implementation("commons-validator:commons-validator:1.10.1")
-    implementation("org.json:json:20260522")
+    implementation("org.json:json:20260719")
 }
 
 tasks.withType<JavaCompile> {
