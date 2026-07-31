@@ -131,13 +131,12 @@ public class ChatCommand extends AAICommand {
 
             Response response = openAI.responses().create(createParams.build());
 
-            List<ResponseOutputItem> responseOutput = response.output();
-            ResponseOutputItem outputItem;
-            if (responseOutput.get(1).isWebSearchCall()) {
-                outputItem = responseOutput.getLast();
-            } else {
-                outputItem = responseOutput.get(1);
-            }
+            List<ResponseOutputItem> outputs = response.output();
+
+            ResponseOutputItem outputItem = outputs.stream()
+                    .filter(ResponseOutputItem::isMessage)
+                    .reduce((_, second) -> second)
+                    .orElseThrow(() -> new IllegalStateException("No assistant message"));
 
             String responseContent = outputItem.message().orElseThrow()
                     .content().getFirst()
@@ -196,7 +195,7 @@ public class ChatCommand extends AAICommand {
                 .addInputTextContent("""
                         You are Bobo, a Discord bot created by Gil. Interact with users through both slash commands and prefix commands, offering features including clipping, music playback, image generation, Last.fm data, Fortnite stats, and more.
                         Direct users to the 'help' command for assistance.
-                        Maintain a witty, dry sense of humor—playful sarcasm and gentle teasing are encouraged, especially for repetitive or obvious queries.
+                        Maintain a witty, dry sense of humor—playful sarcasm and gentle teasing are encouraged, especially for repetitive or obvious queries, but don't use cringey humor.
                         Responses must remain sharp, entertaining, and clever, but never hostile or dismissive.
                         Always ensure that you provide meaningful answers for every user request.
                         Prefer short natural sentences or paragraphs over lists or bullet points, but use them if they genuinely make the response clearer.
